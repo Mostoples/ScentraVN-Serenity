@@ -1,6 +1,7 @@
 /**
  * SYNAWATCH - Assessment Module
  * Handles PHQ-9 (Depression) and UCLA Loneliness Scale questionnaires
+ * With progress persistence and Firestore storage
  */
 
 const Assessment = {
@@ -48,6 +49,198 @@ const Assessment = {
         ucla: []
     },
 
+    // Storage key for localStorage
+    STORAGE_KEY: 'synawatch_assessment_progress',
+
+    /**
+     * Initialize Assessment - check for existing progress or completed assessment
+     */
+    async init() {
+        const user = auth?.currentUser;
+        if (!user) {
+            this.renderIntro();
+            return;
+        }
+
+        // First, check if user has completed assessment in Firestore
+        try {
+            const latestAssessment = await this.getLatestAssessment(user.uid);
+            if (latestAssessment) {
+                // User has completed assessment before - show results
+                this.showSavedResults(latestAssessment);
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking assessment:', error);
+        }
+
+        // Check for in-progress assessment in localStorage
+        const savedProgress = this.loadProgress();
+        if (savedProgress && savedProgress.userId === user.uid) {
+            // Resume from saved progress
+            this.currentStage = savedProgress.currentStage;
+            this.currentIndex = savedProgress.currentIndex;
+            this.answers = savedProgress.answers;
+
+            if (this.currentStage === 'phq9' || this.currentStage === 'ucla') {
+                this.renderQuestion();
+            } else {
+                this.renderIntro();
+            }
+        } else {
+            // No progress - show intro
+            this.renderIntro();
+        }
+    },
+
+    /**
+     * Get latest completed assessment from Firestore
+     */
+    async getLatestAssessment(userId) {
+        if (typeof db === 'undefined') return null;
+
+        try {
+            const snapshot = await FirebaseService.userCol(userId, 'assessments')
+                .orderBy('timestamp', 'desc')
+                .limit(1)
+                .get();
+
+            if (snapshot.empty) return null;
+
+            const doc = snapshot.docs[0];
+            return { id: doc.id, ...doc.data() };
+        } catch (error) {
+            console.error('Error getting assessment:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Render intro screen
+     */
+    renderIntro() {
+        const container = document.getElementById('assessmentContent');
+        if (!container) return;
+
+        // Reset progress bar
+        const progressBar = document.getElementById('assessmentProgress');
+        if (progressBar) progressBar.style.width = '0%';
+
+        // Show progress wrapper
+        const progressWrapper = document.getElementById('assessmentProgressWrapper');
+        if (progressWrapper) progressWrapper.style.display = 'block';
+
+        container.innerHTML = `
+            <div style="text-align: center; animation: fadeIn 0.5s;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 2.5rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">Selamat Datang!</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6;">Untuk mempersonalisasi SYNAWATCH sesuai dengan kondisi Anda, kami perlu menanyakan beberapa hal (PHQ-9 & UCLA Loneliness Scale). Data ini dijamin kerahasiaannya.</p>
+                <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem;" onclick="Assessment.start()">Mulai Evaluasi</button>
+            </div>
+        `;
+    },
+
+    /**
+     * Show saved results from Firestore
+     */
+    showSavedResults(assessment) {
+        const phq9Score = assessment.phq9?.score ?? 0;
+        const phq9Category = assessment.phq9?.category ?? 'Unknown';
+        const uclaScore = assessment.ucla?.score ?? 0;
+        const uclaCategory = assessment.ucla?.category ?? 'Unknown';
+
+        // Format date
+        let dateStr = 'Unknown';
+        if (assessment.timestamp?.toDate) {
+            dateStr = assessment.timestamp.toDate().toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        } else if (assessment.date) {
+            dateStr = new Date(assessment.date).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
+        const container = document.getElementById('assessmentContent');
+        if (!container) return;
+
+        // Hide progress bar
+        const progressWrapper = document.getElementById('assessmentProgressWrapper');
+        if (progressWrapper) progressWrapper.style.display = 'none';
+
+        // Calculate fusion score
+        const fusion = this.calculateFusionScore(phq9Score, uclaScore);
+
+        container.innerHTML = `
+            <div style="text-align: center; animation: fadeIn 0.5s;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-400), var(--primary-600)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 2.5rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 8px;">Hasil Evaluasi Terakhir</h2>
+                <p style="color: var(--text-tertiary); margin-bottom: 24px; font-size: 0.9rem;">
+                    <i class="fas fa-calendar-alt"></i> ${dateStr}
+                </p>
+
+                <!-- Fusion Score -->
+                <div style="background: linear-gradient(135deg, ${fusion.fusionColor}15, ${fusion.fusionColor}08); padding: 20px; border-radius: 16px; border: 2px solid ${fusion.fusionColor}30; margin-bottom: 16px;">
+                    <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">SynaScore</p>
+                    <p style="font-size: 3rem; font-weight: 800; color: ${fusion.fusionColor}; margin-bottom: 4px;">${fusion.fusionScore}</p>
+                    <p style="font-size: var(--text-sm); font-weight: 600; color: ${fusion.fusionColor};">${fusion.fusionCategory}</p>
+                </div>
+
+                <!-- Score Cards -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div style="background: var(--bg-secondary); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
+                        <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">PHQ-9</p>
+                        <p style="font-size: var(--text-3xl); font-weight: 800; color: var(--primary-600); margin-bottom: 4px;">${phq9Score}</p>
+                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${phq9Category}</p>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
+                        <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">UCLA</p>
+                        <p style="font-size: var(--text-3xl); font-weight: 800; color: var(--info-600); margin-bottom: 4px;">${uclaScore}</p>
+                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${uclaCategory}</p>
+                    </div>
+                </div>
+
+                <!-- Longitudinal Chart -->
+                <div id="longitudinalContainer"></div>
+
+                <!-- Actions -->
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="Assessment.retakeAssessment()">
+                        <i class="fas fa-redo"></i> Ulangi Evaluasi
+                    </button>
+                    <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="Router.navigate('dashboard')">
+                        <i class="fas fa-home"></i> Ke Dashboard
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Render longitudinal chart
+        const longitudinalContainer = document.getElementById('longitudinalContainer');
+        if (longitudinalContainer) {
+            this.renderLongitudinalChart(longitudinalContainer);
+        }
+    },
+
+    /**
+     * Retake assessment - reset and start fresh
+     */
+    retakeAssessment() {
+        this.clearProgress();
+        this.currentStage = 'intro';
+        this.currentIndex = 0;
+        this.answers = { phq9: [], ucla: [] };
+        this.start();
+    },
+
     /**
      * Start Assessment
      */
@@ -55,7 +248,56 @@ const Assessment = {
         this.currentStage = 'phq9';
         this.currentIndex = 0;
         this.answers = { phq9: [], ucla: [] };
+        this.saveProgress();
         this.renderQuestion();
+    },
+
+    /**
+     * Save progress to localStorage
+     */
+    saveProgress() {
+        const user = auth?.currentUser;
+        if (!user) return;
+
+        const progress = {
+            userId: user.uid,
+            currentStage: this.currentStage,
+            currentIndex: this.currentIndex,
+            answers: this.answers,
+            savedAt: new Date().toISOString()
+        };
+
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+        } catch (error) {
+            console.error('Error saving progress:', error);
+        }
+    },
+
+    /**
+     * Load progress from localStorage
+     */
+    loadProgress() {
+        try {
+            const saved = localStorage.getItem(this.STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (error) {
+            console.error('Error loading progress:', error);
+        }
+        return null;
+    },
+
+    /**
+     * Clear progress from localStorage
+     */
+    clearProgress() {
+        try {
+            localStorage.removeItem(this.STORAGE_KEY);
+        } catch (error) {
+            console.error('Error clearing progress:', error);
+        }
     },
 
     /**
@@ -64,9 +306,11 @@ const Assessment = {
     selectAnswer(value) {
         if (this.currentStage === 'phq9') {
             this.answers.phq9[this.currentIndex] = value;
+            this.saveProgress(); // Save after each answer
             this.next();
         } else if (this.currentStage === 'ucla') {
             this.answers.ucla[this.currentIndex] = value;
+            this.saveProgress(); // Save after each answer
             this.next();
         }
     },
@@ -78,20 +322,38 @@ const Assessment = {
         if (this.currentStage === 'phq9') {
             if (this.currentIndex < this.phq9.length - 1) {
                 this.currentIndex++;
+                this.saveProgress();
                 this.renderQuestion();
             } else {
                 this.currentStage = 'ucla';
                 this.currentIndex = 0;
+                this.saveProgress();
                 this.renderQuestion();
             }
         } else if (this.currentStage === 'ucla') {
             if (this.currentIndex < this.ucla.length - 1) {
                 this.currentIndex++;
+                this.saveProgress();
                 this.renderQuestion();
             } else {
                 this.finish();
             }
         }
+    },
+
+    /**
+     * Go to previous question
+     */
+    prev() {
+        if (this.currentStage === 'ucla' && this.currentIndex === 0) {
+            // Go back to last PHQ-9 question
+            this.currentStage = 'phq9';
+            this.currentIndex = this.phq9.length - 1;
+        } else if (this.currentIndex > 0) {
+            this.currentIndex--;
+        }
+        this.saveProgress();
+        this.renderQuestion();
     },
 
     /**
@@ -101,49 +363,85 @@ const Assessment = {
         const container = document.getElementById('assessmentContent');
         if (!container) return;
 
+        // Show progress wrapper
+        const progressWrapper = document.getElementById('assessmentProgressWrapper');
+        if (progressWrapper) progressWrapper.style.display = 'block';
+
         let totalQuestions = this.phq9.length + this.ucla.length;
         let currentOverallIndex = this.currentStage === 'phq9' ? this.currentIndex : this.phq9.length + this.currentIndex;
         let progress = Math.round((currentOverallIndex / totalQuestions) * 100);
-        
+
         // Update progress bar
         const progressBar = document.getElementById('assessmentProgress');
         if (progressBar) progressBar.style.width = progress + '%';
+
+        // Check if there's a previously selected answer for this question
+        const previousAnswer = this.currentStage === 'phq9'
+            ? this.answers.phq9[this.currentIndex]
+            : this.answers.ucla[this.currentIndex];
+
+        // Can go back?
+        const canGoBack = !(this.currentStage === 'phq9' && this.currentIndex === 0);
 
         let html = '';
         if (this.currentStage === 'phq9') {
             html = `
                 <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
-                    <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: var(--primary-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">Bagian 1: Kesejahteraan Mental</span>
+                    <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: var(--primary-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">Bagian 1: Kesejahteraan Mental (${this.currentIndex + 1}/${this.phq9.length})</span>
                     <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Dalam 2 minggu terakhir, seberapa sering Anda terganggu oleh masalah berikut?</p>
                 </div>
                 <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
                     <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.phq9[this.currentIndex]}</h3>
                     <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(0)">Tidak pernah sama sekali</button>
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(1)">Beberapa hari</button>
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(2)">Lebih dari separuh waktu</button>
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(3)">Hampir setiap hari</button>
+                        <button class="btn ${previousAnswer === 0 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(0)">
+                            ${previousAnswer === 0 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Tidak pernah sama sekali
+                        </button>
+                        <button class="btn ${previousAnswer === 1 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(1)">
+                            ${previousAnswer === 1 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Beberapa hari
+                        </button>
+                        <button class="btn ${previousAnswer === 2 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(2)">
+                            ${previousAnswer === 2 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Lebih dari separuh waktu
+                        </button>
+                        <button class="btn ${previousAnswer === 3 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(3)">
+                            ${previousAnswer === 3 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Hampir setiap hari
+                        </button>
                     </div>
                 </div>
+                ${canGoBack ? `
+                <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
+                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                </button>
+                ` : ''}
             `;
         } else if (this.currentStage === 'ucla') {
             html = `
                 <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
-                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">Bagian 2: Interaksi Sosial</span>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">Bagian 2: Interaksi Sosial (${this.currentIndex + 1}/${this.ucla.length})</span>
                     <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Seberapa sering Anda merasakan hal berikut?</p>
                 </div>
                 <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
                     <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.ucla[this.currentIndex]}</h3>
                     <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(1)">Tidak pernah (Never)</button>
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(2)">Jarang (Rarely)</button>
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(3)">Kadang-kadang (Sometimes)</button>
-                        <button class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(4)">Sering (Often)</button>
+                        <button class="btn ${previousAnswer === 1 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(1)">
+                            ${previousAnswer === 1 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Tidak pernah (Never)
+                        </button>
+                        <button class="btn ${previousAnswer === 2 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(2)">
+                            ${previousAnswer === 2 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Jarang (Rarely)
+                        </button>
+                        <button class="btn ${previousAnswer === 3 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(3)">
+                            ${previousAnswer === 3 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Kadang-kadang (Sometimes)
+                        </button>
+                        <button class="btn ${previousAnswer === 4 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(4)">
+                            ${previousAnswer === 4 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Sering (Often)
+                        </button>
                     </div>
                 </div>
+                <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
+                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                </button>
             `;
         }
-        
+
         container.innerHTML = html;
         window.scrollTo(0, 0);
     },
@@ -154,7 +452,7 @@ const Assessment = {
     async finish() {
         // Calculate PHQ-9 (Sum of all answers: 0-27)
         const phq9Score = this.answers.phq9.reduce((a, b) => a + b, 0);
-        
+
         // Calculate UCLA
         // Items 1, 5, 6, 9, 10, 15, 16, 19, 20 are reversed scored
         let uclaScore = 0;
@@ -211,13 +509,16 @@ const Assessment = {
                         answers: this.answers.ucla
                     }
                 });
-                
+
                 // Update User document to mark onboarding complete
                 await db.collection('users').doc(user.uid).set({
                     onboardingCompleted: true,
                     lastAssessmentDate: firebase.firestore.FieldValue.serverTimestamp(),
                     initialPhq9Score: phq9Score
                 }, { merge: true });
+
+                // Clear localStorage progress since we're done
+                this.clearProgress();
             }
 
             // Show results

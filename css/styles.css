@@ -4614,3 +4614,777 @@ body.synachat-view .synachat-container {
     line-height: 1.6;
     border-left: 3px solid var(--success-500);
 }
+
+/* =====================================================
+   MODERN HEALTH PAGE STYLES
+   Professional medical-grade UI design
+   ===================================================== */
+
+.health-page {
+    padding: 0;
+    padding-bottom: 100px;
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    min-height: 100vh;
+}
+
+/* Health Header */
+.health-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    padding: 24px 20px 32px;
+    border-radius: 0 0 32px 32px;
+    margin-bottom: -20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.health-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.health-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.health-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    gap: 16px;
+}
+
+.health-header-left {
+    color: white;
+    flex: 1;
+    min-width: 0;
+}
+
+.health-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.health-subtitle {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* BLE Connect Button */
+.ble-connect-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    padding: 0;
+    border-radius: 50px;
+    color: white;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.ble-connect-btn:hover {
+    background: rgba(255,255,255,0.3);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.ble-connect-btn:active {
+    transform: translateY(0);
+}
+
+.ble-btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ble-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    flex-shrink: 0;
+}
+
+.ble-connect-btn i {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.ble-connect-btn.connected {
+    background: rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.ble-connect-btn.connected .ble-status-dot {
+    background: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.ble-connect-btn.connecting {
+    background: rgba(251, 191, 36, 0.25);
+    border-color: rgba(251, 191, 36, 0.5);
+}
+
+.ble-connect-btn.connecting .ble-status-dot {
+    background: #fbbf24;
+    animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px #10b981; }
+    50% { box-shadow: 0 0 16px #10b981, 0 0 24px #10b981; }
+}
+
+/* Heart Rate Showcase */
+.hr-showcase {
+    background: white;
+    margin: 0 16px;
+    padding: 32px 24px;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.hr-ring-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 20px;
+}
+
+.hr-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.hr-ring-bg {
+    fill: none;
+    stroke: #f1f5f9;
+    stroke-width: 12;
+}
+
+.hr-ring-progress {
+    fill: none;
+    stroke: url(#hrGradient);
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-dasharray: 565.48;
+    stroke-dashoffset: 565.48;
+    transition: stroke-dashoffset 0.8s ease;
+}
+
+/* Fallback gradient for HR ring */
+.hr-ring-progress {
+    stroke: #ef4444;
+}
+
+.hr-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.hr-icon-pulse {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    animation: heartbeat 1.2s ease-in-out infinite;
+}
+
+.hr-icon-pulse i {
+    color: white;
+    font-size: 1.25rem;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.15); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.1); }
+    60% { transform: scale(1); }
+}
+
+.hr-value-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+}
+
+.hr-number {
+    font-size: 2.75rem;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.hr-unit {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.hr-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.hr-status .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.hr-status.normal .status-dot {
+    background: #10b981;
+}
+
+.hr-status.warning .status-dot {
+    background: #f59e0b;
+}
+
+.hr-status.danger .status-dot {
+    background: #ef4444;
+}
+
+.hr-meta {
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.hr-meta-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.hr-meta-item i {
+    color: #8b5cf6;
+}
+
+/* Vitals Section */
+.vitals-section {
+    padding: 24px 16px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.section-header h2 i {
+    color: #6366f1;
+}
+
+.live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+}
+
+.live-badge.offline {
+    background: rgba(148, 163, 184, 0.1);
+    color: #64748b;
+}
+
+.live-badge.offline .live-dot {
+    background: #94a3b8;
+    animation: none;
+}
+
+/* Vitals Grid */
+.vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+/* Vital Card */
+.vital-card {
+    background: white;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.vital-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.vital-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.vital-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.vital-icon.spo2 {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+    color: #3b82f6;
+}
+
+.vital-icon.temp {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+    color: #10b981;
+}
+
+.vital-icon.ambient {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
+    color: #f59e0b;
+}
+
+.vital-icon.activity {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+    color: #8b5cf6;
+}
+
+.vital-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.vital-badge.normal {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.vital-badge.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.vital-badge.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.vital-card-body {
+    margin-bottom: 8px;
+}
+
+.vital-value {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.vital-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.02em;
+}
+
+.vital-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.vital-unit {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.vital-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.vital-card-footer {
+    padding-top: 8px;
+    border-top: 1px solid #f8fafc;
+}
+
+.vital-range {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+/* Wellness Section */
+.wellness-section {
+    padding: 8px 16px 24px;
+}
+
+.wellness-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+/* Wellness Card */
+.wellness-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
+}
+
+.wellness-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Gauge */
+.wellness-gauge {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 12px;
+}
+
+.gauge-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.gauge-bg {
+    fill: none;
+    stroke: #f1f5f9;
+    stroke-width: 8;
+}
+
+.gauge-fill {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 339.29;
+    stroke-dashoffset: 339.29;
+    transition: stroke-dashoffset 0.8s ease;
+}
+
+.stress-gauge {
+    stroke: #f59e0b;
+}
+
+.gsr-gauge {
+    stroke: #8b5cf6;
+}
+
+.gauge-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.gauge-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.gauge-unit {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.wellness-info h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 6px 0;
+}
+
+.wellness-status {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 50px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.wellness-status.moderate {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.wellness-status.high {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.wellness-tip {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin: 8px 0 0 0;
+    line-height: 1.4;
+}
+
+/* Recording Banner */
+.recording-banner {
+    margin: 0 16px 16px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #fcd34d;
+    border-radius: 16px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.recording-dot {
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: blink 1s ease-in-out infinite;
+}
+
+.recording-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #92400e;
+}
+
+.recording-divider {
+    opacity: 0.5;
+}
+
+/* Health Actions */
+.health-actions {
+    padding: 0 16px;
+    display: flex;
+    gap: 12px;
+}
+
+.health-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.health-action-btn.primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.health-action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+}
+
+.health-action-btn.secondary {
+    background: white;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.health-action-btn.secondary:hover {
+    background: #f8fafc;
+    transform: translateY(-2px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    .health-header-content {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .health-header-left {
+        flex: 1 1 100%;
+    }
+
+    .ble-connect-btn {
+        width: 100%;
+    }
+
+    .ble-btn-content {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+    }
+}
+
+@media (max-width: 400px) {
+    .health-header {
+        padding: 20px 16px 28px;
+    }
+
+    .health-title {
+        font-size: 1.4rem;
+    }
+
+    .health-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .ble-btn-content {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+
+    .hr-showcase {
+        margin: 0 12px;
+        padding: 24px 16px;
+    }
+
+    .hr-ring-container {
+        width: 160px;
+        height: 160px;
+    }
+
+    .hr-number {
+        font-size: 2.25rem;
+    }
+
+    .vitals-grid {
+        gap: 10px;
+    }
+
+    .vital-card {
+        padding: 14px;
+    }
+
+    .vital-number {
+        font-size: 1.5rem;
+    }
+
+    .wellness-card {
+        padding: 16px 12px;
+    }
+
+    .wellness-gauge {
+        width: 80px;
+        height: 80px;
+    }
+
+    .gauge-value {
+        font-size: 1.25rem;
+    }
+
+    .health-actions {
+        flex-direction: column;
+    }
+}

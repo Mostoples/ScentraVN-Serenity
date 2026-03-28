@@ -10,7 +10,7 @@ const Views = {
     assessment() {
         return `
             <div class="view-container" style="max-width: 600px; margin: 0 auto; padding-top: 40px;">
-                <div id="assessmentProgressWrapper" style="margin-bottom: 32px;">
+                <div id="assessmentProgressWrapper" style="margin-bottom: 32px; display: none;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Progres Evaluasi</span>
                     </div>
@@ -20,13 +20,9 @@ const Views = {
                 </div>
 
                 <div id="assessmentContent">
-                    <div style="text-align: center; animation: fadeIn 0.5s;">
-                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 2.5rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
-                            <i class="fas fa-clipboard-list"></i>
-                        </div>
-                        <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">Selamat Datang!</h2>
-                        <p style="color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6;">Untuk mempersonalisasi SYNAWATCH sesuai dengan kondisi Anda, kami perlu menanyakan beberapa hal (PHQ-9 & UCLA Loneliness Scale). Data ini dijamin kerahasiaannya.</p>
-                        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem;" onclick="Assessment.start()">Mulai Evaluasi</button>
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
+                        <p style="color: var(--text-tertiary);">Memuat evaluasi...</p>
                     </div>
                 </div>
             </div>
@@ -341,119 +337,218 @@ const Views = {
     },
 
     /**
-     * Health View
+     * Health View - Modern Professional Design
      */
     health() {
         return `
-            <div class="view-container">
-                <!-- BLE Connection Card -->
-                <div id="bleCard" class="ble-card">
-                    <i class="fas fa-bluetooth"></i>
-                    <h3>Connect to SYNAWATCH</h3>
-                    <p>Connect to your smartwatch via Bluetooth to start monitoring</p>
-                    <button class="btn btn-primary" onclick="BLEConnection.toggle()">
-                        <!-- Explicit white: FA link glyph can inherit wrong color on some browsers -->
-                        <i class="fas fa-link" style="color: #fff;"></i>
-                        Connect Device
-                    </button>
-                </div>
-
-                <!-- Heart Rate Hero -->
-                <div class="health-hero">
-                    <i class="fas fa-heart pulse" style="font-size: 2.5rem; margin-bottom: var(--space-3);"></i>
-                    <div class="big-value"><span id="hrValue">--</span></div>
-                    <div class="label">BPM - Heart Rate</div>
-                    <div id="fingerStatus" style="margin-top: var(--space-3); font-size: var(--text-sm); display: flex; align-items: center; justify-content: center; gap: var(--space-2); opacity: 0.9;">
-                        <i class="fas fa-fingerprint"></i>
-                        <span>Place finger on sensor</span>
+            <div class="health-page">
+                <!-- Header with Connection Status -->
+                <div class="health-header">
+                    <div class="health-header-content">
+                        <div class="health-header-left">
+                            <h1 class="health-title">Health Monitor</h1>
+                            <p class="health-subtitle">Real-time vitals tracking</p>
+                        </div>
+                        <button id="bleConnectBtn" class="ble-connect-btn" onclick="BLEConnection.toggle()">
+                            <span class="ble-btn-content">
+                                <span class="ble-status-dot" id="bleIndicator"></span>
+                                <i class="fas fa-bluetooth-b"></i>
+                                <span id="bleStatusText">Connect</span>
+                            </span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Current Metrics -->
-                <div class="card-grid">
-                    <div class="card metric-card">
-                        <div class="metric-icon info">
-                            <i class="fas fa-lungs"></i>
-                        </div>
-                        <div class="metric-value">
-                            <span id="spo2Value">--</span>
-                            <span class="metric-unit">%</span>
-                        </div>
-                        <div class="metric-label">SpO2</div>
-                        <span id="spo2Status" class="metric-status gray">No Data</span>
-                    </div>
-
-                    <div class="card metric-card">
-                        <div class="metric-icon success">
-                            <i class="fas fa-temperature-half"></i>
-                        </div>
-                        <div class="metric-value">
-                            <span id="btValue">--</span>
-                            <span class="metric-unit">°C</span>
-                        </div>
-                        <div class="metric-label">Body Temp</div>
-                    </div>
-                </div>
-
-                <!-- Stress & GSR Section -->
-                <h3 class="section-title">Stress & Emotional State</h3>
-
-                <div class="card" style="margin-bottom: var(--space-4);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-                        <div>
-                            <h4 style="font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-1); color: var(--text-primary);">Stress Level</h4>
-                            <span id="stressStatus" class="metric-status success">Low</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--text-primary);">
-                                <span id="stressValue">0</span>%
+                <!-- Main Heart Rate Display -->
+                <div class="hr-showcase">
+                    <div class="hr-ring-container">
+                        <svg class="hr-ring" viewBox="0 0 200 200">
+                            <circle class="hr-ring-bg" cx="100" cy="100" r="90" />
+                            <circle class="hr-ring-progress" id="hrRingProgress" cx="100" cy="100" r="90" />
+                        </svg>
+                        <div class="hr-center">
+                            <div class="hr-icon-pulse">
+                                <i class="fas fa-heartbeat"></i>
                             </div>
-                            <div id="stressLabel" style="font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--success-400);">Rendah</div>
+                            <div class="hr-value-display">
+                                <span class="hr-number" id="hrValue">--</span>
+                                <span class="hr-unit">BPM</span>
+                            </div>
+                            <div class="hr-status" id="hrStatus">
+                                <span class="status-dot"></span>
+                                <span>Waiting for data</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="progress-bar" style="height: 10px;">
-                        <div id="stressBar" class="progress-fill" style="width: 0%;"></div>
-                    </div>
-                    <!-- Activity Status -->
-                    <div style="margin-top: var(--space-4); display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--bg-tertiary); border-radius: var(--radius-lg);">
-                        <div style="width: 40px; height: 40px; background: rgba(99, 102, 241, 0.15); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
-                            <i id="actIcon" class="fas fa-person" style="font-size: var(--text-lg); color: var(--primary-400);"></i>
+                    <div class="hr-meta">
+                        <div class="hr-meta-item">
+                            <i class="fas fa-fingerprint"></i>
+                            <span id="fingerStatus">Place finger on sensor</span>
                         </div>
-                        <div>
-                            <div style="font-size: var(--text-xs); color: var(--text-tertiary);">Activity Status</div>
-                            <div id="actValue" style="font-weight: var(--font-semibold); color: var(--text-primary);">Resting</div>
+                    </div>
+                </div>
+
+                <!-- Vital Signs Grid -->
+                <div class="vitals-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-wave-square"></i> Vital Signs</h2>
+                        <span class="live-badge" id="liveIndicator">
+                            <span class="live-dot"></span> Live
+                        </span>
+                    </div>
+
+                    <div class="vitals-grid">
+                        <!-- SpO2 Card -->
+                        <div class="vital-card spo2-card">
+                            <div class="vital-card-header">
+                                <div class="vital-icon spo2">
+                                    <i class="fas fa-lungs"></i>
+                                </div>
+                                <span class="vital-badge" id="spo2Status">--</span>
+                            </div>
+                            <div class="vital-card-body">
+                                <div class="vital-value">
+                                    <span class="vital-number" id="spo2Value">--</span>
+                                    <span class="vital-unit">%</span>
+                                </div>
+                                <div class="vital-label">Blood Oxygen</div>
+                            </div>
+                            <div class="vital-card-footer">
+                                <div class="vital-range">
+                                    <span>Normal: 95-100%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Body Temperature Card -->
+                        <div class="vital-card temp-card">
+                            <div class="vital-card-header">
+                                <div class="vital-icon temp">
+                                    <i class="fas fa-temperature-half"></i>
+                                </div>
+                                <span class="vital-badge" id="tempStatus">--</span>
+                            </div>
+                            <div class="vital-card-body">
+                                <div class="vital-value">
+                                    <span class="vital-number" id="btValue">--</span>
+                                    <span class="vital-unit">°C</span>
+                                </div>
+                                <div class="vital-label">Body Temperature</div>
+                            </div>
+                            <div class="vital-card-footer">
+                                <div class="vital-range">
+                                    <span>Normal: 36.1-37.2°C</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ambient Temperature Card -->
+                        <div class="vital-card ambient-card">
+                            <div class="vital-card-header">
+                                <div class="vital-icon ambient">
+                                    <i class="fas fa-sun"></i>
+                                </div>
+                            </div>
+                            <div class="vital-card-body">
+                                <div class="vital-value">
+                                    <span class="vital-number" id="atValue">--</span>
+                                    <span class="vital-unit">°C</span>
+                                </div>
+                                <div class="vital-label">Room Temperature</div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Card -->
+                        <div class="vital-card activity-card">
+                            <div class="vital-card-header">
+                                <div class="vital-icon activity">
+                                    <i id="actIcon" class="fas fa-person"></i>
+                                </div>
+                            </div>
+                            <div class="vital-card-body">
+                                <div class="vital-value">
+                                    <span class="vital-text" id="actValue">Resting</span>
+                                </div>
+                                <div class="vital-label">Activity Status</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card" style="margin-bottom: var(--space-6);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-                        <div>
-                            <h4 style="font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-1); color: var(--text-primary);">GSR (Sweat Activity)</h4>
-                            <span id="gsrStatusBadge" class="metric-status success">Relaxed</span>
-                        </div>
-                        <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--text-primary);">
-                            <span id="gsrValue">0</span>%
-                        </div>
+                <!-- Stress & Wellness Section -->
+                <div class="wellness-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-brain"></i> Mental Wellness</h2>
                     </div>
-                    <div class="progress-bar" style="height: 10px;">
-                        <div id="gsrBar" class="progress-fill" style="width: 0%;"></div>
+
+                    <div class="wellness-grid">
+                        <!-- Stress Level Card -->
+                        <div class="wellness-card stress-card">
+                            <div class="wellness-card-inner">
+                                <div class="wellness-gauge">
+                                    <svg class="gauge-svg" viewBox="0 0 120 120">
+                                        <circle class="gauge-bg" cx="60" cy="60" r="54" />
+                                        <circle class="gauge-fill stress-gauge" id="stressGauge" cx="60" cy="60" r="54" />
+                                    </svg>
+                                    <div class="gauge-center">
+                                        <span class="gauge-value" id="stressValue">0</span>
+                                        <span class="gauge-unit">%</span>
+                                    </div>
+                                </div>
+                                <div class="wellness-info">
+                                    <h3>Stress Level</h3>
+                                    <span class="wellness-status" id="stressStatus">Low</span>
+                                    <p class="wellness-tip" id="stressTip">You're doing great! Keep it up.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GSR Card -->
+                        <div class="wellness-card gsr-card">
+                            <div class="wellness-card-inner">
+                                <div class="wellness-gauge">
+                                    <svg class="gauge-svg" viewBox="0 0 120 120">
+                                        <circle class="gauge-bg" cx="60" cy="60" r="54" />
+                                        <circle class="gauge-fill gsr-gauge" id="gsrGauge" cx="60" cy="60" r="54" />
+                                    </svg>
+                                    <div class="gauge-center">
+                                        <span class="gauge-value" id="gsrValue">0</span>
+                                        <span class="gauge-unit">%</span>
+                                    </div>
+                                </div>
+                                <div class="wellness-info">
+                                    <h3>GSR Activity</h3>
+                                    <span class="wellness-status" id="gsrStatusBadge">Relaxed</span>
+                                    <p class="wellness-tip" id="gsrTip">Skin conductance is normal.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Auto Recording Status -->
-                <div id="autoRecordStatus" class="card" style="margin-bottom: var(--space-4); display: none;">
-                    <div style="display: flex; align-items: center; gap: var(--space-3);">
-                        <div style="width: 12px; height: 12px; background: var(--danger-500); border-radius: 50%; animation: blink 1s ease-in-out infinite;"></div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: var(--font-semibold); color: var(--text-primary); font-size: var(--text-sm);">Auto Recording</div>
-                            <div style="font-size: var(--text-xs); color: var(--text-tertiary);">Data disimpan otomatis ke cloud</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div id="recordingTimer" style="font-size: var(--text-lg); font-weight: var(--font-bold); color: var(--primary-400);">00:00</div>
-                            <div id="recordingCount" style="font-size: var(--text-xs); color: var(--text-tertiary);">0 readings</div>
-                        </div>
+                <!-- Recording Status -->
+                <div id="autoRecordStatus" class="recording-banner" style="display: none;">
+                    <div class="recording-indicator">
+                        <span class="recording-dot"></span>
+                        <span>Recording</span>
                     </div>
+                    <div class="recording-info">
+                        <span id="recordingTimer">00:00</span>
+                        <span class="recording-divider">•</span>
+                        <span id="recordingCount">0 readings</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="health-actions">
+                    <button class="health-action-btn primary" onclick="Router.navigate('analytics')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>View Analytics</span>
+                    </button>
+                    <button class="health-action-btn secondary" onclick="Router.navigate('synachat')">
+                        <i class="fas fa-robot"></i>
+                        <span>Ask Dr. Synachat</span>
+                    </button>
                 </div>
             </div>
         `;

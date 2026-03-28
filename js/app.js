@@ -87,6 +87,10 @@ const App = {
             const nav = document.querySelector('.bottom-nav');
             if (nav) nav.style.display = 'flex';
             Router.render(Views.assessment());
+            // Initialize assessment - check for saved progress or completed results
+            if (typeof Assessment !== 'undefined' && Assessment.init) {
+                Assessment.init();
+            }
         });
 
         Router.register('dashboard', () => {
