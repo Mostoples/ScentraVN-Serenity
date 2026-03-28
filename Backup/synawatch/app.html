@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="SYNAWATCH - Smart Health Monitoring System. Monitor heart rate, SpO2, stress levels with AI-powered health assistant.">
+    <title>SYNAWATCH - Smart Health Monitoring</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#8B5CF6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SYNAWATCH">
+    <meta name="application-name" content="SYNAWATCH">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#8B5CF6">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/svg+xml" href="images/icons/icon.svg">
+    <link rel="apple-touch-icon" href="images/icons/icon.svg">
+    <link rel="mask-icon" href="images/icons/icon.svg" color="#8B5CF6">
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/yoga.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <h1 class="loading-title">SYNAWATCH</h1>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Initializing...</p>
+        </div>
+    </div>
+
+    <!-- Aura Background Animation -->
+    <div class="aura-background">
+        <div class="aura aura-1"></div>
+        <div class="aura aura-2"></div>
+        <div class="aura aura-3"></div>
+    </div>
+
+    <!-- App Container -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="app-logo">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="header-info">
+                    <span id="currentTime" class="header-time">--:--</span>
+                    <span class="header-date" id="currentDate"></span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="bleConnectBtn" class="ble-button" aria-label="Connect Bluetooth">
+                    <i class="fas fa-bluetooth-b"></i>
+                    <span class="ble-status">Connect</span>
+                </button>
+                <div id="bleIndicator" class="ble-indicator disconnected">
+                    <span class="indicator-dot"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="view-container" class="view-container">
+            <!-- Views will be rendered here by Router -->
+        </main>
+
+        <!-- Bottom Navigation will be added by App.setupNavigation() -->
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- Three.js for 3D Avatar (r128 - stable legacy version) -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://unpkg.com/fflate@0.7.3/umd/index.js"></script>
+
+    <!-- App Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/ble-connection.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/views.js"></script>
+
+    <!-- 3D Avatar & TTS Scripts -->
+    <script src="js/audio-queue.js"></script>
+    <script src="js/audio-analyser.js"></script>
+    <script src="js/elevenlabs-tts.js"></script>
+    <script src="js/synachat-avatar.js"></script>
+    <script src="js/synachat.js"></script>
+
+    <!-- App Modules -->
+    <script src="js/assessment.js"></script>
+    <script src="js/intervention-engine.js"></script>
+    <script src="js/sleep.js"></script>
+    <script src="js/moodbooster.js"></script>
+    <script src="js/mindful.js"></script>
+    <script src="js/journal.js"></script>
+    <script src="js/support.js"></script>
+    <script src="js/academy.js"></script>
+    <script src="js/research.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/admin-ui.js"></script>
+    <script src="js/games.js"></script>
+    <script src="js/yoga.js"></script>
+
+    <!-- HEROIC XAI Modules (Sprint 1–4) -->
+    <!-- heroic-xai.js    — Score Engine + XAI Explanation + InterventionEngine extension -->
+    <!-- heroic-program.js — 36 HEROIC activities + Views.heroic() template              -->
+    <!-- heroic-journal.js — HEROIC journal templates + Gemini analysis overlay           -->
+    <!-- heroic-games.js  — 5 HEROIC therapeutic games + HeroicGames.renderIntoGamesView -->
+    <script src="js/heroic-xai.js"></script>
+    <script src="js/heroic-program.js"></script>
+    <script src="js/heroic-journal.js"></script>
+    <script src="js/heroic-games.js"></script>
+
+    <script src="js/app.js"></script>
+
+    <!-- PWA Support -->
+    <script src="js/pwa.js"></script>
+
+    <script>
+        // Show app when loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update date
+            const dateEl = document.getElementById('currentDate');
+            if (dateEl) {
+                dateEl.textContent = new Date().toLocaleDateString('id-ID', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short'
+                });
+            }
+
+            // Hide loading screen after auth check
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loadingScreen');
+                const app = document.getElementById('app');
+
+                if (loadingScreen && app) {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        app.style.display = 'block';
+                        app.style.animation = 'fadeIn 0.5s ease-out';
+                    }, 300);
+                }
+            }, 1000);
+        });
+
+        // BLE Connect Button
+        document.getElementById('bleConnectBtn')?.addEventListener('click', async () => {
+            if (typeof BLEConnection !== 'undefined') {
+                const indicator = document.getElementById('bleIndicator');
+
+                if (BLEConnection.isConnected()) {
+                    await BLEConnection.disconnect();
+                    if (indicator) indicator.className = 'ble-indicator disconnected';
+                } else {
+                    try {
+                        await BLEConnection.connect();
+                        if (indicator) indicator.className = 'ble-indicator connected';
+                    } catch (e) {
+                        if (indicator) indicator.className = 'ble-indicator disconnected';
+                        console.error('BLE connection failed:', e);
+                    }
+                }
+            }
+        });
+    </script>
+
+    <style>
+        /* Loading Screen - Light Theme */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 60%, #ede9fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.35);
+        }
+
+        .loading-logo i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .loading-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(139, 92, 246, 0.15);
+            border-top-color: #8B5CF6;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* App Container - Responsive */
+        .app-container {
+            min-height: 100vh;
+            min-height: 100dvh; /* Dynamic viewport height for mobile */
+            background: transparent;
+            padding-bottom: 100px;
+        }
+
+        /* App Header - Responsive */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.75);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            box-shadow: 0 4px 24px rgba(124, 58, 237, 0.08), inset 0 1px 0 rgba(255,255,255,1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+            flex-shrink: 0;
+        }
+
+        .app-logo i {
+            font-size: 1.125rem;
+            color: white;
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-time {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #333333;
+        }
+
+        .header-date {
+            font-size: 0.7rem;
+            color: #8E8E8E;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ble-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .ble-button .ble-status {
+            display: none;
+        }
+
+        .ble-button:hover {
+            background: #f5f3ff;
+            border-color: #8B5CF6;
+            color: #7C3AED;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+        }
+
+        .ble-button i {
+            font-size: 1rem;
+            color: #8B5CF6;
+        }
+
+        .ble-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .ble-indicator .indicator-dot {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .ble-indicator.connected .indicator-dot {
+            background: #10b981;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* View Container - Responsive */
+        .view-container {
+            padding: 12px;
+            min-height: calc(100vh - 130px);
+            min-height: calc(100dvh - 130px);
+        }
+
+        /* Responsive: Medium phones (380px+) */
+        @media (min-width: 380px) {
+            .app-header {
+                padding: 12px 16px;
+            }
+
+            .header-left {
+                gap: 12px;
+            }
+
+            .app-logo {
+                width: 44px;
+                height: 44px;
+            }
+
+            .app-logo i {
+                font-size: 1.25rem;
+            }
+
+            .header-time {
+                font-size: 1.125rem;
+            }
+
+            .ble-button {
+                padding: 10px 16px;
+                font-size: 0.875rem;
+            }
+
+            .ble-button .ble-status {
+                display: inline;
+            }
+
+            .view-container {
+                padding: 16px;
+            }
+
+            .loading-logo {
+                width: 88px;
+                height: 88px;
+            }
+
+            .loading-logo i {
+                font-size: 2.5rem;
+            }
+
+            .loading-title {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Responsive: Tablets (768px+) */
+        @media (min-width: 768px) {
+            .app-header {
+                padding: 16px 32px;
+            }
+
+            .header-left {
+                gap: 16px;
+            }
+
+            .app-logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 14px;
+            }
+
+            .header-time {
+                font-size: 1.25rem;
+            }
+
+            .header-date {
+                font-size: 0.8rem;
+            }
+
+            .ble-button {
+                padding: 12px 20px;
+                border-radius: 14px;
+            }
+
+            .ble-indicator {
+                width: 12px;
+                height: 12px;
+            }
+
+            .view-container {
+                padding: 24px 32px;
+            }
+
+            .loading-logo {
+                width: 100px;
+                height: 100px;
+                border-radius: 24px;
+            }
+
+            .loading-logo i {
+                font-size: 3rem;
+            }
+
+            .loading-title {
+                font-size: 2rem;
+            }
+
+            .loading-spinner {
+                width: 48px;
+                height: 48px;
+            }
+        }
+
+        /* Responsive: Desktops (1024px+) */
+        @media (min-width: 1024px) {
+            .app-header {
+                padding: 16px 48px;
+            }
+
+            .view-container {
+                padding: 32px 48px;
+            }
+        }
+
+        /* Responsive: Large Desktops (1280px+) */
+        @media (min-width: 1280px) {
+            .app-header {
+                padding: 20px 64px;
+            }
+
+            .view-container {
+                padding: 40px 64px;
+            }
+        }
+    </style>
+</body>
+</html>

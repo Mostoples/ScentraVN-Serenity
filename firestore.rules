@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== HELPER FUNCTIONS =====
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===== USERS & ALL SUBCOLLECTIONS =====
+    // All user data is stored under users/{userId}/{subcollection}
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read, write: if isAdmin();
+
+      // Wildcard match for all subcollections:
+      // healthReadings, healthData, dailySummary, analyticsSummary,
+      // recordingHistory, chatHistory, assessments, interventionLogs,
+      // emergencyPlans, academyProgress, safetyPlans, moodLogs,
+      // musicTherapyLogs, sessions, journals, interventions
+      match /{subcollection}/{docId} {
+        allow read, write: if isOwner(userId);
+        allow read: if isAdmin();
+      }
+    }
+
+    // ===== GAMES PROGRESS =====
+    match /gamesProgress/{gameId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
+
+      match /{sub=**} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // ===== MEDITATION SESSIONS =====
+    match /meditationSessions/{docId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
+    }
+
+    // ===== SLEEP RECORDS =====
+    match /sleepRecords/{docId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
+    }
+
+    // ===== MINDFULNESS PROGRAMS =====
+    match /mindfulnessPrograms/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ===== SYSTEM (read-only for users) =====
+    match /system/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ===== API KEYS (Admin only) =====
+    match /apiKeys/{docId} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    // ===== ADMIN ACTIVITY LOGS =====
+    match /adminActivityLogs/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ===== RESEARCH DATA =====
+    match /researchData/{docId} {
+      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
+    }
+
+    // ===== DENY ALL OTHER =====
+    match /{document=**} {
+      allow read, write, delete: if false;
+    }
+  }
+}

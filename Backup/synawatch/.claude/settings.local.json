@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del:*)",
+      "Bash(dir \"C:\\\\Users\\\\hp\\\\Downloads\\\\synawacthh2\" /s /b)",
+      "Bash(gh auth:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

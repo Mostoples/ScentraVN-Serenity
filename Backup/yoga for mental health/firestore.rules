@@ -1,0 +1,183 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ══════════════════════════════════════════════════
+    // HELPER FUNCTIONS
+    // ══════════════════════════════════════════════════
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated()
+        && request.auth.token.admin == true;
+    }
+
+    function isValidTimestamp(field) {
+      return request.resource.data[field] is timestamp;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // ══════════════════════════════════════════════════
+    // 👤 USERS — Private per user
+    // ══════════════════════════════════════════════════
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId)
+        && hasRequiredFields(['uid', 'name', 'age', 'gender', 'demographic_group', 'created_at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.age is int
+        && request.resource.data.age > 0
+        && request.resource.data.age < 120
+        && request.resource.data.gender in ['male', 'female', 'other']
+        && request.resource.data.demographic_group in ['child', 'adolescent', 'adult', 'geriatric'];
+
+      allow update: if isOwner(userId)
+        && isValidTimestamp('updated_at')
+        // Prevent changing uid and created_at
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.created_at == resource.data.created_at;
+
+      allow delete: if false; // Soft delete only via status field
+
+      // ── Progress Logs (subcollection) ──
+      match /progress_logs/{logId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && hasRequiredFields(['date', 'timestamp', 'mental_state'])
+          && request.resource.data.mental_state.mood_score is int
+          && request.resource.data.mental_state.mood_score >= 1
+          && request.resource.data.mental_state.mood_score <= 10
+          && request.resource.data.mental_state.stress_level in ['low', 'moderate', 'high', 'severe'];
+
+        // Can only update within 24 hours of creation
+        allow update: if isOwner(userId)
+          && request.time < resource.data.timestamp + duration.value(24, 'h');
+
+        allow delete: if false;
+      }
+
+      // ── Assessments (subcollection) — Immutable ──
+      match /assessments/{assessmentId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && hasRequiredFields(['created_at', 'primary_condition', 'severity'])
+          && request.resource.data.severity in ['mild', 'moderate', 'severe']
+          && isValidTimestamp('created_at');
+
+        allow update, delete: if false; // Immutable historical record
+      }
+
+      // ── Session History (subcollection) ──
+      match /session_history/{sessionId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && hasRequiredFields(['timestamp', 'protocol_id', 'duration_minutes'])
+          && request.resource.data.duration_minutes is int
+          && request.resource.data.duration_minutes > 0
+          && request.resource.data.duration_minutes <= 180;
+
+        allow update, delete: if false; // Immutable
+      }
+
+      // ── Counselling Notes (subcollection) — Sensitive ──
+      match /counselling_notes/{noteId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && hasRequiredFields(['created_at', 'type', 'notes'])
+          && request.resource.data.type in [
+            'personal', 'group', 'educational', 'vocational',
+            'child', 'adolescent', 'adult', 'geriatric',
+            'marriage_family', 'rehabilitation', 'substance_abuse', 'caregiver'
+          ];
+
+        allow update: if isOwner(userId)
+          && request.resource.data.created_at == resource.data.created_at
+          && request.resource.data.type == resource.data.type;
+
+        allow delete: if false;
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    // 🧘 YOGA PRACTICES — Read-only for authenticated users
+    // ══════════════════════════════════════════════════
+    match /yoga_practices/{practiceId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin(); // Admin SDK or admin users only
+    }
+
+    // ══════════════════════════════════════════════════
+    // 🧠 MENTAL DISORDERS — Read-only reference data
+    // ══════════════════════════════════════════════════
+    match /mental_disorders/{disorderId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════
+    // 📋 YOGA PROTOCOLS — Read all, write own
+    // ══════════════════════════════════════════════════
+    match /yoga_protocols/{protocolId} {
+      allow read: if isAuthenticated();
+
+      // System protocols (created_by = "system") are read-only
+      // User-created protocols can be managed by their creator
+      allow create: if isAuthenticated()
+        && hasRequiredFields(['name', 'target_condition', 'total_duration_min', 'steps', 'created_by'])
+        && request.resource.data.created_by == request.auth.uid
+        && request.resource.data.total_duration_min is int
+        && request.resource.data.total_duration_min > 0
+        && request.resource.data.steps is list
+        && request.resource.data.steps.size() > 0
+        && request.resource.data.steps.size() <= 20;
+
+      allow update: if isAuthenticated()
+        && resource.data.created_by == request.auth.uid
+        && resource.data.created_by != "system"
+        && request.resource.data.created_by == resource.data.created_by;
+
+      allow delete: if isAuthenticated()
+        && resource.data.created_by == request.auth.uid
+        && resource.data.created_by != "system";
+    }
+
+    // ══════════════════════════════════════════════════
+    // 🥗 FOOD ITEMS — Read-only reference data
+    // ══════════════════════════════════════════════════
+    match /food_items/{foodId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════
+    // 📊 RESEARCH EVIDENCE — Read-only reference data
+    // ══════════════════════════════════════════════════
+    match /research_evidence/{researchId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════
+    // 🕉️ ASHTANGA FRAMEWORK — Read-only reference data
+    // ══════════════════════════════════════════════════
+    match /ashtanga_framework/{limbId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

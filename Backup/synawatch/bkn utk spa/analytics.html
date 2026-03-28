@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SYNAWATCH Analytics - Health trends and insights">
+    <meta name="theme-color" content="#7c3aed">
+    <title>Analytics - SYNAWATCH</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+        /* Analytics Page Specific Styles */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+        }
+
+        .summary-item {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            padding: var(--space-4);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-card);
+        }
+
+        .summary-item .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-3);
+            font-size: var(--text-base);
+        }
+
+        .summary-item .value {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            color: var(--gray-900);
+        }
+
+        .summary-item .label {
+            font-size: var(--text-xs);
+            color: var(--gray-500);
+            margin-top: var(--space-1);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+            overflow-x: auto;
+            padding-bottom: var(--space-2);
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-tab {
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--gray-500);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            white-space: nowrap;
+            border: 1px solid var(--gray-200);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .filter-tab:hover {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .filter-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+        }
+
+        .chart-stats {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .stat-badge {
+            font-size: var(--text-xs);
+            padding: var(--space-1) var(--space-2);
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+            color: var(--gray-600);
+            font-weight: var(--font-medium);
+        }
+    </style>
+</head>
+<body data-protected>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </div>
+            <div class="header-actions">
+                <span id="currentDate" class="header-time"></span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Period Filter -->
+            <div class="filter-tabs" style="margin-bottom: var(--space-4);">
+                <button class="filter-tab active" onclick="changeChartPeriod('day', this)">Today</button>
+                <button class="filter-tab" onclick="changeChartPeriod('week', this)">This Week</button>
+                <button class="filter-tab" onclick="changeChartPeriod('month', this)">This Month</button>
+            </div>
+
+            <!-- Heart Rate Analytics -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">
+                        <i class="fas fa-heart-pulse" style="color: var(--danger-500);"></i>
+                        Heart Rate Trends
+                    </span>
+                    <div class="chart-stats">
+                        <span id="hrAvgStat" class="stat-badge">Avg: -- BPM</span>
+                    </div>
+                </div>
+                <div class="chart-canvas" style="height: 200px;">
+                    <canvas id="hrTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Stress Analytics -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">
+                        <i class="fas fa-brain" style="color: var(--warning-500);"></i>
+                        Stress Level Pattern
+                    </span>
+                    <div class="chart-stats">
+                        <span id="stressAvgStat" class="stat-badge">Avg: --%</span>
+                    </div>
+                </div>
+                <div class="chart-canvas" style="height: 200px;">
+                    <canvas id="stressTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- GSR Analytics -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">
+                        <i class="fas fa-hand" style="color: var(--primary-500);"></i>
+                        GSR Activity Pattern
+                    </span>
+                    <div class="chart-stats">
+                        <span id="gsrAvgStat" class="stat-badge">Avg: --%</span>
+                    </div>
+                </div>
+                <div class="chart-canvas" style="height: 200px;">
+                    <canvas id="gsrTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- SpO2 Analytics -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">
+                        <i class="fas fa-lungs" style="color: var(--info-500);"></i>
+                        SpO2 Trends
+                    </span>
+                    <div class="chart-stats">
+                        <span id="spo2AvgStat" class="stat-badge">Avg: --%</span>
+                    </div>
+                </div>
+                <div class="chart-canvas" style="height: 200px;">
+                    <canvas id="spo2TrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Daily Summary -->
+            <h3 class="section-title">Daily Summary</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="icon" style="background: var(--danger-50); color: var(--danger-500);">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="value" id="avgHr">--</div>
+                    <div class="label">Avg Heart Rate</div>
+                </div>
+                <div class="summary-item">
+                    <div class="icon" style="background: var(--warning-50); color: var(--warning-500);">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="value" id="avgStress">--</div>
+                    <div class="label">Avg Stress</div>
+                </div>
+                <div class="summary-item">
+                    <div class="icon" style="background: var(--info-50); color: var(--info-500);">
+                        <i class="fas fa-lungs"></i>
+                    </div>
+                    <div class="value" id="avgSpo2">--</div>
+                    <div class="label">Avg SpO2</div>
+                </div>
+                <div class="summary-item">
+                    <div class="icon" style="background: var(--primary-50); color: var(--primary-500);">
+                        <i class="fas fa-hand"></i>
+                    </div>
+                    <div class="value" id="avgGsr">--</div>
+                    <div class="label">Avg GSR</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/ble-connection.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/analytics.js"></script>
+</body>
+</html>

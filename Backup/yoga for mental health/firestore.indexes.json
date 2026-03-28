@@ -1,0 +1,177 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "yoga_practices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "difficulty", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "yoga_practices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "target_disorders", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "difficulty", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "yoga_practices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ashtanga_limb", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "yoga_practices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "posture_type", "order": "ASCENDING" },
+        { "fieldPath": "difficulty", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "yoga_practices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "posture_type", "order": "ASCENDING" },
+        { "fieldPath": "difficulty", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "yoga_practices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "search_tags", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "difficulty", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "food_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "guna", "order": "ASCENDING" },
+        { "fieldPath": "nutrients", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "food_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "guna", "order": "ASCENDING" },
+        { "fieldPath": "recommended_for", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "food_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "guna", "order": "ASCENDING" },
+        { "fieldPath": "food_group", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "yoga_protocols",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "target_condition", "order": "ASCENDING" },
+        { "fieldPath": "difficulty", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "yoga_protocols",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "created_by", "order": "ASCENDING" },
+        { "fieldPath": "target_condition", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "mental_disorders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "icd10_range", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "research_evidence",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "study_type", "order": "ASCENDING" },
+        { "fieldPath": "year", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "research_evidence",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "linked_disorders", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "year", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "progress_logs",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "progress_logs",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "date", "order": "ASCENDING" },
+        { "fieldPath": "mental_state.mood_score", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "session_history",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "assessments",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "yoga_practices",
+      "fieldPath": "search_tags",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" }
+      ]
+    },
+    {
+      "collectionGroup": "food_items",
+      "fieldPath": "nutrients",
+      "indexes": [
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" }
+      ]
+    },
+    {
+      "collectionGroup": "food_items",
+      "fieldPath": "recommended_for",
+      "indexes": [
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" }
+      ]
+    },
+    {
+      "collectionGroup": "mental_disorders",
+      "fieldPath": "recommended_practices",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# Syntax Coloring Map
+# Datatypes (KEYWORD1)
+TouchScreenController	KEYWORD1
+TouchScreenEventCache	KEYWORD1
+CST816Touch_SWMode	KEYWORD1
+CST816Touch_HWMode	KEYWORD1
+TouchScreenObserver	KEYWORD1
+GestureFactory	KEYWORD1
+DoubleClickFactory	KEYWORD1
+ElegantDoubleClickFactory	KEYWORD1
+TouchScreenGuiHelper	KEYWORD1
+TouchScreenGuiObserver	KEYWORD1
+
+# Methods and Functions (KEYWORD2)
+control	KEYWORD2
+begin	KEYWORD2
+

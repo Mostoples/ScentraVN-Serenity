@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SYNAWATCH Profile - Manage your account">
+    <meta name="theme-color" content="#7c3aed">
+    <title>Profile - SYNAWATCH</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+        /* Profile Page Specific Styles */
+        .profile-header {
+            background: var(--gradient-primary);
+            padding: var(--space-10) var(--space-5) var(--space-8);
+            text-align: center;
+            color: white;
+            margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) var(--space-6);
+            border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.3);
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+        }
+
+        .profile-header::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -30%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        }
+
+        .avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-4);
+            font-size: 2.75rem;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            margin-bottom: var(--space-1);
+            letter-spacing: -0.02em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-email {
+            opacity: 0.9;
+            font-size: var(--text-sm);
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-joined {
+            font-size: var(--text-xs);
+            opacity: 0.75;
+            margin-top: var(--space-2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            padding: var(--space-5);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-card);
+            transition: all var(--transition-base);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        .stat-card .icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-3);
+            font-size: var(--text-xl);
+        }
+
+        .stat-card .value {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            color: var(--gray-900);
+        }
+
+        .stat-card .label {
+            font-size: var(--text-xs);
+            color: var(--gray-500);
+            margin-top: var(--space-1);
+        }
+
+        .menu-section {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-card);
+            margin-bottom: var(--space-6);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: var(--space-4) var(--space-5);
+            border-bottom: 1px solid var(--gray-100);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background: var(--primary-50);
+        }
+
+        .menu-item:active {
+            background: var(--primary-100);
+        }
+
+        .menu-item .icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--space-4);
+            font-size: var(--text-lg);
+        }
+
+        .menu-item .content {
+            flex: 1;
+        }
+
+        .menu-item .title {
+            font-weight: var(--font-semibold);
+            color: var(--gray-800);
+            margin-bottom: 2px;
+        }
+
+        .menu-item .subtitle {
+            font-size: var(--text-xs);
+            color: var(--gray-500);
+        }
+
+        .menu-item .arrow {
+            color: var(--gray-400);
+            transition: transform var(--transition-fast);
+        }
+
+        .menu-item:hover .arrow {
+            color: var(--primary-500);
+            transform: translateX(4px);
+        }
+
+        .menu-item.danger .title {
+            color: var(--danger-500);
+        }
+
+        .menu-item.danger .icon {
+            background: var(--danger-50);
+            color: var(--danger-500);
+        }
+
+        .menu-item.danger:hover {
+            background: var(--danger-50);
+        }
+
+        .weekly-chart {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            padding: var(--space-5);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-card);
+            margin-bottom: var(--space-6);
+        }
+
+        .weekly-chart h3 {
+            font-size: var(--text-base);
+            font-weight: var(--font-semibold);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .chart-mini {
+            height: 160px;
+        }
+
+        .version-info {
+            text-align: center;
+            padding: var(--space-5);
+            color: var(--gray-500);
+            font-size: var(--text-xs);
+        }
+
+        .version-info i.fa-heart {
+            color: var(--danger-500);
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+    </style>
+</head>
+<body data-protected>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="avatar" id="avatarContainer">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div id="profileName" class="profile-name">Loading...</div>
+                <div id="profileEmail" class="profile-email">...</div>
+                <div id="profileJoined" class="profile-joined"></div>
+            </div>
+
+            <!-- Statistics -->
+            <h3 class="section-title">Your Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon" style="background: var(--primary-50); color: var(--primary-500);">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div id="daysActive" class="value">0</div>
+                    <div class="label">Days Active</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: var(--success-50); color: var(--success-500);">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div id="totalSessions" class="value">0</div>
+                    <div class="label">Total Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: var(--danger-50); color: var(--danger-500);">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div id="healthScore" class="value">--</div>
+                    <div class="label">Health Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: var(--info-50); color: var(--info-500);">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div id="totalTime" class="value">0h</div>
+                    <div class="label">Total Time</div>
+                </div>
+            </div>
+
+            <!-- Weekly Trend -->
+            <div class="weekly-chart">
+                <h3>
+                    <i class="fas fa-chart-line" style="color: var(--primary-500);"></i>
+                    Weekly Health Score
+                </h3>
+                <div class="chart-mini">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Menu Sections -->
+            <div class="menu-section">
+                <a href="#" class="menu-item" onclick="openEditProfile()">
+                    <div class="icon" style="background: var(--primary-50); color: var(--primary-500);">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <div class="content">
+                        <div class="title">Edit Profile</div>
+                        <div class="subtitle">Update your name and photo</div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </a>
+                <a href="#" class="menu-item" onclick="openChangePassword()">
+                    <div class="icon" style="background: var(--warning-50); color: var(--warning-500);">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="content">
+                        <div class="title">Change Password</div>
+                        <div class="subtitle">Update your security credentials</div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </a>
+                <a href="synachat.html" class="menu-item">
+                    <div class="icon" style="background: var(--success-50); color: var(--success-500);">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="content">
+                        <div class="title">Health Assistant</div>
+                        <div class="subtitle">Chat with Dr. Synachat</div>
+                    </div>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </a>
+            </div>
+
+            <div class="menu-section">
+                <a href="#" class="menu-item danger" onclick="confirmLogout()">
+                    <div class="icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <div class="content">
+                        <div class="title">Logout</div>
+                        <div class="subtitle">Sign out of your account</div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Version Info -->
+            <div class="version-info">
+                <p>SYNAWATCH v1.0.0</p>
+                <p>Made with <i class="fas fa-heart"></i> for better health</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Edit Profile</h3>
+                <button class="modal-close" onclick="closeModal('editProfileModal')">&times;</button>
+            </div>
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editName">Full Name</label>
+                        <input type="text" id="editName" class="form-input" placeholder="Enter your name" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Change Password</h3>
+                <button class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
+            </div>
+            <form id="changePasswordForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" class="form-input" placeholder="Enter current password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" class="form-input" placeholder="Enter new password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Confirm New Password</label>
+                        <input type="password" id="confirmNewPassword" class="form-input" placeholder="Confirm new password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>

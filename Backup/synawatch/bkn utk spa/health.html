@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SYNAWATCH Health Monitoring - Real-time health tracking">
+    <meta name="theme-color" content="#7c3aed">
+    <title>Health Monitoring - SYNAWATCH</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-protected>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>Health Monitor</span>
+            </div>
+            <div class="header-actions">
+                <button id="bleConnectBtn" class="btn btn-sm" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);" onclick="BLEConnection.toggle()">
+                    <i class="fas fa-bluetooth"></i>
+                    <span>Connect</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- BLE Connection Card -->
+            <div id="bleCard" class="ble-card">
+                <i class="fas fa-bluetooth" style="font-size: 2.5rem; margin-bottom: var(--space-4); opacity: 0.9;"></i>
+                <h3>Connect to SYNAWATCH</h3>
+                <p>Tap the Connect button above to connect to your smartwatch via Bluetooth</p>
+                <div style="margin-top: var(--space-3); font-size: var(--text-xs); opacity: 0.8; display: flex; align-items: center; justify-content: center; gap: var(--space-2);">
+                    <i class="fas fa-info-circle"></i>
+                    Make sure your device is powered on and nearby
+                </div>
+            </div>
+
+            <!-- Heart Rate Hero -->
+            <div class="health-hero">
+                <i class="fas fa-heart pulse" style="font-size: 2.5rem; margin-bottom: var(--space-3);"></i>
+                <div class="big-value"><span id="hrValue">--</span></div>
+                <div class="label">BPM - Heart Rate</div>
+                <div id="fingerStatus" style="margin-top: var(--space-3); font-size: var(--text-sm); display: flex; align-items: center; justify-content: center; gap: var(--space-2); opacity: 0.9;">
+                    <i class="fas fa-fingerprint"></i>
+                    <span>Place finger on sensor</span>
+                </div>
+            </div>
+
+            <!-- Current Metrics -->
+            <div class="card-grid">
+                <!-- SpO2 -->
+                <div class="card metric-card">
+                    <div class="metric-icon info">
+                        <i class="fas fa-lungs"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="spo2Value">--</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="metric-label">SpO2</div>
+                    <span id="spo2Status" class="metric-status gray">No Data</span>
+                </div>
+
+                <!-- Body Temp -->
+                <div class="card metric-card">
+                    <div class="metric-icon success">
+                        <i class="fas fa-temperature-half"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="btValue">--</span>
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-label">Body Temp</div>
+                </div>
+            </div>
+
+            <!-- Stress & GSR Section -->
+            <h3 class="section-title">Stress & Emotional State</h3>
+
+            <div class="card" style="margin-bottom: var(--space-4);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <div>
+                        <h4 style="font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-1);">Stress Level</h4>
+                        <span id="stressStatus" class="metric-status success">Low</span>
+                    </div>
+                    <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--gray-900);">
+                        <span id="stressValue">0</span>%
+                    </div>
+                </div>
+                <div class="progress-bar" style="height: 12px;">
+                    <div id="stressBar" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: var(--space-6);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <div>
+                        <h4 style="font-size: var(--text-base); font-weight: var(--font-semibold); margin-bottom: var(--space-1);">GSR (Sweat Activity)</h4>
+                        <span id="gsrStatusBadge" class="metric-status success">Relaxed</span>
+                    </div>
+                    <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--gray-900);">
+                        <span id="gsrValue">0</span>%
+                    </div>
+                </div>
+                <div class="progress-bar" style="height: 12px;">
+                    <div id="gsrBar" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #7c3aed, #a855f7);"></div>
+                </div>
+
+                <div class="gsr-details">
+                    <div class="gsr-detail-item">
+                        <div class="label">Calibration</div>
+                        <div id="gsrCalStatus" class="value" style="color: var(--warning-500);">Waiting...</div>
+                    </div>
+                    <div class="gsr-detail-item">
+                        <div class="label">Resistance</div>
+                        <div id="gsrResistance" class="value">-- kΩ</div>
+                    </div>
+                    <div class="gsr-detail-item">
+                        <div class="label">Baseline</div>
+                        <div id="gsrBaseline" class="value">-- kΩ</div>
+                    </div>
+                    <div class="gsr-detail-item">
+                        <div class="label">Raw ADC</div>
+                        <div id="gsrRaw" class="value">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Motion Data -->
+            <h3 class="section-title">Motion Data</h3>
+
+            <div class="card" style="margin-bottom: var(--space-4);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                    <h4 style="font-size: var(--text-base); font-weight: var(--font-semibold);">Activity</h4>
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                        <div style="width: 44px; height: 44px; background: var(--primary-50); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                            <i id="actIcon" class="fas fa-person" style="font-size: var(--text-xl); color: var(--primary-600);"></i>
+                        </div>
+                        <span id="actValue" style="font-weight: var(--font-semibold); font-size: var(--text-lg);">Resting</span>
+                    </div>
+                </div>
+
+                <div class="sensor-section">
+                    <div style="font-size: var(--text-xs); font-weight: var(--font-semibold); color: var(--gray-400); margin-bottom: var(--space-3); text-transform: uppercase; letter-spacing: 0.05em;">Accelerometer (g)</div>
+                    <div class="sensor-grid">
+                        <div class="sensor-item">
+                            <div class="label">X</div>
+                            <div id="axValue" class="value">0.00</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div class="label">Y</div>
+                            <div id="ayValue" class="value">0.00</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div class="label">Z</div>
+                            <div id="azValue" class="value">0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sensor-section" style="margin-bottom: 0;">
+                    <div style="font-size: var(--text-xs); font-weight: var(--font-semibold); color: var(--gray-400); margin-bottom: var(--space-3); text-transform: uppercase; letter-spacing: 0.05em;">Gyroscope (°/s)</div>
+                    <div class="sensor-grid">
+                        <div class="sensor-item">
+                            <div class="label">X</div>
+                            <div id="gxValue" class="value">0.0</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div class="label">Y</div>
+                            <div id="gyValue" class="value">0.0</div>
+                        </div>
+                        <div class="sensor-item">
+                            <div class="label">Z</div>
+                            <div id="gzValue" class="value">0.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto Recording Status -->
+            <div id="autoRecordStatus" class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-top: var(--space-4); display: none;">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                    <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-cloud-arrow-up" style="font-size: var(--text-xl);"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: var(--font-semibold); margin-bottom: var(--space-1);">Auto-Saving to Cloud</div>
+                        <div style="font-size: var(--text-sm); opacity: 0.9;">Data is being saved automatically to Firebase</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div id="healthRecordingTimer" style="font-size: var(--text-lg); font-weight: var(--font-bold);">00:00</div>
+                        <div id="healthRecordingCount" style="font-size: var(--text-xs); opacity: 0.8;">0 readings</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/ble-connection.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/health.js"></script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SYNAWATCH Dashboard - Monitor your health in real-time">
+    <meta name="theme-color" content="#7c3aed">
+    <title>Dashboard - SYNAWATCH</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+        .chart-status-badge {
+            font-size: var(--text-xs);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            margin-left: var(--space-2);
+            font-weight: var(--font-medium);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        .chart-status-badge.offline {
+            background: var(--gray-100);
+            color: var(--gray-500);
+        }
+        .chart-status-badge.online {
+            background: var(--success-50);
+            color: var(--success-600);
+        }
+        .chart-status-badge i {
+            font-size: 8px;
+        }
+        .chart-status-badge.online i {
+            animation: pulse-dot 1s infinite;
+        }
+        .chart-status-badge.offline i {
+            animation: pulse-dot-slow 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        @keyframes pulse-dot-slow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.2; }
+        }
+        .live-value {
+            font-size: var(--text-sm);
+            font-weight: var(--font-semibold);
+            color: var(--gray-600);
+            background: var(--gray-100);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-md);
+            min-width: 70px;
+            text-align: center;
+        }
+        .live-value.active {
+            background: var(--success-50);
+            color: var(--success-600);
+            animation: value-pulse 1.5s infinite;
+        }
+        @keyframes value-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .chart-container.demo-mode {
+            position: relative;
+        }
+        .chart-container.demo-mode::after {
+            content: 'DEMO';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: rgba(124, 58, 237, 0.08);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .chart-container.live-mode::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: live-blink 1s infinite;
+            z-index: 10;
+        }
+        @keyframes live-blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            50% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body data-protected>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>SYNAWATCH</span>
+            </div>
+            <div class="header-actions">
+                <span id="currentTime" class="header-time"></span>
+                <button id="bleStatusBtn" class="ble-status-btn" onclick="BLEConnection.toggle()">
+                    <i id="bleStatusIcon" class="fas fa-bluetooth"></i>
+                    <span id="bleStatus">Disconnected</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Greeting Section -->
+            <div class="greeting-section">
+                <h2 id="greeting"></h2>
+                <p id="userName"></p>
+            </div>
+
+            <!-- Health Score Overview -->
+            <div class="card" style="background: var(--gradient-primary); color: white; margin-bottom: var(--space-6); border: none;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <p style="font-size: var(--text-sm); opacity: 0.9; margin-bottom: var(--space-1);">Today's Health Score</p>
+                        <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+                            <span id="healthScore" style="font-size: var(--text-4xl); font-weight: 800;">--</span>
+                            <span style="font-size: var(--text-sm); opacity: 0.8;">/100</span>
+                        </div>
+                    </div>
+                    <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-shield-heart" style="font-size: var(--text-2xl);"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Health Metrics -->
+            <h3 class="section-title">Current Health</h3>
+            <div class="card-grid">
+                <!-- Heart Rate -->
+                <div class="card metric-card">
+                    <div class="metric-icon danger">
+                        <i class="fas fa-heart pulse"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="hrValue">--</span>
+                        <span class="metric-unit">BPM</span>
+                    </div>
+                    <div class="metric-label">Heart Rate</div>
+                    <span id="hrStatus" class="metric-status gray">No Data</span>
+                </div>
+
+                <!-- SpO2 -->
+                <div class="card metric-card">
+                    <div class="metric-icon info">
+                        <i class="fas fa-lungs"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="spo2Value">--</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="metric-label">SpO2</div>
+                    <span id="spo2Status" class="metric-status gray">No Data</span>
+                </div>
+
+                <!-- Stress Level -->
+                <div class="card metric-card">
+                    <div class="metric-icon warning">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="stressValue">0%</span>
+                    </div>
+                    <div class="metric-label">Stress Level</div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="stressBar" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GSR -->
+                <div class="card metric-card">
+                    <div class="metric-icon primary">
+                        <i class="fas fa-hand"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="gsrValue">0%</span>
+                    </div>
+                    <div class="metric-label">GSR Activity</div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="gsrBar" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #7c3aed, #a855f7);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Charts -->
+            <h3 class="section-title">
+                Real-time Charts
+                <span id="chartStatus" class="chart-status-badge offline">
+                    <i class="fas fa-circle"></i> Offline
+                </span>
+            </h3>
+
+            <!-- Heart Rate Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">
+                        <i class="fas fa-heart-pulse" style="color: #ef4444;"></i>
+                        Heart Rate
+                    </span>
+                    <span id="hrLiveValue" class="live-value">-- BPM</span>
+                </div>
+                <div class="chart-canvas">
+                    <canvas id="hrChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Stress Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">
+                        <i class="fas fa-brain" style="color: #f59e0b;"></i>
+                        Stress Level
+                    </span>
+                    <span id="stressLiveValue" class="live-value">--%</span>
+                </div>
+                <div class="chart-canvas">
+                    <canvas id="stressChart"></canvas>
+                </div>
+            </div>
+
+            <!-- GSR Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">
+                        <i class="fas fa-hand" style="color: #7c3aed;"></i>
+                        GSR Level
+                    </span>
+                    <span id="gsrLiveValue" class="live-value">--%</span>
+                </div>
+                <div class="chart-canvas">
+                    <canvas id="gsrChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Additional Metrics -->
+            <h3 class="section-title">Additional Metrics</h3>
+            <div class="card-grid">
+                <!-- Body Temperature -->
+                <div class="card metric-card">
+                    <div class="metric-icon success">
+                        <i class="fas fa-temperature-half"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="btValue">--</span>
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-label">Body Temp</div>
+                </div>
+
+                <!-- Ambient Temperature -->
+                <div class="card metric-card">
+                    <div class="metric-icon info">
+                        <i class="fas fa-cloud-sun"></i>
+                    </div>
+                    <div class="metric-value">
+                        <span id="atValue">--</span>
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-label">Ambient Temp</div>
+                </div>
+
+                <!-- Activity -->
+                <div class="card metric-card">
+                    <div class="metric-icon primary">
+                        <i id="actIcon" class="fas fa-person"></i>
+                    </div>
+                    <div class="metric-value" style="font-size: var(--text-lg);">
+                        <span id="actValue">Resting</span>
+                    </div>
+                    <div class="metric-label">Activity</div>
+                </div>
+
+                <!-- Finger Status -->
+                <div class="card metric-card">
+                    <div class="metric-icon success">
+                        <i class="fas fa-fingerprint"></i>
+                    </div>
+                    <div class="metric-value" style="font-size: var(--text-sm);">
+                        <span id="fingerStatus" style="color: var(--danger-500);">Not Detected</span>
+                    </div>
+                    <div class="metric-label">Finger Detection</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: var(--space-6); display: flex; gap: var(--space-3); flex-wrap: wrap;">
+                <a href="health.html" class="btn btn-primary btn-sm">
+                    <i class="fas fa-heartbeat"></i>
+                    Start Monitoring
+                </a>
+                <a href="synachat.html" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-comments"></i>
+                    Talk to AI
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/ble-connection.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

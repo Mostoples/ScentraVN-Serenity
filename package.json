@@ -1,0 +1,24 @@
+{
+  "name": "synawatch",
+  "version": "1.0.0",
+  "description": "SYNAWATCH - AI-Powered Smart Health Monitoring PWA",
+  "main": "setup-admin.js",
+  "scripts": {
+    "dev": "npx http-server . -p 3000 -c-1",
+    "start": "npx http-server . -p 3000 -c-1",
+    "setup-admin": "node setup-admin.js",
+    "setup-admin:help": "node setup-admin.js help"
+  },
+  "keywords": [
+    "firebase",
+    "admin",
+    "api-keys",
+    "synawatch"
+  ],
+  "author": "SynaWatch Team",
+  "license": "MIT",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "node-fetch": "^2.7.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "WebSearch",
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\hp\\\\Downloads\\\\LVGL_Arduino\\\\ui && ren ui.c ui.cpp && ren screens.c screens.cpp && ren styles.c styles.cpp && ren images.c images.cpp && ren ui_font_angka_jam_utama_.c ui_font_angka_jam_utama_.cpp && ren ui_font_detik___tanggal.c ui_font_detik___tanggal.cpp && ren ui_font_label_kecil.c ui_font_label_kecil.cpp\")"
+    ]
+  }
+}

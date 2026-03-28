@@ -1,0 +1,57 @@
+{
+  "name": "SYNAWATCH - Smart Health Monitoring",
+  "short_name": "SYNAWATCH",
+  "description": "Monitor your health with AI-powered smartwatch companion. Track heart rate, SpO2, stress levels, and chat with Dr. Synachat AI assistant.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#8B5CF6",
+  "background_color": "#F5F3FF",
+  "categories": ["health", "fitness", "medical", "lifestyle"],
+  "lang": "id",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "images/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "images/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your health dashboard",
+      "url": "/app.html#dashboard",
+      "icons": [{ "src": "images/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Health Monitor",
+      "short_name": "Health",
+      "description": "Start health monitoring",
+      "url": "/app.html#health",
+      "icons": [{ "src": "images/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Dr. Synachat",
+      "short_name": "AI Chat",
+      "description": "Chat with AI health assistant",
+      "url": "/app.html#synachat",
+      "icons": [{ "src": "images/icons/icon.svg", "sizes": "any" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

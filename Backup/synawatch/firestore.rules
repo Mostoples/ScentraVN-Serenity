@@ -1,0 +1,299 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== HELPER FUNCTIONS =====
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user is admin
+    function isAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===== USERS COLLECTION =====
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+
+      // Admins can read all user profiles
+      allow read: if isAdmin();
+
+      // Users can create/update their own profile (limited fields)
+      allow create, update: if isAuthenticated() &&
+                              request.auth.uid == userId &&
+                              !request.resource.data.keys().hasAny(['role']);
+
+      // Only admins can set roles
+      allow create, update: if isAdmin();
+
+      // Users can delete their own profile
+      allow delete: if isAdmin();
+
+      // ===== USER ASSESSMENTS SUBCOLLECTION =====
+      match /assessments/{assessmentId} {
+        // Users can read their own assessments
+        allow read: if isAuthenticated() && request.auth.uid == userId;
+
+        // Users can create their own assessments
+        allow create: if isAuthenticated() && request.auth.uid == userId;
+
+        // Users can update their own assessments
+        allow update: if isAuthenticated() && request.auth.uid == userId;
+
+        // Users can delete their own assessments
+        allow delete: if isAuthenticated() && request.auth.uid == userId;
+
+        // Admins have full access
+        allow read, write, delete: if isAdmin();
+      }
+    }
+
+    // ===== ASSESSMENTS COLLECTION =====
+    match /assessments/{assessmentId} {
+      // Users can read their own assessments
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Users can create their own assessments
+      allow create: if isAuthenticated() &&
+                      request.resource.data.userId == request.auth.uid;
+
+      // Users can update their own assessments
+      allow update: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
+
+      // Users can delete their own assessments
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Admins have full access
+      allow read, write, delete: if isAdmin();
+    }
+
+    // ===== BIOMETRIC DATA =====
+    match /biometricData/{biometricId} {
+      // Users can read their own biometric data
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create biometric data
+      allow create: if isAuthenticated() &&
+                     isOwner(request.resource.data.userId);
+
+      // Admins have full access
+      allow read, write, delete: if isAdmin();
+    }
+
+    // ===== JOURNAL ENTRIES =====
+    match /journalEntries/{journalId} {
+      // Users can read their own journals (unless private)
+      allow read: if isAuthenticated() &&
+                    (isOwner(resource.data.userId) || !resource.data.isPrivate);
+
+      // Users can create/update/delete their own journals
+      allow write: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Admins have full read access
+      allow read: if isAdmin();
+    }
+
+    // ===== MEDITATION SESSIONS =====
+    match /meditationSessions/{sessionId} {
+      // Users can read their own sessions
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create/update/delete their own sessions
+      allow write: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Admins have full access
+      allow read, write: if isAdmin();
+    }
+
+    // ===== SLEEP RECORDS =====
+    match /sleepRecords/{sleepId} {
+      // Users can read their own sleep records
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create/update/delete their own records
+      allow write: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Admins have full access
+      allow read, write: if isAdmin();
+    }
+
+    // ===== GAMES PROGRESS =====
+    match /gamesProgress/{gameId} {
+      // Users can read their own game progress
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can update their own progress
+      allow write: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Admins have full access
+      allow read, write: if isAdmin();
+
+      // Allow subcollection access for users
+      match /breathingExercises/{document=**} {
+        allow read, write: if isAuthenticated() &&
+                           isOwner(get(/databases/$(database)/documents/gamesProgress/$(gameId)).data.userId);
+      }
+
+      match /memoryMatches/{document=**} {
+        allow read, write: if isAuthenticated() &&
+                           isOwner(get(/databases/$(database)/documents/gamesProgress/$(gameId)).data.userId);
+      }
+
+      match /dailyChallenges/{document=**} {
+        allow read, write: if isAuthenticated() &&
+                           isOwner(get(/databases/$(database)/documents/gamesProgress/$(gameId)).data.userId);
+      }
+    }
+
+    // ===== CRISIS LOGS =====
+    match /crisisLogs/{logId} {
+      // Users can read their own crisis logs
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create crisis logs
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Only admins can read all and modify
+      allow read, write, delete: if isAdmin();
+    }
+
+    // ===== USER SETTINGS =====
+    match /userSettings/{userId} {
+      // Users can read/write their own settings
+      allow read, write: if isAuthenticated() && isOwner(userId);
+
+      // Admins can read all settings
+      allow read: if isAdmin();
+    }
+
+    // ===== API KEYS (Admin only) =====
+    match /apiKeys/{keyId} {
+      // Only admins can access API keys
+      allow read, write, delete: if isAdmin();
+    }
+
+    // ===== ADMIN ACTIVITY LOGS (Admin only) =====
+    match /adminActivityLogs/{logId} {
+      // Only admins can access activity logs
+      allow read, write: if isAdmin();
+    }
+
+    // ===== MINDFULNESS PROGRAMS (Public read, admin write) =====
+    match /mindfulnessPrograms/{programId} {
+      // All authenticated users can read programs
+      allow read: if isAuthenticated();
+
+      // Only admins can write
+      allow write: if isAdmin();
+    }
+
+    // ===== INTERVENTIONS =====
+    match /interventions/{interventionId} {
+      // Users can read their own interventions
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create interventions
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Users can update their own interventions
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+
+      // Admins have full access
+      allow read, write: if isAdmin();
+    }
+
+    // ===== RESEARCH DATA (Anonymous, requires consent) =====
+    match /researchData/{dataId} {
+      // Users can read/write their own research data
+      allow read, write: if isAuthenticated() &&
+                         resource.data.userId == request.auth.uid;
+
+      // Admins can read all (aggregated, anonymous)
+      allow read: if isAdmin();
+    }
+
+    // ===== HEALTH DATA & SESSIONS =====
+    match /healthData/{dataId} {
+      // Users can read/write their own health data
+      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Admins have full access
+      allow read, write: if isAdmin();
+    }
+
+    match /sessions/{sessionId} {
+      // Users can read/write their own sessions
+      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Admins have full access
+      allow read, write: if isAdmin();
+    }
+
+    match /dailySummary/{summaryId} {
+      // Users can read/write their own summaries
+      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Admins have full access
+      allow read, write: if isAdmin();
+    }
+
+    // ===== YOGA FEATURE =====
+    // Yoga Poses (Public read, admin write)
+    match /yoga_poses/{poseId} {
+      // All authenticated users can read poses
+      allow read: if isAuthenticated();
+
+      // Only admins can write
+      allow write: if isAdmin();
+    }
+
+    // Yoga Protocols (Public read, admin write)
+    match /yoga_protocols/{protocolId} {
+      // All authenticated users can read protocols
+      allow read: if isAuthenticated();
+
+      // Only admins can write
+      allow write: if isAdmin();
+    }
+
+    // Mental Health Yoga Map (Public read, admin write)
+    match /mental_health_yoga_map/{mapId} {
+      // All authenticated users can read mappings
+      allow read: if isAuthenticated();
+
+      // Only admins can write
+      allow write: if isAdmin();
+    }
+
+    // Yoga Sessions (User read/write own, admin read all)
+    match /yoga_sessions/{sessionId} {
+      // Users can read their own sessions
+      allow read: if isAuthenticated() && isOwner(resource.data.user_id);
+
+      // Users can create their own sessions
+      allow create: if isAuthenticated() && isOwner(request.resource.data.user_id);
+
+      // Admins have full access
+      allow read, write: if isAdmin();
+    }
+
+    // ===== DENY ALL OTHER COLLECTIONS =====
+    match /{document=**} {
+      allow read, write, delete: if false;
+    }
+  }
+}
