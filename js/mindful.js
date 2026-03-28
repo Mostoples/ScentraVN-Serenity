@@ -25,7 +25,7 @@ const Mindful = {
             circle.style.transition = 'transform 0.5s ease';
             circle.style.transform = 'scale(1)';
         }
-        if (text) text.textContent = 'Mulai Latihan';
+        if (text) text.textContent = typeof t !== 'undefined' ? t('mindful.start') : 'Mulai Latihan';
     },
 
     stop() {
@@ -42,11 +42,11 @@ const Mindful = {
             circle.style.transition = 'transform 0.5s ease';
             circle.style.transform = 'scale(1)';
         }
-        if (text) text.textContent = 'Dihentikan';
+        if (text) text.textContent = typeof t !== 'undefined' ? t('mindful.stopped') : 'Dihentikan';
 
         setTimeout(() => {
             if (this.phase === 0 && text) {
-                text.textContent = 'Mulai Latihan';
+                text.textContent = typeof t !== 'undefined' ? t('mindful.start') : 'Mulai Latihan';
             }
         }, 1500);
     },
@@ -70,12 +70,14 @@ const Mindful = {
     _updateButton() {
         const btn = document.getElementById('mindfulBtn');
         if (!btn) return;
+        const stopText = typeof t !== 'undefined' ? t('mindful.stop') : 'Berhenti';
+        const startText = typeof t !== 'undefined' ? t('mindful.start_breathing') : 'Mulai Pernapasan';
         if (this.running) {
-            btn.innerHTML = '<i class="fas fa-stop"></i> Berhenti';
+            btn.innerHTML = `<i class="fas fa-stop"></i> ${stopText}`;
             btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
             btn.style.boxShadow = '0 10px 20px rgba(239, 68, 68, 0.3)';
         } else {
-            btn.innerHTML = '<i class="fas fa-play"></i> Mulai Pernapasan';
+            btn.innerHTML = `<i class="fas fa-play"></i> ${startText}`;
             btn.style.background = '';
             btn.style.boxShadow = '0 10px 20px rgba(99, 102, 241, 0.3)';
         }
@@ -121,14 +123,16 @@ const Mindful = {
             circle.style.transform = 'scale(1.8)';
         }
 
-        this._startCountdown(4, 'Tarik Napas', () => this._hold());
+        const inhaleText = typeof t !== 'undefined' ? t('mindful.inhale') : 'Tarik Napas';
+        this._startCountdown(4, inhaleText, () => this._hold());
     },
 
     _hold() {
         if (!this.running) return;
         this.phase = 2;
 
-        this._startCountdown(7, 'Tahan', () => this._breatheOut());
+        const holdText = typeof t !== 'undefined' ? t('mindful.hold') : 'Tahan';
+        this._startCountdown(7, holdText, () => this._breatheOut());
     },
 
     _breatheOut() {
@@ -141,13 +145,14 @@ const Mindful = {
             circle.style.transform = 'scale(1)';
         }
 
-        this._startCountdown(8, 'Hembuskan', () => {
+        const exhaleText = typeof t !== 'undefined' ? t('mindful.exhale') : 'Hembuskan';
+        this._startCountdown(8, exhaleText, () => {
             this.cycles++;
             if (this.cycles < 4 && this.running) {
                 this._breatheIn();
             } else {
                 const text = document.getElementById('breathingText');
-                if (text) text.textContent = 'Selesai. Kerja Bagus!';
+                if (text) text.textContent = typeof t !== 'undefined' ? t('mindful.complete') : 'Selesai. Kerja Bagus!';
                 this.phase = 0;
                 this.running = false;
                 this._updateButton();

@@ -12,7 +12,7 @@ const Views = {
             <div class="view-container" style="max-width: 600px; margin: 0 auto; padding-top: 40px;">
                 <div id="assessmentProgressWrapper" style="margin-bottom: 32px; display: none;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Progres Evaluasi</span>
+                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">${t('assessment.progress')}</span>
                     </div>
                     <div class="progress-bar" style="height: 8px; background: rgba(139, 92, 246, 0.1);">
                         <div id="assessmentProgress" class="progress-fill" style="width: 0%; background: var(--primary-500); transition: width 0.4s ease;"></div>
@@ -22,7 +22,7 @@ const Views = {
                 <div id="assessmentContent">
                     <div style="text-align: center; padding: 60px 20px;">
                         <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
-                        <p style="color: var(--text-tertiary);">Memuat evaluasi...</p>
+                        <p style="color: var(--text-tertiary);">${t('common.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@ const Views = {
                 <div class="featured-card">
                     <div class="content" style="display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <p style="font-size: var(--text-sm); opacity: 0.9; margin-bottom: var(--space-1); color: rgba(255,255,255,0.8);">Today's Health Score</p>
+                            <p style="font-size: var(--text-sm); opacity: 0.9; margin-bottom: var(--space-1); color: rgba(255,255,255,0.8);">${t('dashboard.health_score')}</p>
                             <div style="display: flex; align-items: baseline; gap: var(--space-2);">
                                 <span id="healthScore" style="font-size: var(--text-4xl); font-weight: 800; color: white;">--</span>
                                 <span style="font-size: var(--text-sm); color: rgba(255,255,255,0.7);">/100</span>
@@ -59,7 +59,7 @@ const Views = {
 
                 <!-- Menu Cepat / Quick Menu -->
                 <div style="margin-top: 32px; margin-bottom: 32px;">
-                    <h3 class="section-title" style="margin-bottom: 20px;">Menu Cepat</h3>
+                    <h3 class="section-title" style="margin-bottom: 20px;">${t('dashboard.quick_menu')}</h3>
                     <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
                         <!-- Admin Panel (if admin) -->
                         <div id="adminCardContainer" style="display: none;">
@@ -69,8 +69,8 @@ const Views = {
                                     <i class="fas fa-sliders-h"></i>
                                 </div>
                                 <div class="card-content">
-                                    <h4 class="card-title">Admin Panel</h4>
-                                    <p class="card-subtitle">Kelola Sistem</p>
+                                    <h4 class="card-title">${t('menu.admin')}</h4>
+                                    <p class="card-subtitle">${t('menu.admin_sub')}</p>
                                 </div>
                                 <div class="card-hover-bg"></div>
                             </div>
@@ -83,8 +83,8 @@ const Views = {
                                 <i class="fas fa-list-check"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Asesmen</h4>
-                                <p class="card-subtitle">PHQ-9 & UCLA</p>
+                                <h4 class="card-title">${t('menu.assessment')}</h4>
+                                <p class="card-subtitle">${t('menu.assessment_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -96,8 +96,8 @@ const Views = {
                                 <i class="fas fa-comments"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">AI Chat</h4>
-                                <p class="card-subtitle">Dr. Synachat</p>
+                                <h4 class="card-title">${t('menu.chat')}</h4>
+                                <p class="card-subtitle">${t('menu.chat_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -109,8 +109,8 @@ const Views = {
                                 <i class="fas fa-headset"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Bantuan Krisis</h4>
-                                <p class="card-subtitle">Hubungi Sekarang</p>
+                                <h4 class="card-title">${t('menu.crisis')}</h4>
+                                <p class="card-subtitle">${t('menu.crisis_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -122,8 +122,8 @@ const Views = {
                                 <i class="fas fa-bed"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Sleep Lab</h4>
-                                <p class="card-subtitle">Pantau Tidur</p>
+                                <h4 class="card-title">${t('menu.sleep')}</h4>
+                                <p class="card-subtitle">${t('menu.sleep_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -135,8 +135,8 @@ const Views = {
                                 <i class="fas fa-pen-fancy"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Jurnal</h4>
-                                <p class="card-subtitle">Tulis Harian</p>
+                                <h4 class="card-title">${t('menu.journal')}</h4>
+                                <p class="card-subtitle">${t('menu.journal_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -148,8 +148,8 @@ const Views = {
                                 <i class="fas fa-spa"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Mindful</h4>
-                                <p class="card-subtitle">Meditasi</p>
+                                <h4 class="card-title">${t('menu.mindful')}</h4>
+                                <p class="card-subtitle">${t('menu.mindful_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -161,8 +161,8 @@ const Views = {
                                 <i class="fas fa-music"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Mood Booster</h4>
-                                <p class="card-subtitle">Terapi Musik</p>
+                                <h4 class="card-title">${t('menu.mood')}</h4>
+                                <p class="card-subtitle">${t('menu.mood_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -174,8 +174,8 @@ const Views = {
                                 <i class="fas fa-book"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Academy</h4>
-                                <p class="card-subtitle">Belajar</p>
+                                <h4 class="card-title">${t('menu.academy')}</h4>
+                                <p class="card-subtitle">${t('menu.academy_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -187,8 +187,8 @@ const Views = {
                                 <i class="fas fa-gamepad"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Games</h4>
-                                <p class="card-subtitle">Stress Relief</p>
+                                <h4 class="card-title">${t('menu.games')}</h4>
+                                <p class="card-subtitle">${t('menu.games_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -196,7 +196,7 @@ const Views = {
                 </div>
 
                 <!-- Current Health Metrics -->
-                <h3 class="section-title">Current Health</h3>
+                <h3 class="section-title">${t('dashboard.current_health')}</h3>
                 <div class="card-grid">
                     <!-- Heart Rate -->
                     <div class="card metric-card">
@@ -205,10 +205,10 @@ const Views = {
                         </div>
                         <div class="metric-value">
                             <span id="hrValue">--</span>
-                            <span class="metric-unit">BPM</span>
+                            <span class="metric-unit">${t('metric.bpm')}</span>
                         </div>
-                        <div class="metric-label">Heart Rate</div>
-                        <span id="hrStatus" class="metric-status gray">No Data</span>
+                        <div class="metric-label">${t('dashboard.heart_rate')}</div>
+                        <span id="hrStatus" class="metric-status gray">${t('metric.no_data')}</span>
                     </div>
 
                     <!-- SpO2 -->
@@ -220,8 +220,8 @@ const Views = {
                             <span id="spo2Value">--</span>
                             <span class="metric-unit">%</span>
                         </div>
-                        <div class="metric-label">SpO2</div>
-                        <span id="spo2Status" class="metric-status gray">No Data</span>
+                        <div class="metric-label">${t('dashboard.spo2')}</div>
+                        <span id="spo2Status" class="metric-status gray">${t('metric.no_data')}</span>
                     </div>
 
                     <!-- Stress Level -->
@@ -232,8 +232,8 @@ const Views = {
                         <div class="metric-value">
                             <span id="stressValue">0%</span>
                         </div>
-                        <div class="metric-label">Stress Level</div>
-                        <span id="stressLabel" class="metric-status success" style="margin-bottom: var(--space-2);">Rendah</span>
+                        <div class="metric-label">${t('dashboard.stress')}</div>
+                        <span id="stressLabel" class="metric-status success" style="margin-bottom: var(--space-2);">${t('metric.low')}</span>
                         <div class="progress-container">
                             <div class="progress-bar">
                                 <div id="stressBar" class="progress-fill" style="width: 0%;"></div>
@@ -249,7 +249,7 @@ const Views = {
                         <div class="metric-value">
                             <span id="gsrValue">0%</span>
                         </div>
-                        <div class="metric-label">GSR Activity</div>
+                        <div class="metric-label">${t('dashboard.gsr')}</div>
                         <div class="progress-container">
                             <div class="progress-bar">
                                 <div id="gsrBar" class="progress-fill" style="width: 0%;"></div>
@@ -261,9 +261,9 @@ const Views = {
 
                 <!-- Real-time Charts -->
                 <h3 class="section-title">
-                    Real-time Charts
+                    ${t('dashboard.realtime_charts')}
                     <span id="chartStatus" class="chart-status-badge demo">
-                        <i class="fas fa-circle"></i> Demo
+                        <i class="fas fa-circle"></i> ${t('metric.demo')}
                     </span>
                 </h3>
 
@@ -276,8 +276,8 @@ const Views = {
                     <div class="chart-header">
                         <span class="chart-title">
                             <i class="fas fa-heart-pulse" style="color: var(--danger-400);"></i>
-                            Heart Rate
-                            <span id="hrLiveValue" class="live-value">-- BPM</span>
+                            ${t('dashboard.heart_rate')}
+                            <span id="hrLiveValue" class="live-value">-- ${t('metric.bpm')}</span>
                         </span>
                     </div>
                     <div class="chart-canvas">
@@ -293,7 +293,7 @@ const Views = {
                     <div class="chart-header">
                         <span class="chart-title">
                             <i class="fas fa-brain" style="color: var(--warning-400);"></i>
-                            Stress Level
+                            ${t('dashboard.stress')}
                             <span id="stressLiveValue" class="live-value">--%</span>
                         </span>
                     </div>
@@ -312,7 +312,7 @@ const Views = {
                     <div class="chart-header">
                         <span class="chart-title">
                             <i class="fas fa-hand" style="color: var(--primary-400);"></i>
-                            GSR Activity
+                            ${t('dashboard.gsr')}
                             <span id="gsrLiveValue" class="live-value">--%</span>
                         </span>
                     </div>
@@ -325,11 +325,11 @@ const Views = {
                 <div style="margin-top: var(--space-6); display: flex; gap: var(--space-3); flex-wrap: wrap;">
                     <button class="btn btn-primary btn-sm" data-route="health">
                         <i class="fas fa-heartbeat"></i>
-                        Start Monitoring
+                        ${t('action.start_monitoring')}
                     </button>
                     <button class="btn btn-secondary btn-sm" data-route="synachat">
                         <i class="fas fa-comments"></i>
-                        Talk to AI
+                        ${t('action.talk_to_ai')}
                     </button>
                 </div>
             </div>
@@ -346,14 +346,14 @@ const Views = {
                 <div class="health-header">
                     <div class="health-header-content">
                         <div class="health-header-left">
-                            <h1 class="health-title">Health Monitor</h1>
-                            <p class="health-subtitle">Real-time vitals tracking</p>
+                            <h1 class="health-title">${t('health.title')}</h1>
+                            <p class="health-subtitle">${t('health.subtitle')}</p>
                         </div>
                         <button id="bleConnectBtn" class="ble-connect-btn" onclick="BLEConnection.toggle()">
                             <span class="ble-btn-content">
                                 <span class="ble-status-dot" id="bleIndicator"></span>
                                 <i class="fas fa-bluetooth-b"></i>
-                                <span id="bleStatusText">Connect</span>
+                                <span id="bleStatusText">${t('health.connect')}</span>
                             </span>
                         </button>
                     </div>
@@ -376,14 +376,14 @@ const Views = {
                             </div>
                             <div class="hr-status" id="hrStatus">
                                 <span class="status-dot"></span>
-                                <span>Waiting for data</span>
+                                <span>${t('health.waiting')}</span>
                             </div>
                         </div>
                     </div>
                     <div class="hr-meta">
                         <div class="hr-meta-item">
                             <i class="fas fa-fingerprint"></i>
-                            <span id="fingerStatus">Place finger on sensor</span>
+                            <span id="fingerStatus">${t('health.place_finger')}</span>
                         </div>
                     </div>
                 </div>
@@ -391,9 +391,9 @@ const Views = {
                 <!-- Vital Signs Grid -->
                 <div class="vitals-section">
                     <div class="section-header">
-                        <h2><i class="fas fa-wave-square"></i> Vital Signs</h2>
+                        <h2><i class="fas fa-wave-square"></i> ${t('health.vital_signs')}</h2>
                         <span class="live-badge" id="liveIndicator">
-                            <span class="live-dot"></span> Live
+                            <span class="live-dot"></span> ${t('metric.live')}
                         </span>
                     </div>
 
@@ -411,11 +411,11 @@ const Views = {
                                     <span class="vital-number" id="spo2Value">--</span>
                                     <span class="vital-unit">%</span>
                                 </div>
-                                <div class="vital-label">Blood Oxygen</div>
+                                <div class="vital-label">${t('health.blood_oxygen')}</div>
                             </div>
                             <div class="vital-card-footer">
                                 <div class="vital-range">
-                                    <span>Normal: 95-100%</span>
+                                    <span>${t('metric.normal')}: 95-100%</span>
                                 </div>
                             </div>
                         </div>
@@ -433,11 +433,11 @@ const Views = {
                                     <span class="vital-number" id="btValue">--</span>
                                     <span class="vital-unit">°C</span>
                                 </div>
-                                <div class="vital-label">Body Temperature</div>
+                                <div class="vital-label">${t('health.body_temp')}</div>
                             </div>
                             <div class="vital-card-footer">
                                 <div class="vital-range">
-                                    <span>Normal: 36.1-37.2°C</span>
+                                    <span>${t('metric.normal')}: 36.1-37.2°C</span>
                                 </div>
                             </div>
                         </div>
@@ -454,7 +454,7 @@ const Views = {
                                     <span class="vital-number" id="atValue">--</span>
                                     <span class="vital-unit">°C</span>
                                 </div>
-                                <div class="vital-label">Room Temperature</div>
+                                <div class="vital-label">${t('health.room_temp')}</div>
                             </div>
                         </div>
 
@@ -467,9 +467,9 @@ const Views = {
                             </div>
                             <div class="vital-card-body">
                                 <div class="vital-value">
-                                    <span class="vital-text" id="actValue">Resting</span>
+                                    <span class="vital-text" id="actValue">${t('health.resting')}</span>
                                 </div>
-                                <div class="vital-label">Activity Status</div>
+                                <div class="vital-label">${t('health.activity')}</div>
                             </div>
                         </div>
                     </div>
@@ -478,7 +478,7 @@ const Views = {
                 <!-- Stress & Wellness Section -->
                 <div class="wellness-section">
                     <div class="section-header">
-                        <h2><i class="fas fa-brain"></i> Mental Wellness</h2>
+                        <h2><i class="fas fa-brain"></i> ${t('health.mental_wellness')}</h2>
                     </div>
 
                     <div class="wellness-grid">
@@ -496,9 +496,9 @@ const Views = {
                                     </div>
                                 </div>
                                 <div class="wellness-info">
-                                    <h3>Stress Level</h3>
-                                    <span class="wellness-status" id="stressStatus">Low</span>
-                                    <p class="wellness-tip" id="stressTip">You're doing great! Keep it up.</p>
+                                    <h3>${t('health.stress_level')}</h3>
+                                    <span class="wellness-status" id="stressStatus">${t('metric.low')}</span>
+                                    <p class="wellness-tip" id="stressTip">${t('health.doing_great')}</p>
                                 </div>
                             </div>
                         </div>
@@ -517,9 +517,9 @@ const Views = {
                                     </div>
                                 </div>
                                 <div class="wellness-info">
-                                    <h3>GSR Activity</h3>
-                                    <span class="wellness-status" id="gsrStatusBadge">Relaxed</span>
-                                    <p class="wellness-tip" id="gsrTip">Skin conductance is normal.</p>
+                                    <h3>${t('health.gsr_activity')}</h3>
+                                    <span class="wellness-status" id="gsrStatusBadge">${t('health.relaxed')}</span>
+                                    <p class="wellness-tip" id="gsrTip">${t('health.skin_normal')}</p>
                                 </div>
                             </div>
                         </div>
@@ -530,12 +530,12 @@ const Views = {
                 <div id="autoRecordStatus" class="recording-banner" style="display: none;">
                     <div class="recording-indicator">
                         <span class="recording-dot"></span>
-                        <span>Recording</span>
+                        <span>${t('health.recording')}</span>
                     </div>
                     <div class="recording-info">
                         <span id="recordingTimer">00:00</span>
                         <span class="recording-divider">•</span>
-                        <span id="recordingCount">0 readings</span>
+                        <span id="recordingCount">0 ${t('health.readings')}</span>
                     </div>
                 </div>
 
@@ -543,11 +543,11 @@ const Views = {
                 <div class="health-actions">
                     <button class="health-action-btn primary" onclick="Router.navigate('analytics')">
                         <i class="fas fa-chart-line"></i>
-                        <span>View Analytics</span>
+                        <span>${t('health.view_analytics')}</span>
                     </button>
                     <button class="health-action-btn secondary" onclick="Router.navigate('synachat')">
                         <i class="fas fa-robot"></i>
-                        <span>Ask Dr. Synachat</span>
+                        <span>${t('health.ask_synachat')}</span>
                     </button>
                 </div>
             </div>
@@ -562,9 +562,9 @@ const Views = {
             <div class="view-container">
                 <!-- Period Filter -->
                 <div class="filter-tabs" style="margin-bottom: var(--space-4);">
-                    <button class="filter-tab active" onclick="changeChartPeriod('day', this)">Today</button>
-                    <button class="filter-tab" onclick="changeChartPeriod('week', this)">This Week</button>
-                    <button class="filter-tab" onclick="changeChartPeriod('month', this)">This Month</button>
+                    <button class="filter-tab active" onclick="changeChartPeriod('day', this)">${t('analytics.today')}</button>
+                    <button class="filter-tab" onclick="changeChartPeriod('week', this)">${t('analytics.this_week')}</button>
+                    <button class="filter-tab" onclick="changeChartPeriod('month', this)">${t('analytics.this_month')}</button>
                 </div>
 
                 <!-- Heart Rate Chart -->
@@ -572,9 +572,9 @@ const Views = {
                     <div class="chart-header">
                         <span class="chart-title">
                             <i class="fas fa-heart-pulse" style="color: var(--danger-500);"></i>
-                            Heart Rate Trends
+                            ${t('analytics.hr_trends')}
                         </span>
-                        <span id="hrAvgStat" class="stat-badge">Avg: -- BPM</span>
+                        <span id="hrAvgStat" class="stat-badge">Avg: -- ${t('metric.bpm')}</span>
                     </div>
                     <div class="chart-canvas" style="height: 200px;">
                         <canvas id="hrTrendChart"></canvas>
@@ -586,7 +586,7 @@ const Views = {
                     <div class="chart-header">
                         <span class="chart-title">
                             <i class="fas fa-brain" style="color: var(--warning-500);"></i>
-                            Stress Level Pattern
+                            ${t('analytics.stress_pattern')}
                         </span>
                         <span id="stressAvgStat" class="stat-badge">Avg: --%</span>
                     </div>
@@ -600,7 +600,7 @@ const Views = {
                     <div class="chart-header">
                         <span class="chart-title">
                             <i class="fas fa-hand" style="color: var(--primary-500);"></i>
-                            GSR Activity Pattern
+                            ${t('analytics.gsr_pattern')}
                         </span>
                         <span id="gsrAvgStat" class="stat-badge">Avg: --%</span>
                     </div>
@@ -614,7 +614,7 @@ const Views = {
                     <div class="chart-header">
                         <span class="chart-title">
                             <i class="fas fa-lungs" style="color: var(--info-500);"></i>
-                            SpO2 Trends
+                            ${t('analytics.spo2_trends')}
                         </span>
                         <span id="spo2AvgStat" class="stat-badge">Avg: --%</span>
                     </div>
@@ -624,35 +624,35 @@ const Views = {
                 </div>
 
                 <!-- Daily Summary -->
-                <h3 class="section-title">Daily Summary</h3>
+                <h3 class="section-title">${t('analytics.daily_summary')}</h3>
                 <div class="card-grid">
                     <div class="card metric-card">
                         <div class="metric-icon danger">
                             <i class="fas fa-heart"></i>
                         </div>
                         <div class="metric-value" id="avgHr">--</div>
-                        <div class="metric-label">Avg Heart Rate</div>
+                        <div class="metric-label">${t('analytics.avg_hr')}</div>
                     </div>
                     <div class="card metric-card">
                         <div class="metric-icon warning">
                             <i class="fas fa-brain"></i>
                         </div>
                         <div class="metric-value" id="avgStress">--</div>
-                        <div class="metric-label">Avg Stress</div>
+                        <div class="metric-label">${t('analytics.avg_stress')}</div>
                     </div>
                     <div class="card metric-card">
                         <div class="metric-icon info">
                             <i class="fas fa-lungs"></i>
                         </div>
                         <div class="metric-value" id="avgSpo2">--</div>
-                        <div class="metric-label">Avg SpO2</div>
+                        <div class="metric-label">${t('analytics.avg_spo2')}</div>
                     </div>
                     <div class="card metric-card">
                         <div class="metric-icon primary">
                             <i class="fas fa-hand"></i>
                         </div>
                         <div class="metric-value" id="avgGsr">--</div>
-                        <div class="metric-label">Avg GSR</div>
+                        <div class="metric-label">${t('analytics.avg_gsr')}</div>
                     </div>
                 </div>
             </div>
@@ -678,35 +678,35 @@ const Views = {
                 </div>
 
                 <!-- Statistics -->
-                <h3 class="section-title">Your Statistics</h3>
+                <h3 class="section-title">${t('profile.title')}</h3>
                 <div class="card-grid">
                     <div class="card metric-card">
                         <div class="metric-icon primary">
                             <i class="fas fa-calendar-check"></i>
                         </div>
                         <div id="daysActive" class="metric-value">0</div>
-                        <div class="metric-label">Days Active</div>
+                        <div class="metric-label">${t('profile.days_active')}</div>
                     </div>
                     <div class="card metric-card">
                         <div class="metric-icon success">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
                         <div id="totalSessions" class="metric-value">0</div>
-                        <div class="metric-label">Total Sessions</div>
+                        <div class="metric-label">${t('profile.total_sessions')}</div>
                     </div>
                     <div class="card metric-card">
                         <div class="metric-icon danger">
                             <i class="fas fa-heart"></i>
                         </div>
                         <div id="healthScore" class="metric-value">--</div>
-                        <div class="metric-label">Health Score</div>
+                        <div class="metric-label">${t('profile.health_score')}</div>
                     </div>
                     <div class="card metric-card">
                         <div class="metric-icon info">
                             <i class="fas fa-clock"></i>
                         </div>
                         <div id="totalTime" class="metric-value">0h</div>
-                        <div class="metric-label">Total Time</div>
+                        <div class="metric-label">${t('profile.total_time')}</div>
                     </div>
                 </div>
 
@@ -728,8 +728,8 @@ const Views = {
                             <i class="fas fa-user-edit"></i>
                         </div>
                         <div class="list-item-content">
-                            <div class="list-item-title">Edit Profile</div>
-                            <div class="list-item-subtitle">Update your name and photo</div>
+                            <div class="list-item-title">${t('profile.edit')}</div>
+                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Perbarui nama dan foto Anda' : 'Update your name and photo'}</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
@@ -738,8 +738,8 @@ const Views = {
                             <i class="fas fa-lock"></i>
                         </div>
                         <div class="list-item-content">
-                            <div class="list-item-title">Change Password</div>
-                            <div class="list-item-subtitle">Update your security credentials</div>
+                            <div class="list-item-title">${t('profile.change_password')}</div>
+                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Perbarui kredensial keamanan Anda' : 'Update your security credentials'}</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
@@ -748,10 +748,27 @@ const Views = {
                             <i class="fas fa-comments"></i>
                         </div>
                         <div class="list-item-content">
-                            <div class="list-item-title">Health Assistant</div>
-                            <div class="list-item-subtitle">Chat with Dr. Synachat</div>
+                            <div class="list-item-title">${t('profile.health_assistant')}</div>
+                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Chat dengan Dr. Synachat' : 'Chat with Dr. Synachat'}</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
+                    </div>
+                    <div class="list-item" style="border-bottom: none;">
+                        <div class="list-item-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">${t('profile.language')}</div>
+                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Pilih bahasa aplikasi' : 'Select app language'}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="I18n.setLang('id')" class="btn btn-sm ${I18n.currentLang === 'id' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 12px; font-size: 0.75rem;">
+                                ID
+                            </button>
+                            <button onclick="I18n.setLang('en')" class="btn btn-sm ${I18n.currentLang === 'en' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 12px; font-size: 0.75rem;">
+                                EN
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -761,8 +778,8 @@ const Views = {
                             <i class="fas fa-sign-out-alt"></i>
                         </div>
                         <div class="list-item-content">
-                            <div class="list-item-title" style="color: var(--danger-400);">Logout</div>
-                            <div class="list-item-subtitle">Sign out of your account</div>
+                            <div class="list-item-title" style="color: var(--danger-400);">${t('profile.logout')}</div>
+                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Keluar dari akun Anda' : 'Sign out of your account'}</div>
                         </div>
                     </div>
                 </div>
@@ -804,11 +821,11 @@ const Views = {
                     <div class="avatar-info">
                         <div class="avatar-name">
                             <i class="fas fa-sparkles"></i>
-                            <span>Dr. Synachat</span>
+                            <span>${t('synachat.title')}</span>
                         </div>
                         <div class="avatar-status">
                             <span class="status-dot"></span>
-                            <span id="avatarStatusText">Ready to help</span>
+                            <span id="avatarStatusText">${t('synachat.ready')}</span>
                         </div>
                     </div>
 
@@ -817,7 +834,7 @@ const Views = {
                         <button id="ttsToggle" class="tts-toggle active" onclick="toggleTTS()" aria-label="Toggle voice">
                             <i class="fas fa-volume-high"></i>
                         </button>
-                        <button class="tts-toggle" onclick="clearChat()" aria-label="Clear chat" title="Hapus riwayat chat">
+                        <button class="tts-toggle" onclick="clearChat()" aria-label="Clear chat" title="${t('synachat.delete_tooltip')}">
                             <i class="fas fa-trash-can"></i>
                         </button>
                     </div>
@@ -870,7 +887,7 @@ const Views = {
                             <textarea
                                 id="messageInput"
                                 class="message-input"
-                                placeholder="Ask me anything about your health..."
+                                placeholder="${t('synachat.placeholder')}"
                                 rows="1"
                                 onkeydown="handleKeyDown(event)"
                                 oninput="autoResize(this)"
@@ -896,45 +913,45 @@ const Views = {
                 <div class="health-hero" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);">
                     <i class="fas fa-moon" style="font-size: 2.5rem; margin-bottom: 12px; color: #a5b4fc;"></i>
                     <div class="big-value" style="color: white; font-size: 3rem;"><span id="sleepScoreValue">--</span></div>
-                    <div class="label" style="color: #c7d2fe;">Est. Sleep Readiness</div>
+                    <div class="label" style="color: #c7d2fe;">${t('sleep.title')}</div>
                 </div>
 
                 <!-- Relaxation Audio -->
-                <h3 class="section-title">Audio Relaksasi</h3>
+                <h3 class="section-title">${t('sleep.audio_title')}</h3>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
                     <div class="card" style="text-align: center; cursor: pointer; padding: 16px;" onclick="SleepLab.playSound('rain')">
                         <i class="fas fa-cloud-rain" style="font-size: 1.5rem; color: var(--info-500); margin-bottom: 8px;"></i>
-                        <div style="font-size: 0.8rem; font-weight: 600;">Hujan</div>
+                        <div style="font-size: 0.8rem; font-weight: 600;">${t('sleep.audio_rain')}</div>
                     </div>
                     <div class="card" style="text-align: center; cursor: pointer; padding: 16px;" onclick="SleepLab.playSound('forest')">
                         <i class="fas fa-tree" style="font-size: 1.5rem; color: var(--success-500); margin-bottom: 8px;"></i>
-                        <div style="font-size: 0.8rem; font-weight: 600;">Hutan</div>
+                        <div style="font-size: 0.8rem; font-weight: 600;">${t('sleep.audio_forest')}</div>
                     </div>
                     <div class="card" style="text-align: center; cursor: pointer; padding: 16px;" onclick="SleepLab.playSound('noise')">
                         <i class="fas fa-water" style="font-size: 1.5rem; color: var(--primary-500); margin-bottom: 8px;"></i>
-                        <div style="font-size: 0.8rem; font-weight: 600;">Ombak</div>
+                        <div style="font-size: 0.8rem; font-weight: 600;">${t('sleep.audio_waves')}</div>
                     </div>
                 </div>
 
                 <!-- Bedtime Checklist -->
-                <h3 class="section-title">Rutinitas Malam</h3>
+                <h3 class="section-title">${t('sleep.routine_title')}</h3>
                 <div class="card" style="padding: 0; overflow: hidden;">
                     <div class="list-item" style="cursor: pointer;" onclick="SleepLab.toggleChecklist(this)">
                         <div class="list-item-icon" style="background: transparent; color: var(--text-tertiary);"><i class="far fa-circle"></i></div>
                         <div class="list-item-content">
-                            <div class="list-item-title">Mandi Air Hangat</div>
+                            <div class="list-item-title">${t('sleep.routine_bath')}</div>
                         </div>
                     </div>
                     <div class="list-item" style="cursor: pointer;" onclick="SleepLab.toggleChecklist(this)">
                         <div class="list-item-icon" style="background: transparent; color: var(--text-tertiary);"><i class="far fa-circle"></i></div>
                         <div class="list-item-content">
-                            <div class="list-item-title">Matikan Layar (30m sblm tidur)</div>
+                            <div class="list-item-title">${t('sleep.routine_screen')}</div>
                         </div>
                     </div>
                     <div class="list-item" style="cursor: pointer; border-bottom: none;" onclick="SleepLab.toggleChecklist(this)">
                         <div class="list-item-icon" style="background: transparent; color: var(--text-tertiary);"><i class="far fa-circle"></i></div>
                         <div class="list-item-content">
-                            <div class="list-item-title">Minum Air Susu/Teh Kamomil</div>
+                            <div class="list-item-title">${t('sleep.routine_drink')}</div>
                         </div>
                     </div>
                 </div>
@@ -951,7 +968,7 @@ const Views = {
                 <div id="moodboosterContent">
                     <div style="text-align: center; padding: 40px 20px;">
                         <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
-                        <p style="color: var(--text-tertiary);">Memuat Mood Booster...</p>
+                        <p style="color: var(--text-tertiary);">${t('moodbooster.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -965,17 +982,17 @@ const Views = {
         return `
             <div class="view-container" style="max-width: 700px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-primary);">
                 <div style="text-align: center; margin-bottom: 60px;">
-                    <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">Mindful Moment</h2>
-                    <p style="color: var(--text-secondary);">Ikuti ritme pernapasan 4-7-8 untuk rileks total.</p>
+                    <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">${t('mindful.title')}</h2>
+                    <p style="color: var(--text-secondary);">${t('mindful.desc')}</p>
                 </div>
-                
+
                 <div style="position: relative; width: 250px; height: 250px; display: flex; align-items: center; justify-content: center; margin-bottom: 60px;">
                     <div id="breathingCircle" style="position: absolute; width: 100px; height: 100px; background: rgba(16, 185, 129, 0.2); border-radius: 50%; border: 2px solid var(--success-500); box-shadow: 0 0 30px rgba(16, 185, 129, 0.4); z-index: 1;"></div>
-                    <div id="breathingText" style="z-index: 2; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Mulai Latihan</div>
+                    <div id="breathingText" style="z-index: 2; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">${t('mindful.start')}</div>
                 </div>
 
                 <button id="mindfulBtn" class="btn btn-primary" style="padding: 16px 32px; border-radius: 30px; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);" onclick="Mindful.toggle()">
-                    <i class="fas fa-play"></i> Mulai Pernapasan
+                    <i class="fas fa-play"></i> ${t('mindful.start_breathing')}
                 </button>
             </div>
         `;
@@ -988,18 +1005,18 @@ const Views = {
         return `
             <div class="view-container" style="max-width: 700px; margin: 0 auto;">
                 <div style="margin-bottom: 24px;">
-                    <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;"><i class="fas fa-book-open" style="color: var(--primary-500);"></i> Jurnal Refleksi</h2>
-                    <p style="color: var(--text-tertiary);">Tuliskan apa yang membebani pikiranmu hari ini.</p>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;"><i class="fas fa-book-open" style="color: var(--primary-500);"></i> ${t('journal.title')}</h2>
+                    <p style="color: var(--text-tertiary);">${t('journal.desc')}</p>
                 </div>
-                
+
                 <div class="card" style="margin-bottom: 24px;">
-                    <textarea id="journalInput" rows="5" placeholder="Hari ini saya merasa..." style="width: 100%; border: none; background: #f8fafc; padding: 16px; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 1rem; color: var(--text-primary); resize: vertical; margin-bottom: 16px; outline: none;"></textarea>
+                    <textarea id="journalInput" rows="5" placeholder="${t('journal.placeholder')}" style="width: 100%; border: none; background: #f8fafc; padding: 16px; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 1rem; color: var(--text-primary); resize: vertical; margin-bottom: 16px; outline: none;"></textarea>
                     <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="Journal.save()">
-                        <i class="fas fa-save"></i> Simpan Jurnal
+                        <i class="fas fa-save"></i> ${t('journal.save')}
                     </button>
                 </div>
 
-                <h3 class="section-title">Catatan Sebelumnya</h3>
+                <h3 class="section-title">${t('journal.previous')}</h3>
                 <div id="journalList">
                     <!-- Loaded dynamically -->
                     <div style="text-align: center; padding: 20px;"><div class="loading-spinner"></div></div>
@@ -1017,7 +1034,7 @@ const Views = {
                 <div id="supportContent">
                     <div style="text-align: center; padding: 40px 20px;">
                         <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
-                        <p style="color: var(--text-tertiary);">Memuat Support Hub...</p>
+                        <p style="color: var(--text-tertiary);">${t('support.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -1033,7 +1050,7 @@ const Views = {
                 <div id="academyContent">
                     <div style="text-align: center; padding: 40px 20px;">
                         <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
-                        <p style="color: var(--text-tertiary);">Memuat Syna Academy...</p>
+                        <p style="color: var(--text-tertiary);">${t('academy.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -1048,57 +1065,181 @@ const Views = {
             <div id="researchContent" style="padding:0;">
                 <div style="text-align:center;padding:40px 20px;">
                     <div class="loading-spinner" style="margin:0 auto 16px;"></div>
-                    <p style="color:var(--text-tertiary);">Memuat Research Foundation...</p>
+                    <p style="color:var(--text-tertiary);">${t('research.loading')}</p>
                 </div>
             </div>
         `;
     },
 
     /**
-     * Games View
+     * Games View - Modern & Professional Design
      */
     games() {
         return `
-            <div class="view-container" style="max-width: 800px; margin: 0 auto; padding-top: 20px;">
-                <!-- Games Header -->
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px;">
-                        🎮 Wellness Games
-                    </h1>
-                    <p style="color: var(--text-secondary); font-size: 1.1rem;">Relax, play, and reduce stress with fun games</p>
-                </div>
-
-                <!-- Game Selector -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
-                    <!-- Game 1: Breathing -->
-                    <div class="card" style="padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s;" onclick="GamesModule.displayGame('breathing')" onmouseover="this.style.boxShadow='0 12px 30px rgba(139,92,246,0.3); transform: translateY(-4px)'" onmouseout="this.style.boxShadow=''; this.style.transform=''">
-                        <div style="font-size: 3rem; margin-bottom: 12px;">🫁</div>
-                        <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 8px;">Breathing Exercise</div>
-                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">2 min • Reduce stress instantly</p>
-                    </div>
-
-                    <!-- Game 2: Memory -->
-                    <div class="card" style="padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s;" onclick="GamesModule.displayGame('memory')" onmouseover="this.style.boxShadow='0 12px 30px rgba(139,92,246,0.3); transform: translateY(-4px)'" onmouseout="this.style.boxShadow=''; this.style.transform=''">
-                        <div style="font-size: 3rem; margin-bottom: 12px;">🧩</div>
-                        <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 8px;">Memory Match Game</div>
-                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">Varies • Improve focus</p>
-                    </div>
-
-                    <!-- Game 3: Challenge -->
-                    <div class="card" style="padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s;" onclick="GamesModule.displayGame('challenge')" onmouseover="this.style.boxShadow='0 12px 30px rgba(139,92,246,0.3); transform: translateY(-4px)'" onmouseout="this.style.boxShadow=''; this.style.transform=''">
-                        <div style="font-size: 3rem; margin-bottom: 12px;">🏆</div>
-                        <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 8px;">Daily Challenge</div>
-                        <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">Daily • Earn points</p>
+            <div class="games-page">
+                <!-- Hero Header -->
+                <div class="games-hero">
+                    <div class="games-hero-bg"></div>
+                    <div class="games-hero-content">
+                        <div class="games-hero-icon">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <h1 class="games-hero-title">${t('games.title')}</h1>
+                        <p class="games-hero-subtitle">${t('games.hero_subtitle')}</p>
                     </div>
                 </div>
 
-                <!-- Game Display Area -->
-                <div id="gameDisplay" style="background: white; border-radius: var(--radius-lg); padding: 20px; border: 1px solid var(--border-color);">
-                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
-                        <p style="font-size: 1.1rem;">👆 Select a game to get started!</p>
+                <!-- Stats Overview -->
+                <div class="games-stats-bar">
+                    <div class="games-stat-item">
+                        <i class="fas fa-trophy"></i>
+                        <div class="games-stat-info">
+                            <span class="games-stat-value" id="totalPointsDisplay">0</span>
+                            <span class="games-stat-label">${t('games.total_points')}</span>
+                        </div>
+                    </div>
+                    <div class="games-stat-item">
+                        <i class="fas fa-fire"></i>
+                        <div class="games-stat-info">
+                            <span class="games-stat-value" id="currentStreak">0</span>
+                            <span class="games-stat-label">${t('games.day_streak')}</span>
+                        </div>
+                    </div>
+                    <div class="games-stat-item">
+                        <i class="fas fa-gamepad"></i>
+                        <div class="games-stat-info">
+                            <span class="games-stat-value" id="gamesPlayed">0</span>
+                            <span class="games-stat-label">${t('games.games_played')}</span>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Tab Navigation -->
+                <div class="games-tabs">
+                    <button class="games-tab active" data-tab="play" onclick="GamesModule.switchTab('play')">
+                        <i class="fas fa-play"></i> ${t('games.tab_play')}
+                    </button>
+                    <button class="games-tab" data-tab="history" onclick="GamesModule.switchTab('history')">
+                        <i class="fas fa-history"></i> ${t('games.tab_history')}
+                    </button>
+                    <button class="games-tab" data-tab="leaderboard" onclick="GamesModule.switchTab('leaderboard')">
+                        <i class="fas fa-medal"></i> ${t('games.tab_leaderboard')}
+                    </button>
+                </div>
+
+                <!-- Tab Content: Play -->
+                <div id="tab-play" class="games-tab-content active">
+                    <h3 class="games-section-title">${t('games.select_game')}</h3>
+                    <div class="games-grid">
+                        <!-- Breathing Game Card -->
+                        <div class="game-card breathing-card" onclick="GamesModule.displayGame('breathing')">
+                            <div class="game-card-glow"></div>
+                            <div class="game-card-icon breathing-icon">
+                                <i class="fas fa-wind"></i>
+                            </div>
+                            <div class="game-card-content">
+                                <h4 class="game-card-title">${t('games.breathing_title')}</h4>
+                                <p class="game-card-desc">${t('games.breathing_desc')}</p>
+                                <div class="game-card-meta">
+                                    <span><i class="fas fa-clock"></i> 2-5 ${t('games.minutes')}</span>
+                                    <span><i class="fas fa-star"></i> +30 ${t('games.points')}</span>
+                                </div>
+                            </div>
+                            <div class="game-card-play">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+
+                        <!-- Memory Game Card -->
+                        <div class="game-card memory-card" onclick="GamesModule.displayGame('memory')">
+                            <div class="game-card-glow"></div>
+                            <div class="game-card-icon memory-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="game-card-content">
+                                <h4 class="game-card-title">${t('games.memory_title')}</h4>
+                                <p class="game-card-desc">${t('games.memory_desc')}</p>
+                                <div class="game-card-meta">
+                                    <span><i class="fas fa-clock"></i> ${t('games.varies')}</span>
+                                    <span><i class="fas fa-star"></i> +15 ${t('games.points')}</span>
+                                </div>
+                            </div>
+                            <div class="game-card-play">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+
+                        <!-- Daily Challenge Card -->
+                        <div class="game-card challenge-card" onclick="GamesModule.displayGame('challenge')">
+                            <div class="game-card-glow"></div>
+                            <div class="game-card-icon challenge-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="game-card-content">
+                                <h4 class="game-card-title">${t('games.challenge_title')}</h4>
+                                <p class="game-card-desc">${t('games.challenge_desc')}</p>
+                                <div class="game-card-meta">
+                                    <span><i class="fas fa-calendar-day"></i> ${t('games.daily')}</span>
+                                    <span><i class="fas fa-star"></i> +10-30 ${t('games.points')}</span>
+                                </div>
+                            </div>
+                            <div class="game-card-play">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+
+                        <!-- Focus Game Card -->
+                        <div class="game-card focus-card" onclick="GamesModule.displayGame('focus')">
+                            <div class="game-card-glow"></div>
+                            <div class="game-card-icon focus-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div class="game-card-content">
+                                <h4 class="game-card-title">${t('games.focus_title')}</h4>
+                                <p class="game-card-desc">${t('games.focus_desc')}</p>
+                                <div class="game-card-meta">
+                                    <span><i class="fas fa-clock"></i> 25 ${t('games.minutes')}</span>
+                                    <span><i class="fas fa-star"></i> +50 ${t('games.points')}</span>
+                                </div>
+                            </div>
+                            <div class="game-card-play">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: History -->
+                <div id="tab-history" class="games-tab-content">
+                    <h3 class="games-section-title">${t('games.history_title')}</h3>
+                    <div id="gameHistoryList" class="game-history-list">
+                        <div class="loading-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>${t('games.loading_history')}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Leaderboard -->
+                <div id="tab-leaderboard" class="games-tab-content">
+                    <h3 class="games-section-title">${t('games.leaderboard_title')}</h3>
+                    <div id="leaderboardList" class="leaderboard-list">
+                        <div class="loading-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>${t('games.loading_leaderboard')}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Display Area (Modal Style) -->
+                <div id="gameModal" class="game-modal">
+                    <div class="game-modal-content">
+                        <button class="game-modal-close" onclick="GamesModule.closeGame()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div id="gameDisplay"></div>
+                    </div>
+                </div>
             </div>
         `;
     },
@@ -1114,26 +1255,26 @@ const Views = {
                     <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: 0 6px 20px rgba(20, 184, 166, 0.35);">
                         <i class="fas fa-spa" style="font-size: 1.75rem; color: white;"></i>
                     </div>
-                    <h2 style="font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Yoga Studio</h2>
-                    <p style="font-size: var(--text-sm); color: var(--text-tertiary);">Jelajahi pose yoga untuk ketenangan pikiran & tubuh</p>
+                    <h2 style="font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">${t('yoga.title')}</h2>
+                    <p style="font-size: var(--text-sm); color: var(--text-tertiary);">${t('yoga.subtitle')}</p>
                 </div>
 
                 <!-- Search Bar -->
                 <div class="yoga-search-wrapper">
                     <i class="fas fa-search yoga-search-icon"></i>
-                    <input type="text" id="yogaSearch" class="yoga-search-bar" placeholder="Cari pose yoga... (contoh: tree, warrior)">
+                    <input type="text" id="yogaSearch" class="yoga-search-bar" placeholder="${t('yoga.search')}">
                 </div>
 
                 <!-- Filter Bar -->
                 <div class="yoga-filter-bar">
                     <div class="yoga-filter-group">
-                        <button class="yoga-filter-btn active" data-level="all">Semua</button>
-                        <button class="yoga-filter-btn" data-level="pemula">Pemula</button>
-                        <button class="yoga-filter-btn" data-level="menengah">Menengah</button>
-                        <button class="yoga-filter-btn" data-level="ahli">Ahli</button>
+                        <button class="yoga-filter-btn active" data-level="all">${t('yoga.filter_all')}</button>
+                        <button class="yoga-filter-btn" data-level="pemula">${t('yoga.filter_beginner')}</button>
+                        <button class="yoga-filter-btn" data-level="menengah">${t('yoga.filter_intermediate')}</button>
+                        <button class="yoga-filter-btn" data-level="ahli">${t('yoga.filter_advanced')}</button>
                     </div>
                     <select id="yogaCategoryFilter" class="yoga-category-select">
-                        <option value="all">Semua Kategori</option>
+                        <option value="all">${t('yoga.filter_category')}</option>
                     </select>
                 </div>
 
@@ -1155,24 +1296,24 @@ const Views = {
                 <!-- Admin Header -->
                 <div style="margin-bottom: 32px;">
                     <h1 style="font-size: var(--text-3xl); font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
-                        <i class="fas fa-shield-alt" style="color: var(--primary-500); margin-right: 12px;"></i>Admin Dashboard
+                        <i class="fas fa-shield-alt" style="color: var(--primary-500); margin-right: 12px;"></i>${t('admin.title')}
                     </h1>
-                    <p style="color: var(--text-secondary);">Manage API Keys, Users, and System Settings</p>
+                    <p style="color: var(--text-secondary);">${t('admin.subtitle')}</p>
                 </div>
 
                 <!-- Tabs Navigation -->
                 <div class="admin-tabs" style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color);">
                     <button class="admin-tab-btn active" data-tab="dashboard" onclick="AdminUI.switchTab('dashboard')">
-                        <i class="fas fa-chart-line"></i> Dashboard
+                        <i class="fas fa-chart-line"></i> ${t('admin.dashboard')}
                     </button>
                     <button class="admin-tab-btn" data-tab="api-keys" onclick="AdminUI.switchTab('api-keys')">
-                        <i class="fas fa-key"></i> API Keys
+                        <i class="fas fa-key"></i> ${t('admin.api_keys')}
                     </button>
                     <button class="admin-tab-btn" data-tab="users" onclick="AdminUI.switchTab('users')">
-                        <i class="fas fa-users"></i> Users
+                        <i class="fas fa-users"></i> ${t('admin.users')}
                     </button>
                     <button class="admin-tab-btn" data-tab="settings" onclick="AdminUI.switchTab('settings')">
-                        <i class="fas fa-cog"></i> Settings
+                        <i class="fas fa-cog"></i> ${t('admin.settings')}
                     </button>
                 </div>
 
@@ -1180,22 +1321,22 @@ const Views = {
                 <div id="dashboard-tab" class="admin-tab-content" style="display: block;">
                     <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 32px;">
                         <div class="card" style="padding: 24px; border-left: 4px solid var(--primary-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">Total Users</p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.total_users')}</p>
                             <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-500);" id="totalUsers">--</div>
                             <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-arrow-up" style="color: #10b981;"></i> +12% this month</p>
                         </div>
                         <div class="card" style="padding: 24px; border-left: 4px solid var(--info-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">API Calls</p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.api_calls')}</p>
                             <div style="font-size: 2.5rem; font-weight: 700; color: var(--info-500);" id="totalApiCalls">--</div>
                             <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-arrow-up" style="color: #10b981;"></i> +24% this month</p>
                         </div>
                         <div class="card" style="padding: 24px; border-left: 4px solid var(--success-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">System Uptime</p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.system_uptime')}</p>
                             <div style="font-size: 2.5rem; font-weight: 700; color: var(--success-500);" id="systemUptime">--</div>
                             <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;">Last 30 days</p>
                         </div>
                         <div class="card" style="padding: 24px; border-left: 4px solid var(--warning-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">Active API Keys</p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.active_keys')}</p>
                             <div style="font-size: 2.5rem; font-weight: 700; color: var(--warning-500);" id="activeKeys">--</div>
                             <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-circle" style="color: #10b981;"></i> All healthy</p>
                         </div>
@@ -1203,10 +1344,10 @@ const Views = {
 
                     <!-- Recent Activity -->
                     <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Recent Activity</h3>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">${t('admin.recent_activity')}</h3>
                         <div id="recentActivity" style="space-y: 12px;">
                             <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
-                                <p>Loading activity...</p>
+                                <p>${t('admin.loading')}</p>
                             </div>
                         </div>
                     </div>
@@ -1216,16 +1357,16 @@ const Views = {
                 <div id="api-keys-tab" class="admin-tab-content" style="display: none;">
                     <div style="margin-bottom: 24px;">
                         <button class="btn btn-primary" onclick="AdminUI.showCreateKeyModal()" style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-plus"></i> Create New API Key
+                            <i class="fas fa-plus"></i> ${t('admin.create_key')}
                         </button>
                     </div>
 
                     <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">API Keys Management</h3>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">${t('admin.key_management')}</h3>
                         <div id="apiKeysTable" style="overflow-x: auto;">
                             <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
                                 <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
-                                <p>Loading API keys...</p>
+                                <p>${t('admin.loading')}</p>
                             </div>
                         </div>
                     </div>
@@ -1234,11 +1375,11 @@ const Views = {
                 <!-- Users Tab -->
                 <div id="users-tab" class="admin-tab-content" style="display: none;">
                     <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">User Management</h3>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">${t('admin.user_management')}</h3>
                         <div id="usersTable" style="overflow-x: auto;">
                             <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
                                 <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
-                                <p>Loading users...</p>
+                                <p>${t('admin.loading')}</p>
                             </div>
                         </div>
                     </div>
@@ -1247,10 +1388,10 @@ const Views = {
                 <!-- Settings Tab -->
                 <div id="settings-tab" class="admin-tab-content" style="display: none;">
                     <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 24px;">System Settings</h3>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 24px;">${t('admin.system_settings')}</h3>
 
                         <div style="margin-bottom: 24px;">
-                            <label style="display: block; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">API Key Rotation Policy</label>
+                            <label style="display: block; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">${t('admin.rotation_policy')}</label>
                             <div style="background: var(--bg-secondary); padding: 12px; border-radius: var(--radius-md); margin-bottom: 12px; color: var(--text-secondary);">
                                 <select id="rotationPolicy" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                                     <option value="30">Rotate every 30 days</option>
@@ -1260,7 +1401,7 @@ const Views = {
                                 </select>
                             </div>
                             <button class="btn btn-primary" onclick="AdminUI.saveSettings()" style="display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-save"></i> Save Settings
+                                <i class="fas fa-save"></i> ${t('admin.save_settings')}
                             </button>
                         </div>
                     </div>

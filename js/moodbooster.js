@@ -13,23 +13,26 @@ const MoodBooster = {
 
     MOOD_STORAGE_KEY: 'synawatch_mood_date',
 
-    // Free audio URLs for each track (royalty-free ambient sources)
+    // Local audio files in /audio folder
     audioUrls: {
-        'calm:0': 'https://cdn.pixabay.com/audio/2022/01/18/audio_d0a13f69d2.mp3',
-        'calm:1': 'https://cdn.pixabay.com/audio/2022/08/23/audio_d16737dc28.mp3',
-        'calm:2': 'https://cdn.pixabay.com/audio/2023/04/11/audio_14a20be946.mp3',
-        'calm:3': 'https://cdn.pixabay.com/audio/2022/05/16/audio_460f498a0a.mp3',
-        'calm:4': 'https://cdn.pixabay.com/audio/2022/10/14/audio_6741580948.mp3',
-        'ambient:0': 'https://cdn.pixabay.com/audio/2024/11/04/audio_4956b4eff1.mp3',
-        'ambient:1': 'https://cdn.pixabay.com/audio/2023/10/30/audio_db77498e41.mp3',
-        'ambient:2': 'https://cdn.pixabay.com/audio/2024/04/15/audio_5f2ddcfb52.mp3',
-        'ambient:3': 'https://cdn.pixabay.com/audio/2022/06/07/audio_b9b1f2fc5f.mp3',
-        'ambient:4': 'https://cdn.pixabay.com/audio/2023/06/07/audio_19af3d1675.mp3',
-        'upbeat:0': 'https://cdn.pixabay.com/audio/2023/08/07/audio_e6cb287e50.mp3',
-        'upbeat:1': 'https://cdn.pixabay.com/audio/2022/10/12/audio_870876e498.mp3',
-        'upbeat:2': 'https://cdn.pixabay.com/audio/2023/07/19/audio_aa59e2debe.mp3',
-        'upbeat:3': 'https://cdn.pixabay.com/audio/2024/01/10/audio_54e82fea58.mp3',
-        'upbeat:4': 'https://cdn.pixabay.com/audio/2022/11/22/audio_6e2bfb7e53.mp3'
+        // Calm / Relaxation tracks
+        'calm:0': 'audio/rain.mp3',
+        'calm:1': 'audio/forest.mp3',
+        'calm:2': 'audio/whitenoise.mp3',
+        'calm:3': 'audio/calm4.mp3',
+        'calm:4': 'audio/calm5.mp3',
+        // Ambient / Balance tracks
+        'ambient:0': 'audio/amb1.mp3',
+        'ambient:1': 'audio/amb2.mp3',
+        'ambient:2': 'audio/amb3.mp3',
+        'ambient:3': 'audio/amb4.mp3',
+        'ambient:4': 'audio/amb5.mp3',
+        // Upbeat / Energetic tracks
+        'upbeat:0': 'audio/upbeat1.mp3',
+        'upbeat:1': 'audio/upbeat2.mp3',
+        'upbeat:2': 'audio/uobeat3.mp3', // Note: typo in filename
+        'upbeat:3': 'audio/upbeat4.mp3',
+        'upbeat:4': 'audio/upbeat5.mp3'
     },
 
     musicLibrary: {
@@ -129,6 +132,7 @@ const MoodBooster = {
 
     playTrack(categoryKey, index) {
         const trackKey = `${categoryKey}:${index}`;
+        const track = this.musicLibrary[categoryKey].tracks[index];
 
         // If same track → toggle pause/play
         if (this.currentTrackKey === trackKey && this.currentAudio) {
@@ -144,38 +148,59 @@ const MoodBooster = {
         this.stopAudio();
 
         const url = this.audioUrls[trackKey];
-        const track = this.musicLibrary[categoryKey].tracks[index];
         if (!url) {
-            if (typeof Utils !== 'undefined') Utils.showToast(`Memutar: ${track.name}`, 'info');
+            if (typeof Utils !== 'undefined') Utils.showToast(`Track tidak tersedia`, 'error');
             return;
         }
 
+        // Create audio element directly with src
         this.currentAudio = new Audio(url);
         this.currentAudio.volume = 0.7;
         this.currentTrackKey = trackKey;
 
-        this.currentAudio.addEventListener('ended', () => {
+        // Event listeners
+        this.currentAudio.onended = () => {
             this.isPlaying = false;
             this.currentTrackKey = null;
             this.currentAudio = null;
             this._updateTrackButtons();
-        });
+        };
 
-        this.currentAudio.addEventListener('error', () => {
-            if (typeof Utils !== 'undefined') Utils.showToast('Audio gagal dimuat', 'error');
+        this.currentAudio.onerror = (e) => {
+            const error = this.currentAudio.error;
+            let errorMsg = 'Unknown error';
+            if (error) {
+                switch(error.code) {
+                    case 1: errorMsg = 'MEDIA_ERR_ABORTED - Dibatalkan'; break;
+                    case 2: errorMsg = 'MEDIA_ERR_NETWORK - Network error'; break;
+                    case 3: errorMsg = 'MEDIA_ERR_DECODE - File corrupt/format tidak didukung'; break;
+                    case 4: errorMsg = 'MEDIA_ERR_SRC_NOT_SUPPORTED - Format tidak didukung'; break;
+                }
+            }
+            console.error('Audio error for:', url, '| Error:', errorMsg);
+            if (typeof Utils !== 'undefined') Utils.showToast(`Error: ${errorMsg}`, 'error');
             this.isPlaying = false;
             this.currentTrackKey = null;
             this.currentAudio = null;
             this._updateTrackButtons();
-        });
+        };
 
-        this.currentAudio.play().then(() => {
-            this.isPlaying = true;
-            this._updateTrackButtons();
-            this.logTherapySession(categoryKey, track);
-        }).catch(() => {
-            if (typeof Utils !== 'undefined') Utils.showToast('Tap layar dulu untuk memutar audio', 'info');
-        });
+        // Play directly
+        const playPromise = this.currentAudio.play();
+
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                this.isPlaying = true;
+                this._updateTrackButtons();
+                this.logTherapySession(categoryKey, track);
+                if (typeof Utils !== 'undefined') Utils.showToast(`▶ ${track.name}`, 'success');
+            }).catch((err) => {
+                console.error('Play failed:', err.message);
+                // Try playing on next user interaction
+                if (typeof Utils !== 'undefined') Utils.showToast('Klik sekali lagi untuk memutar', 'info');
+                this._updateTrackButtons();
+            });
+        }
     },
 
     pauseAudio() {

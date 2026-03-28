@@ -40,7 +40,7 @@ const SleepLab = {
             if (!this.audioPlayer.paused && this.audioPlayer.src.includes(type)) {
                 this.audioPlayer.pause();
                 this.updateSoundButtons(null);
-                Utils.showToast("Audio dihentikan", "info");
+                Utils.showToast(typeof t !== 'undefined' ? t('sleep.audio_stopped') : "Audio dihentikan", "info");
                 return;
             }
 
@@ -51,11 +51,14 @@ const SleepLab = {
             this.audioPlayer.play()
                 .then(() => {
                     this.updateSoundButtons(type);
-                    Utils.showToast("Memutar audio relaksasi...", "success");
+                    Utils.showToast(typeof t !== 'undefined' ? t('sleep.audio_playing') : "Memutar audio relaksasi...", "success");
                 })
                 .catch(err => {
                     console.error('Audio play error:', err);
-                    Utils.showToast("Audio tidak tersedia. Silakan tambahkan file audio di folder /audio", "error");
+                    const errorMsg = typeof t !== 'undefined' && I18n.currentLang === 'en'
+                        ? "Audio not available. Please add audio files to /audio folder"
+                        : "Audio tidak tersedia. Silakan tambahkan file audio di folder /audio";
+                    Utils.showToast(errorMsg, "error");
                 });
         }
     },

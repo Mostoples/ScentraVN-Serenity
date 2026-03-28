@@ -248,31 +248,31 @@ const App = {
                 <div class="nav-icon">
                     <i class="fas fa-home"></i>
                 </div>
-                <span class="nav-label">Home</span>
+                <span class="nav-label">${typeof t !== 'undefined' ? t('nav.home') : 'Home'}</span>
             </a>
             <a class="nav-item" data-route="health">
                 <div class="nav-icon">
                     <i class="fas fa-heartbeat"></i>
                 </div>
-                <span class="nav-label">Health</span>
+                <span class="nav-label">${typeof t !== 'undefined' ? t('nav.health') : 'Health'}</span>
             </a>
             <a class="nav-item" data-route="synachat">
                 <div class="nav-icon">
                     <i class="fas fa-comments"></i>
                 </div>
-                <span class="nav-label">AI Chat</span>
+                <span class="nav-label">${typeof t !== 'undefined' ? t('nav.chat') : 'AI Chat'}</span>
             </a>
             <a class="nav-item" data-route="analytics">
                 <div class="nav-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <span class="nav-label">Analytics</span>
+                <span class="nav-label">${typeof t !== 'undefined' ? t('nav.analytics') : 'Analytics'}</span>
             </a>
             <a class="nav-item nav-more-trigger" onclick="App.toggleMoreMenu(event)">
                 <div class="nav-icon">
                     <i class="fas fa-ellipsis-h"></i>
                 </div>
-                <span class="nav-label">More</span>
+                <span class="nav-label">${typeof t !== 'undefined' ? t('nav.more') : 'More'}</span>
             </a>
         `;
         document.body.appendChild(nav);
@@ -286,37 +286,41 @@ const App = {
             <div class="more-menu-backdrop" onclick="App.closeMoreMenu()"></div>
             <div class="more-menu-panel">
                 <div class="more-menu-header">
-                    <span style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">Menu Lainnya</span>
+                    <span style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">${typeof t !== 'undefined' ? t('nav.more') : 'More'}</span>
                     <button onclick="App.closeMoreMenu()" style="background: none; border: none; font-size: 1.2rem; color: var(--text-tertiary); cursor: pointer;"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="more-menu-grid">
                     <a class="more-menu-item" data-route="sleep" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(49, 46, 129, 0.12); color: #312e81;"><i class="fas fa-moon"></i></div>
-                        <span>Sleep Lab</span>
+                        <span>${typeof t !== 'undefined' ? t('menu.sleep') : 'Sleep Lab'}</span>
                     </a>
                     <a class="more-menu-item" data-route="moodbooster" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(234, 179, 8, 0.12); color: #eab308;"><i class="fas fa-music"></i></div>
-                        <span>Mood Booster</span>
+                        <span>${typeof t !== 'undefined' ? t('menu.mood') : 'Mood Booster'}</span>
                     </a>
                     <a class="more-menu-item" data-route="mindful" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;"><i class="fas fa-leaf"></i></div>
-                        <span>Mindful Moment</span>
+                        <span>${typeof t !== 'undefined' ? t('menu.mindful') : 'Mindful'}</span>
                     </a>
                     <a class="more-menu-item" data-route="journal" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(249, 115, 22, 0.12); color: #f97316;"><i class="fas fa-book-open"></i></div>
-                        <span>Daily Journal</span>
+                        <span>${typeof t !== 'undefined' ? t('menu.journal') : 'Journal'}</span>
                     </a>
                     <a class="more-menu-item" data-route="support" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(239, 68, 68, 0.12); color: var(--danger-500);"><i class="fas fa-hand-holding-heart"></i></div>
-                        <span>Support Hub</span>
+                        <span>${typeof t !== 'undefined' ? t('support.title') : 'Support Hub'}</span>
                     </a>
                     <a class="more-menu-item" data-route="academy" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(139, 92, 246, 0.12); color: var(--primary-500);"><i class="fas fa-graduation-cap"></i></div>
-                        <span>Syna Academy</span>
+                        <span>${typeof t !== 'undefined' ? t('menu.academy') : 'Academy'}</span>
                     </a>
                     <a class="more-menu-item" data-route="yoga" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(20, 184, 166, 0.12); color: #14b8a6;"><i class="fas fa-spa"></i></div>
-                        <span>Yoga Studio</span>
+                        <span>${typeof t !== 'undefined' ? t('menu.yoga') : 'Yoga'}</span>
+                    </a>
+                    <a class="more-menu-item" data-route="games" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(139, 92, 246, 0.12); color: #8B5CF6;"><i class="fas fa-gamepad"></i></div>
+                        <span>${typeof t !== 'undefined' ? t('menu.games') : 'Games'}</span>
                     </a>
                     <a class="more-menu-item" data-route="research" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning-500);"><i class="fas fa-flask"></i></div>
@@ -324,11 +328,11 @@ const App = {
                     </a>
                     <a class="more-menu-item" data-route="profile" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(99, 102, 241, 0.12); color: var(--info-500);"><i class="fas fa-user"></i></div>
-                        <span>Profile</span>
+                        <span>${typeof t !== 'undefined' ? t('nav.profile') : 'Profile'}</span>
                     </a>
                     <a class="more-menu-item" data-route="assessment" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--success-500);"><i class="fas fa-clipboard-list"></i></div>
-                        <span>Re-Assessment</span>
+                        <span>${typeof t !== 'undefined' ? t('menu.assessment') : 'Assessment'}</span>
                     </a>
                 </div>
             </div>

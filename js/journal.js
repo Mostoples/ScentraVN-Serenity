@@ -35,13 +35,13 @@ const Journal = {
         if (!snapshot.hasSensor) return { label: 'Manual', icon: 'fa-pen', color: '#9ca3af' };
 
         if (snapshot.stress > 70 || snapshot.gsr > 75) {
-            return { label: 'Stres Tinggi', icon: 'fa-bolt', color: '#ef4444' };
+            return { label: typeof t !== 'undefined' ? t('journal.high_stress') : 'Stres Tinggi', icon: 'fa-bolt', color: '#ef4444' };
         } else if (snapshot.stress > 40 || snapshot.gsr > 45) {
-            return { label: 'Moderat', icon: 'fa-cloud-sun', color: '#f59e0b' };
+            return { label: typeof t !== 'undefined' ? t('journal.moderate') : 'Moderat', icon: 'fa-cloud-sun', color: '#f59e0b' };
         } else if (snapshot.hr > 0 && snapshot.hr < 65) {
-            return { label: 'Rileks', icon: 'fa-spa', color: '#10b981' };
+            return { label: typeof t !== 'undefined' ? t('journal.relaxed') : 'Rileks', icon: 'fa-spa', color: '#10b981' };
         } else {
-            return { label: 'Normal', icon: 'fa-check-circle', color: '#3b82f6' };
+            return { label: typeof t !== 'undefined' ? t('metric.normal') : 'Normal', icon: 'fa-check-circle', color: '#3b82f6' };
         }
     },
 
@@ -55,6 +55,7 @@ const Journal = {
         const snapshot = this.getSensorSnapshot();
         const emotion = this.getEmotionLabel(snapshot);
 
+        const sensorOfflineText = typeof t !== 'undefined' ? t('journal.sensor_offline') : 'Sensor tidak terhubung — jurnal akan disimpan tanpa data fisiologis';
         const sensorBadge = snapshot.hasSensor
             ? `<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:${emotion.color}10;border:1px solid ${emotion.color}30;border-radius:10px;">
                     <i class="fas ${emotion.icon}" style="color:${emotion.color};"></i>
@@ -62,41 +63,55 @@ const Journal = {
                     <span style="font-size:0.7rem;color:var(--text-tertiary);">| HR ${snapshot.hr} | Stres ${snapshot.stress}% | GSR ${snapshot.gsr}%</span>
                </div>`
             : `<div style="padding:8px 12px;background:#f8f9fa;border-radius:10px;font-size:0.75rem;color:var(--text-tertiary);text-align:center;">
-                    <i class="fas fa-unlink"></i> Sensor tidak terhubung — jurnal akan disimpan tanpa data fisiologis
+                    <i class="fas fa-unlink"></i> ${sensorOfflineText}
                </div>`;
+
+        const locale = typeof I18n !== 'undefined' && I18n.currentLang === 'en' ? 'en-US' : 'id-ID';
+        const dailyReflection = typeof t !== 'undefined' ? t('journal.daily_reflection') : 'Refleksi Harian';
+        const sensorTag = typeof t !== 'undefined' ? t('journal.sensor_tag') : 'Tulis perasaan Anda. Sensor otomatis menandai konteks fisiologis.';
+        const todayJournal = typeof t !== 'undefined' ? t('journal.today') : 'Jurnal Hari Ini';
+        const whatFeel = typeof t !== 'undefined' ? t('journal.what_feel') : 'Apa yang Anda rasakan hari ini? Bagaimana hari Anda berjalan?...';
+        const selectMood = typeof t !== 'undefined' ? t('journal.select_mood') : 'Pilih mood...';
+        const moodGreat = typeof t !== 'undefined' ? t('journal.mood_great') : 'Sangat Baik';
+        const moodGood = typeof t !== 'undefined' ? t('journal.mood_good') : 'Baik';
+        const moodNeutral = typeof t !== 'undefined' ? t('journal.mood_neutral') : 'Netral';
+        const moodBad = typeof t !== 'undefined' ? t('journal.mood_bad') : 'Kurang Baik';
+        const moodTerrible = typeof t !== 'undefined' ? t('journal.mood_terrible') : 'Sangat Buruk';
+        const saveBtn = typeof t !== 'undefined' ? t('common.save') : 'Simpan';
+        const recentJournal = typeof t !== 'undefined' ? t('journal.recent') : 'Jurnal Terakhir';
 
         container.innerHTML = `
             <div style="margin-bottom:16px;">
-                <h2 style="font-size:1.25rem;font-weight:700;color:var(--text-primary);margin-bottom:4px;"><i class="fas fa-book-open" style="color:#f97316;"></i> Refleksi Harian</h2>
-                <p style="font-size:0.85rem;color:var(--text-tertiary);">Tulis perasaan Anda. Sensor otomatis menandai konteks fisiologis.</p>
+                <h2 style="font-size:1.25rem;font-weight:700;color:var(--text-primary);margin-bottom:4px;"><i class="fas fa-book-open" style="color:#f97316;"></i> ${dailyReflection}</h2>
+                <p style="font-size:0.85rem;color:var(--text-tertiary);">${sensorTag}</p>
             </div>
 
             ${sensorBadge}
 
             <div class="card" style="margin-top:16px;padding:16px;border-radius:16px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <label style="font-weight:600;color:var(--text-primary);font-size:0.9rem;">Jurnal Hari Ini</label>
-                    <span style="font-size:0.75rem;color:var(--text-tertiary);">${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    <label style="font-weight:600;color:var(--text-primary);font-size:0.9rem;">${todayJournal}</label>
+                    <span style="font-size:0.75rem;color:var(--text-tertiary);">${new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
                 </div>
-                <textarea id="journalInput" placeholder="Apa yang Anda rasakan hari ini? Bagaimana hari Anda berjalan?..." style="width:100%;min-height:120px;padding:12px;border:1px solid var(--border-color);border-radius:12px;font-family:inherit;font-size:0.95rem;resize:vertical;outline:none;transition:border-color 0.2s;background:var(--bg-secondary);" onfocus="this.style.borderColor='var(--primary-500)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+                <textarea id="journalInput" placeholder="${whatFeel}" style="width:100%;min-height:120px;padding:12px;border:1px solid var(--border-color);border-radius:12px;font-family:inherit;font-size:0.95rem;resize:vertical;outline:none;transition:border-color 0.2s;background:var(--bg-secondary);" onfocus="this.style.borderColor='var(--primary-500)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
 
                 <div style="display:flex;gap:8px;margin-top:12px;">
                     <select id="journalMood" style="flex:1;padding:10px;border:1px solid var(--border-color);border-radius:10px;font-size:0.85rem;background:var(--bg-secondary);color:var(--text-primary);">
-                        <option value="">Pilih mood...</option>
-                        <option value="sangat_baik">😄 Sangat Baik</option>
-                        <option value="baik">😊 Baik</option>
-                        <option value="netral">😐 Netral</option>
-                        <option value="buruk">😟 Kurang Baik</option>
-                        <option value="sangat_buruk">😢 Sangat Buruk</option>
+                        <option value="">${selectMood}</option>
+                        <option value="sangat_baik">😄 ${moodGreat}</option>
+                        <option value="baik">😊 ${moodGood}</option>
+                        <option value="netral">😐 ${moodNeutral}</option>
+                        <option value="buruk">😟 ${moodBad}</option>
+                        <option value="sangat_buruk">😢 ${moodTerrible}</option>
                     </select>
                     <button onclick="Journal.save()" class="btn btn-primary" style="padding:10px 20px;border-radius:10px;">
-                        <i class="fas fa-save"></i> Simpan
+                        <i class="fas fa-save"></i> ${saveBtn}
                     </button>
                 </div>
             </div>
 
             <div style="margin-top:20px;">
-                <h4 style="margin-bottom:12px;color:var(--text-primary);font-size:0.95rem;"><i class="fas fa-history" style="color:var(--primary-400);"></i> Jurnal Terakhir</h4>
+                <h4 style="margin-bottom:12px;color:var(--text-primary);font-size:0.95rem;"><i class="fas fa-history" style="color:var(--primary-400);"></i> ${recentJournal}</h4>
                 <div id="journalList">
                     <div style="text-align:center;padding:20px;">
                         <div class="loading-spinner" style="margin:0 auto;"></div>
@@ -126,7 +141,8 @@ const Journal = {
             if (!list) return;
 
             if (snps.empty) {
-                list.innerHTML = `<p style="color:var(--text-tertiary);text-align:center;padding:20px;">Belum ada jurnal. Mulai menulis untuk melacak pola emosi Anda.</p>`;
+                const emptyText = typeof t !== 'undefined' ? t('journal.empty') : 'Belum ada jurnal. Mulai menulis untuk melacak pola emosi Anda.';
+                list.innerHTML = `<p style="color:var(--text-tertiary);text-align:center;padding:20px;">${emptyText}</p>`;
                 return;
             }
 
@@ -177,7 +193,8 @@ const Journal = {
 
     async save() {
         const text = document.getElementById('journalInput')?.value;
-        if (!text || text.trim() === '') return Utils.showToast("Jurnal kosong!", "error");
+        const emptyError = typeof t !== 'undefined' ? t('journal.empty_error') : 'Jurnal kosong!';
+        if (!text || text.trim() === '') return Utils.showToast(emptyError, "error");
 
         const mood = document.getElementById('journalMood')?.value || null;
         const sensorContext = this.getSensorSnapshot();
@@ -192,12 +209,14 @@ const Journal = {
                     mood: mood,
                     sensorContext: sensorContext // [GAP 4] Auto-tagged sensor state
                 });
-                Utils.showToast("Jurnal disimpan dengan konteks sensor!", "success");
+                const savedMsg = typeof t !== 'undefined' ? t('journal.saved') : 'Jurnal disimpan dengan konteks sensor!';
+                Utils.showToast(savedMsg, "success");
                 document.getElementById('journalInput').value = '';
                 if (document.getElementById('journalMood')) document.getElementById('journalMood').value = '';
                 this.loadRecent();
             } catch (e) {
-                Utils.showToast("Gagal menyimpan jurnal", "error");
+                const errorMsg = typeof t !== 'undefined' ? t('journal.save_error') : 'Gagal menyimpan jurnal';
+                Utils.showToast(errorMsg, "error");
                 console.error(e);
             }
         }
