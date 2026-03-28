@@ -26,24 +26,52 @@ const SleepLab = {
     },
 
     playSound(type) {
-        // Simulated audio sources (Using public domain / mock links)
+        // Local audio files - place in /audio folder
         const tracks = {
-            'rain': 'https://actions.google.com/sounds/v1/weather/rain_on_roof.ogg',
-            'forest': 'https://actions.google.com/sounds/v1/nature/jungle_ambience_1.ogg',
-            'noise': 'https://actions.google.com/sounds/v1/water/waves_crashing_on_rock_beach.ogg'
+            'rain': 'audio/rain.mp3',
+            'forest': 'audio/forest.mp3',
+            'noise': 'audio/whitenoise.mp3'
         };
-        
+
         if (tracks[type]) {
-            if(!this.audioPlayer.paused && this.audioPlayer.src === tracks[type]) {
+            const trackUrl = tracks[type];
+
+            // Check if same track is playing - toggle pause/play
+            if (!this.audioPlayer.paused && this.audioPlayer.src.includes(type)) {
                 this.audioPlayer.pause();
+                this.updateSoundButtons(null);
                 Utils.showToast("Audio dihentikan", "info");
-            } else {
-                this.audioPlayer.src = tracks[type];
-                this.audioPlayer.loop = true;
-                this.audioPlayer.play();
-                Utils.showToast("Memutar audio relaksasi...", "success");
+                return;
             }
+
+            // Play new track
+            this.audioPlayer.src = trackUrl;
+            this.audioPlayer.loop = true;
+
+            this.audioPlayer.play()
+                .then(() => {
+                    this.updateSoundButtons(type);
+                    Utils.showToast("Memutar audio relaksasi...", "success");
+                })
+                .catch(err => {
+                    console.error('Audio play error:', err);
+                    Utils.showToast("Audio tidak tersedia. Silakan tambahkan file audio di folder /audio", "error");
+                });
         }
+    },
+
+    updateSoundButtons(activeType) {
+        const buttons = document.querySelectorAll('.sound-btn');
+        buttons.forEach(btn => {
+            const btnType = btn.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
+            if (btnType === activeType) {
+                btn.classList.add('active');
+                btn.querySelector('i')?.classList.add('fa-beat');
+            } else {
+                btn.classList.remove('active');
+                btn.querySelector('i')?.classList.remove('fa-beat');
+            }
+        });
     },
 
     toggleChecklist(el) {
