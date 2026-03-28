@@ -68,3 +68,5 @@ node_modules/
 # API keys (secret)
 js/config.keys.js
 
+# Firebase service account (never commit)
+serviceAccountKey.json
