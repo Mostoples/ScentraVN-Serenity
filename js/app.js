@@ -507,17 +507,13 @@ const App = {
                 .catch(e => console.log('Could not check admin status:', e));
         }
 
-        // Initialize charts from dashboard.js
+        // Initialize charts from dashboard.js (static, no demo animation)
         if (typeof initCharts === 'function') {
             initCharts();
         }
 
-        // Start demo animation if not connected
-        if (typeof BLEConnection !== 'undefined' && !BLEConnection.isConnected()) {
-            if (typeof startDemoAnimation === 'function') {
-                startDemoAnimation();
-            }
-        }
+        // Charts will remain static until device is connected
+        // No demo animation - just show placeholder data
     },
 
     /**

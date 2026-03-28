@@ -48,10 +48,8 @@ async function initDashboard() {
     if (status.isConnected) {
         setLiveMode(true);
     } else {
-        // Ensure demo animation is running when not connected
-        if (!demoAnimationInterval) {
-            startDemoAnimation();
-        }
+        // Show static state when not connected (no demo animation)
+        setLiveMode(false);
     }
 }
 
@@ -120,17 +118,18 @@ function initCharts() {
     // Destroy existing charts first (for SPA re-navigation)
     destroyDashboardCharts();
 
-    // Set demo-mode class by default (animations paused until connected)
+    // Set offline-mode class by default (static charts until connected)
     const chartContainers = document.querySelectorAll('.chart-container');
     chartContainers.forEach(container => {
         container.classList.add('demo-mode');
         container.classList.remove('live-mode');
     });
 
+    // Initialize with empty/placeholder data (static, no animation)
     const initialLabels = generateTimeLabels(MAX_DATA_POINTS);
-    const initialHrData = generateSmoothData(MAX_DATA_POINTS, 65, 85);
-    const initialStressData = generateSmoothData(MAX_DATA_POINTS, 20, 45);
-    const initialGsrData = generateSmoothData(MAX_DATA_POINTS, 25, 50);
+    const initialHrData = Array(MAX_DATA_POINTS).fill(0);
+    const initialStressData = Array(MAX_DATA_POINTS).fill(0);
+    const initialGsrData = Array(MAX_DATA_POINTS).fill(0);
 
     // Heart Rate Chart
     const hrCtx = document.getElementById('hrChart');
@@ -317,10 +316,11 @@ function setLiveMode(live) {
             container.classList.add('live-mode');
         });
     } else {
-        startDemoAnimation();
+        // Stop demo animation - show static charts when not connected
+        stopDemoAnimation();
 
         if (chartStatus) {
-            chartStatus.innerHTML = '<i class="fas fa-circle"></i> Demo';
+            chartStatus.innerHTML = '<i class="fas fa-circle"></i> Offline';
             chartStatus.classList.remove('live');
             chartStatus.classList.add('demo');
         }
@@ -333,14 +333,14 @@ function setLiveMode(live) {
             container.classList.add('demo-mode');
         });
 
-        // Show demo values
+        // Show placeholder values (static, no animation)
         const hrLive = document.getElementById('hrLiveValue');
         const stressLive = document.getElementById('stressLiveValue');
         const gsrLive = document.getElementById('gsrLiveValue');
 
-        if (hrLive) hrLive.textContent = '~72 BPM';
-        if (stressLive) stressLive.textContent = '~30%';
-        if (gsrLive) gsrLive.textContent = '~35%';
+        if (hrLive) hrLive.textContent = '-- BPM';
+        if (stressLive) stressLive.textContent = '--%';
+        if (gsrLive) gsrLive.textContent = '--%';
     }
 }
 
@@ -581,9 +581,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isSPAMode = document.getElementById('view-container') !== null;
 
     if (!isSPAMode) {
-        // Standalone mode - initialize immediately
+        // Standalone mode - initialize charts with static data (no demo animation)
         initCharts();
-        startDemoAnimation();
 
         document.addEventListener('authenticated', (e) => {
             initDashboard();
@@ -595,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 500);
     }
-    // In SPA mode, app.js will call initCharts() and startDemoAnimation()
+    // In SPA mode, app.js will call initCharts()
 });
 
 // Cleanup on page unload
