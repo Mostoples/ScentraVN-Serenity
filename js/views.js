@@ -57,6 +57,57 @@ const Views = {
                     </div>
                 </div>
 
+                <!-- Banner Kuesioner Pengujian Aplikasi -->
+                <div style="margin-top: 24px;">
+                    <div onclick="Router.navigate('questionnaire')" style="
+                        cursor: pointer;
+                        border-radius: 20px;
+                        padding: 20px 22px;
+                        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 60%, #c084fc 100%);
+                        box-shadow: 0 8px 28px rgba(124,58,237,0.35);
+                        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+                        position: relative; overflow: hidden;
+                        transition: transform 0.25s ease, box-shadow 0.25s ease;
+                    "
+                    onmouseenter="this.style.transform='translateY(-3px)';this.style.boxShadow='0 14px 36px rgba(124,58,237,0.45)'"
+                    onmouseleave="this.style.transform='';this.style.boxShadow='0 8px 28px rgba(124,58,237,0.35)'"
+                    >
+                        <!-- Decorative circles -->
+                        <div style="position:absolute;width:120px;height:120px;background:rgba(255,255,255,0.07);border-radius:50%;top:-30px;right:80px;pointer-events:none;"></div>
+                        <div style="position:absolute;width:80px;height:80px;background:rgba(255,255,255,0.06);border-radius:50%;bottom:-20px;right:20px;pointer-events:none;"></div>
+
+                        <!-- Kiri: ikon + teks -->
+                        <div style="display:flex; align-items:center; gap:16px; z-index:1;">
+                            <div style="
+                                width:52px; height:52px; flex-shrink:0;
+                                background:rgba(255,255,255,0.18);
+                                border-radius:14px;
+                                display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-clipboard-list" style="font-size:22px; color:#fff;"></i>
+                            </div>
+                            <div>
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                                    <span style="font-size:15px;font-weight:800;color:#fff;">Kuesioner Pengujian</span>
+                                    <span style="background:rgba(255,255,255,0.25);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:0.5px;">BETA</span>
+                                </div>
+                                <p style="font-size:12px;color:rgba(255,255,255,0.82);margin:0;line-height:1.4;">
+                                    Bantu kami tingkatkan SynaWatch — isi kuesioner &amp; beri feedback!
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Kanan: tombol panah -->
+                        <div style="
+                            z-index:1; flex-shrink:0;
+                            width:38px; height:38px;
+                            background:rgba(255,255,255,0.2);
+                            border-radius:50%;
+                            display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-arrow-right" style="color:#fff; font-size:14px;"></i>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Menu Cepat / Quick Menu -->
                 <div style="margin-top: 32px; margin-bottom: 32px;">
                     <h3 class="section-title" style="margin-bottom: 20px;">${t('dashboard.quick_menu')}</h3>
@@ -189,6 +240,19 @@ const Views = {
                             <div class="card-content">
                                 <h4 class="card-title">${t('menu.games')}</h4>
                                 <p class="card-subtitle">${t('menu.games_sub')}</p>
+                            </div>
+                            <div class="card-hover-bg"></div>
+                        </div>
+
+                        <!-- Kuesioner -->
+                        <div class="quick-menu-card questionnaire-card" onclick="Router.navigate('questionnaire')" data-card="questionnaire">
+                            <div class="card-decorative-bg"></div>
+                            <div class="card-icon-box" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div class="card-content">
+                                <h4 class="card-title">Kuesioner</h4>
+                                <p class="card-subtitle">Beri Feedback</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -750,6 +814,16 @@ const Views = {
                         <div class="list-item-content">
                             <div class="list-item-title">${t('profile.health_assistant')}</div>
                             <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Chat dengan Dr. Synachat' : 'Chat with Dr. Synachat'}</div>
+                        </div>
+                        <i class="fas fa-chevron-right list-item-action"></i>
+                    </div>
+                    <div class="list-item" data-route="questionnaire">
+                        <div class="list-item-icon" style="background: rgba(124, 58, 237, 0.15); color: var(--primary-400);">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Kuesioner Pengujian</div>
+                            <div class="list-item-subtitle">Bantu kami tingkatkan SynaWatch</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
@@ -1405,6 +1479,251 @@ const Views = {
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Questionnaire View
+     */
+    questionnaire() {
+        return `
+            <div class="view-container">
+                <div class="q-container">
+
+                    <!-- Header -->
+                    <div class="q-header-card">
+                        <div class="q-header-logo">SYNAWATCH</div>
+                        <div class="q-header-title">Kuesioner Pengujian Aplikasi</div>
+                        <div class="q-header-subtitle">Bantu kami tingkatkan SynaWatch dengan mengisi kuesioner ini. Jawaban Anda sangat berharga!</div>
+                    </div>
+
+                    <!-- Progress -->
+                    <div class="q-progress" id="qProgressSection">
+                        <div class="q-progress-info">
+                            <span class="q-progress-label" id="qProgressLabel">Informasi Responden</span>
+                            <span class="q-progress-count" id="qProgressCount">1 / 9</span>
+                        </div>
+                        <div class="q-progress-track">
+                            <div class="q-progress-fill" id="qProgressFill"></div>
+                        </div>
+                        <div class="q-step-dots" id="qStepDots"></div>
+                    </div>
+
+                    <!-- PAGE 0: Informasi Responden -->
+                    <div class="q-page active" id="qpage-0">
+                        <div class="q-badge"><i class="fas fa-user"></i> HALAMAN 1 DARI 9</div>
+                        <div class="q-page-title">Informasi Responden</div>
+                        <div class="q-page-desc">Isi data diri Anda. Data ini bersifat anonim dan hanya digunakan untuk keperluan analisis penelitian.</div>
+                        <div class="q-page-error" id="qerror-0"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+
+                        <div class="q-form-group">
+                            <label class="q-form-label">Nama / Inisial <span class="q-required">*</span></label>
+                            <input type="text" class="q-form-input" id="resp-name" maxlength="50" placeholder="Contoh: AS atau Andi S.">
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Rentang Usia <span class="q-required">*</span></label>
+                            <select class="q-form-select" id="resp-age">
+                                <option value="">— Pilih usia —</option>
+                                <option value="<18">&lt; 18 tahun</option>
+                                <option value="18-24">18 – 24 tahun</option>
+                                <option value="25-34">25 – 34 tahun</option>
+                                <option value="35-44">35 – 44 tahun</option>
+                                <option value="45+">45+ tahun</option>
+                            </select>
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Jenis Kelamin <span class="q-required">*</span></label>
+                            <select class="q-form-select" id="resp-gender">
+                                <option value="">— Pilih —</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Latar Belakang <span class="q-required">*</span></label>
+                            <select class="q-form-select" id="resp-background">
+                                <option value="">— Pilih —</option>
+                                <option value="Mahasiswa">Mahasiswa</option>
+                                <option value="Profesional">Profesional</option>
+                                <option value="Tenaga Medis">Tenaga Medis</option>
+                                <option value="Peneliti">Peneliti</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Seberapa sering menggunakan aplikasi kesehatan? <span class="q-required">*</span></label>
+                            <select class="q-form-select" id="resp-frequency">
+                                <option value="">— Pilih —</option>
+                                <option value="Tidak pernah">Tidak pernah</option>
+                                <option value="Jarang">Jarang</option>
+                                <option value="Kadang">Kadang-kadang</option>
+                                <option value="Sering">Sering</option>
+                                <option value="Setiap hari">Setiap hari</option>
+                            </select>
+                        </div>
+
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Mulai Kuesioner</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 1: SUS -->
+                    <div class="q-page" id="qpage-1">
+                        <div class="q-badge"><i class="fas fa-chart-simple"></i> BAGIAN A — HALAMAN 2 DARI 9</div>
+                        <div class="q-page-title">System Usability Scale (SUS)</div>
+                        <div class="q-page-desc">Berikan penilaian Anda terhadap kegunaan umum aplikasi SynaWatch. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-error" id="qerror-1"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        <div id="sus-questions"></div>
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Lanjut</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 2: UI/UX -->
+                    <div class="q-page" id="qpage-2">
+                        <div class="q-badge"><i class="fas fa-palette"></i> BAGIAN B — HALAMAN 3 DARI 9</div>
+                        <div class="q-page-title">Kepuasan UI/UX & Fitur</div>
+                        <div class="q-page-desc">Nilai pengalaman Anda terhadap tampilan dan fitur-fitur SynaWatch. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-error" id="qerror-2"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        <div id="uiux-questions"></div>
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Lanjut</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 3: TAM -->
+                    <div class="q-page" id="qpage-3">
+                        <div class="q-badge"><i class="fas fa-brain"></i> BAGIAN C — HALAMAN 4 DARI 9</div>
+                        <div class="q-page-title">Technology Acceptance Model (TAM)</div>
+                        <div class="q-page-desc">Nilai persepsi kegunaan dan kemudahan penggunaan SynaWatch. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-error" id="qerror-3"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        <div id="tam-questions"></div>
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Lanjut</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 4: UEQ -->
+                    <div class="q-page" id="qpage-4">
+                        <div class="q-badge"><i class="fas fa-sliders"></i> BAGIAN D — HALAMAN 5 DARI 9</div>
+                        <div class="q-page-title">User Experience Questionnaire (UEQ)</div>
+                        <div class="q-page-desc">Pilih angka yang paling menggambarkan pengalaman Anda. Skala 1–7 dari kata negatif ke positif.</div>
+                        <div class="q-page-error" id="qerror-4"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        <div id="ueq-questions"></div>
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Lanjut</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 5: Trust -->
+                    <div class="q-page" id="qpage-5">
+                        <div class="q-badge"><i class="fas fa-shield-halved"></i> BAGIAN E — HALAMAN 6 DARI 9</div>
+                        <div class="q-page-title">Kepercayaan & Privasi Data</div>
+                        <div class="q-page-desc">Seberapa percaya Anda terhadap keamanan data di SynaWatch? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-error" id="qerror-5"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        <div id="trust-questions"></div>
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Lanjut</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 6: Therapeutic -->
+                    <div class="q-page" id="qpage-6">
+                        <div class="q-badge"><i class="fas fa-heart-pulse"></i> BAGIAN F — HALAMAN 7 DARI 9</div>
+                        <div class="q-page-title">Nilai Terapeutik & Relevansi Konten</div>
+                        <div class="q-page-desc">Seberapa bermanfaat konten dan fitur terapeutik SynaWatch? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-error" id="qerror-6"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        <div id="therapeutic-questions"></div>
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Lanjut</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 7: Engagement -->
+                    <div class="q-page" id="qpage-7">
+                        <div class="q-badge"><i class="fas fa-fire"></i> BAGIAN G — HALAMAN 8 DARI 9</div>
+                        <div class="q-page-title">Keterlibatan & Motivasi Pengguna</div>
+                        <div class="q-page-desc">Seberapa besar motivasi Anda untuk terus menggunakan SynaWatch? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-error" id="qerror-7"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        <div id="engagement-questions"></div>
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-next" onclick="Questionnaire.nextPage()"><span>Lanjut</span> <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 8: NPS + Open-Ended -->
+                    <div class="q-page" id="qpage-8">
+                        <div class="q-badge"><i class="fas fa-star"></i> BAGIAN H & I — HALAMAN 9 DARI 9</div>
+                        <div class="q-page-title">Rekomendasi & Masukan Terbuka</div>
+                        <div class="q-page-desc">Terakhir! Beri nilai rekomendasi dan sampaikan masukan Anda.</div>
+                        <div class="q-page-error" id="qerror-8"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+
+                        <div class="q-divider">NET PROMOTER SCORE</div>
+                        <div class="q-item" id="nps-item">
+                            <div class="q-item-text">Seberapa besar kemungkinan Anda merekomendasikan SynaWatch kepada teman atau orang yang Anda kenal?</div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span class="q-nps-hint">Sangat tidak mungkin</span>
+                                <span class="q-nps-hint">Sangat mungkin</span>
+                            </div>
+                            <div class="q-nps" id="nps-scale"></div>
+                        </div>
+
+                        <div class="q-divider">PERTANYAAN TERBUKA (Opsional)</div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Fitur mana yang paling Anda sukai? Mengapa?</label>
+                            <textarea class="q-form-textarea" id="open-liked" placeholder="Tulis jawaban Anda..." rows="3"></textarea>
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Fitur mana yang paling membingungkan atau sulit digunakan?</label>
+                            <textarea class="q-form-textarea" id="open-confusing" placeholder="Tulis jawaban Anda..." rows="3"></textarea>
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Fitur apa yang belum ada namun Anda harapkan ada?</label>
+                            <textarea class="q-form-textarea" id="open-missing" placeholder="Tulis jawaban Anda..." rows="3"></textarea>
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Bagaimana pendapat Anda tentang konsep smartwatch yang terhubung ke aplikasi ini?</label>
+                            <textarea class="q-form-textarea" id="open-smartwatch" placeholder="Tulis jawaban Anda..." rows="3"></textarea>
+                        </div>
+                        <div class="q-form-group">
+                            <label class="q-form-label">Saran atau masukan lain untuk pengembangan SynaWatch?</label>
+                            <textarea class="q-form-textarea" id="open-suggestion" placeholder="Tulis jawaban Anda..." rows="3"></textarea>
+                        </div>
+
+                        <div class="q-btn-row">
+                            <button class="q-btn q-btn-back" onclick="Questionnaire.prevPage()"><i class="fas fa-arrow-left"></i> Kembali</button>
+                            <button class="q-btn q-btn-submit" id="qBtnSubmit" onclick="Questionnaire.submit()">
+                                <span class="q-btn-text"><i class="fas fa-paper-plane"></i> Kirim Jawaban</span>
+                                <div class="q-spinner"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SUCCESS SCREEN -->
+                    <div class="q-success" id="qSuccessScreen">
+                        <div class="q-success-icon"><i class="fas fa-check"></i></div>
+                        <div class="q-success-title">Terima Kasih!</div>
+                        <div class="q-success-desc">
+                            Jawaban Anda telah berhasil disimpan. Kontribusi Anda sangat berarti untuk pengembangan SynaWatch ke depannya.
+                        </div>
+                        <div class="q-success-id" id="qSuccessDocId"></div>
+                        <br><br>
+                        <button class="q-btn-reset" onclick="Questionnaire.reset()"><i class="fas fa-rotate-right"></i> Isi Lagi</button>
+                        <div style="margin-top: 16px;">
+                            <button class="q-btn q-btn-back" style="display: inline-flex; flex: none; padding: 12px 24px;" onclick="Router.navigate('dashboard')"><i class="fas fa-home"></i> Kembali ke Dashboard</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         `;

@@ -90,6 +90,12 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
 
+    // ===== QUESTIONNAIRE RESULTS =====
+    match /questionnaireResults/{docId} {
+      allow create: if isAuthenticated();
+      allow read: if isAdmin();
+    }
+
     // ===== DENY ALL OTHER =====
     match /{document=**} {
       allow read, write, delete: if false;

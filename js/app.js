@@ -198,6 +198,13 @@ const App = {
             if (typeof YogaModule !== 'undefined') YogaModule.init();
         });
 
+        Router.register('questionnaire', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.questionnaire());
+            if (typeof Questionnaire !== 'undefined') Questionnaire.init();
+        });
+
         // Initialize router
         Router.init();
 
