@@ -10,7 +10,24 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "WebFetch(domain:github.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(grep -E \"^d|\\\\.js$|\\\\.css$|\\\\.html$\")",
+      "Bash(node -c js/health.js)",
+      "Bash(node -c js/dashboard.js)",
+      "Bash(node -c js/views.js)",
+      "Bash(node -c js/i18n.js)",
+      "Bash(for f:*)",
+      "Bash(do node:*)",
+      "Bash(echo \"$f OK\")",
+      "Bash(echo \"$f FAIL\")",
+      "Bash(done)",
+      "Bash(node -c js/app.js)",
+      "Bash(node -c js/elevenlabs-tts.js)",
+      "WebFetch(domain:elevenlabs.io)",
+      "WebFetch(domain:json2video.com)",
+      "WebFetch(domain:elevenlabs-sdk.mintlify.app)",
+      "WebFetch(domain:help.blotato.com)",
+      "WebFetch(domain:voximplant.com)"
     ]
   }
 }

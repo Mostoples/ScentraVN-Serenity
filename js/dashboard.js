@@ -66,7 +66,7 @@ function updateGreeting() {
  */
 function updateCurrentTime() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('id-ID', {
+    const timeStr = now.toLocaleTimeString((typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID', {
         hour: '2-digit',
         minute: '2-digit'
     });
@@ -171,7 +171,7 @@ function generateTimeLabels(count) {
 
     for (let i = count - 1; i >= 0; i--) {
         const time = new Date(now.getTime() - i * 3000); // Every 3 seconds for demo
-        labels.push(time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        labels.push(time.toLocaleTimeString((typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     }
 
     return labels;
@@ -210,7 +210,7 @@ function startDemoAnimation() {
         if (isLiveMode) return;
 
         const now = new Date();
-        const timeLabel = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const timeLabel = now.toLocaleTimeString((typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
         // Generate new demo values
         let newHr = 72, newStress = 30, newGsr = 35;
@@ -303,7 +303,7 @@ function setLiveMode(live) {
         stopDemoAnimation();
 
         if (chartStatus) {
-            chartStatus.innerHTML = '<i class="fas fa-circle"></i> Live';
+            chartStatus.innerHTML = `<i class="fas fa-circle"></i> ${t('status.live')}`;
             chartStatus.classList.remove('demo');
             chartStatus.classList.add('live');
         }
@@ -320,7 +320,7 @@ function setLiveMode(live) {
         stopDemoAnimation();
 
         if (chartStatus) {
-            chartStatus.innerHTML = '<i class="fas fa-circle"></i> Offline';
+            chartStatus.innerHTML = `<i class="fas fa-circle"></i> ${t('status.offline')}`;
             chartStatus.classList.remove('live');
             chartStatus.classList.add('demo');
         }
@@ -382,7 +382,7 @@ function updateChartsWithData(readings) {
 
     const labels = recentReadings.map(r => {
         const date = r.readingTime?.toDate ? r.readingTime.toDate() : new Date(r.readingTime);
-        return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        return date.toLocaleTimeString((typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit' });
     });
 
     const hrValues = recentReadings.map(r => r.hr || 0);
@@ -479,7 +479,7 @@ function handleDataUpdate(data) {
 
     // Add to chart data
     const now = new Date();
-    const timeLabel = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    const timeLabel = now.toLocaleTimeString((typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID', { hour: '2-digit', minute: '2-digit' });
 
     // Update Heart Rate chart
     if (hrChart && data.finger && data.hr > 0) {
@@ -562,9 +562,9 @@ function handleConnectionChange(connected) {
             bleStatusBtn.classList.remove('connecting');
         }
 
-        Utils.showToast('Connected to SYNAWATCH', 'success');
+        Utils.showToast(t('ble.connected'), 'success');
     } else {
-        if (bleStatus) bleStatus.textContent = 'Disconnected';
+        if (bleStatus) bleStatus.textContent = t('ble.disconnected');
         if (bleStatusIcon) {
             bleStatusIcon.className = 'fas fa-bluetooth';
             bleStatusIcon.style.color = '#ef4444';

@@ -2830,6 +2830,14 @@ body.synachat-view .synachat-container {
     position: relative;
 }
 
+.synachat-messages .welcome-message .welcome-icon .welcome-icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    display: block;
+}
+
 .synachat-messages .welcome-message .welcome-icon::after {
     content: '';
     position: absolute;
@@ -3026,19 +3034,27 @@ body.synachat-view .synachat-container {
     color: #6b7280;
 }
 
-/* User avatar: profile photo from Firebase photoURL */
-.synachat-messages .message.user .message-avatar--user-photo {
+/* Photo avatar (user/assistant): use full image without gradient background */
+.synachat-messages .message .message-avatar--user-photo {
     background: transparent;
     padding: 0;
     overflow: hidden;
 }
 
-.synachat-messages .message.user .message-avatar .message-avatar-img {
+/* Ensure assistant photo avatar also removes gradient/background styles */
+.synachat-messages .message.assistant .message-avatar.message-avatar--user-photo {
+    background: transparent;
+    box-shadow: none;
+}
+
+.synachat-messages .message .message-avatar .message-avatar-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    border-radius: 12px;
+    border-radius: 50%;
+    box-sizing: border-box;
+    border: 2px solid rgba(148, 163, 184, 0.9);
 }
 
 .synachat-messages .message .message-content {
@@ -3139,6 +3155,14 @@ body.synachat-view .synachat-container {
     font-size: 2.5rem;
     color: white;
     animation: float-avatar 4s ease-in-out infinite;
+}
+
+.avatar-fallback-icon .avatar-fallback-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    display: block;
 }
 
 @keyframes float-avatar {

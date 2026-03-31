@@ -409,13 +409,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Disable button during login
             googleBtn.disabled = true;
-            googleBtn.innerHTML = '<div class="spinner"></div> Menghubungkan...';
+            googleBtn.innerHTML = `<div class="spinner"></div> ${typeof t !== 'undefined' ? t('auth.connecting') : 'Menghubungkan...'}`;
 
             const result = await Auth.loginWithGoogle();
 
             // Re-enable button
             googleBtn.disabled = false;
-            googleBtn.innerHTML = '<i class="fab fa-google"></i> Masuk dengan Google';
+            googleBtn.innerHTML = `<i class="fab fa-google"></i> ${typeof t !== 'undefined' ? t('auth.login_google') : 'Masuk dengan Google'}`;
 
             if (result.success) {
                 showAlert('Login berhasil! Mengalihkan...', 'success');
@@ -495,9 +495,9 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.clipboard.writeText(command).then(() => {
             const btn = document.querySelector('.modal-btn-primary');
             if (btn) {
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.innerHTML = `<i class="fas fa-check"></i> ${typeof t !== 'undefined' ? t('auth.copied') : 'Copied!'}`;
                 setTimeout(() => {
-                    btn.innerHTML = '<i class="fas fa-copy"></i> Copy Command';
+                    btn.innerHTML = `<i class="fas fa-copy"></i> ${typeof t !== 'undefined' ? t('auth.copy_command') : 'Copy Command'}`;
                 }, 2000);
             }
         });
@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setLoading(button, loading) {
         if (loading) {
             button.disabled = true;
-            button.innerHTML = '<div class="spinner"></div> Memproses...';
+            button.innerHTML = `<div class="spinner"></div> ${typeof t !== 'undefined' ? t('auth.processing') : 'Memproses...'}`;
         } else {
             button.disabled = false;
             button.innerHTML = button.dataset.originalText || 'Submit';

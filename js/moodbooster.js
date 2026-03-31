@@ -149,7 +149,7 @@ const MoodBooster = {
 
         const url = this.audioUrls[trackKey];
         if (!url) {
-            if (typeof Utils !== 'undefined') Utils.showToast(`Track tidak tersedia`, 'error');
+            if (typeof Utils !== 'undefined') Utils.showToast(t('moodbooster.track_unavailable'), 'error');
             return;
         }
 
@@ -197,7 +197,7 @@ const MoodBooster = {
             }).catch((err) => {
                 console.error('Play failed:', err.message);
                 // Try playing on next user interaction
-                if (typeof Utils !== 'undefined') Utils.showToast('Klik sekali lagi untuk memutar', 'info');
+                if (typeof Utils !== 'undefined') Utils.showToast(t('moodbooster.click_to_play'), 'info');
                 this._updateTrackButtons();
             });
         }
@@ -297,7 +297,7 @@ const MoodBooster = {
         else this.selectCategory('upbeat');
 
         this.logMood(level);
-        if (typeof Utils !== 'undefined') Utils.showToast('Mood dicatat. Playlist disesuaikan!', 'success');
+        if (typeof Utils !== 'undefined') Utils.showToast(t('moodbooster.mood_recorded'), 'success');
     },
 
     // ========== CATEGORY SELECTION ==========
@@ -366,8 +366,8 @@ const MoodBooster = {
 
         // Sensor badge
         const sensorBadge = sensor.hasSensor
-            ? `<span style="background:rgba(16,185,129,0.12);color:#10b981;padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;"><i class="fas fa-broadcast-tower"></i> Biofeedback Aktif</span>`
-            : `<span style="background:rgba(156,163,175,0.12);color:#9ca3af;padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;"><i class="fas fa-unlink"></i> Sensor Offline</span>`;
+            ? `<span style="background:rgba(16,185,129,0.12);color:#10b981;padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;"><i class="fas fa-broadcast-tower"></i> ${t('status.sensor_active')}</span>`
+            : `<span style="background:rgba(156,163,175,0.12);color:#9ca3af;padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;"><i class="fas fa-unlink"></i> ${t('status.sensor_offline')}</span>`;
 
         // Recommendation card
         const recCard = recommendation.category ? `

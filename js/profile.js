@@ -164,26 +164,26 @@ function setupFormHandlers() {
 
             const name = document.getElementById('editName').value.trim();
             if (!name) {
-                Utils.showToast('Please enter your name', 'error');
+                Utils.showToast(t('profile.enter_name'), 'error');
                 return;
             }
 
             const submitBtn = editProfileForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('profile.saving')}`;
 
             const result = await Auth.updateProfile({ name, displayName: name });
 
             if (result.success) {
-                Utils.showToast('Profile updated successfully', 'success');
+                Utils.showToast(t('profile.updated_success'), 'success');
                 closeModal('editProfileModal');
                 loadProfileData();
             } else {
-                Utils.showToast(result.error || 'Failed to update profile', 'error');
+                Utils.showToast(result.error || t('profile.update_failed'), 'error');
             }
 
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Save Changes';
+            submitBtn.textContent = t('profile.save_changes');
         });
     }
 
@@ -198,7 +198,7 @@ function setupFormHandlers() {
             const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
             if (newPassword !== confirmNewPassword) {
-                Utils.showToast('Passwords do not match', 'error');
+                Utils.showToast(t('profile.password_mismatch'), 'error');
                 return;
             }
 
@@ -210,20 +210,20 @@ function setupFormHandlers() {
 
             const submitBtn = changePasswordForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('profile.updating')}`;
 
             const result = await Auth.updatePassword(currentPassword, newPassword);
 
             if (result.success) {
-                Utils.showToast('Password updated successfully', 'success');
+                Utils.showToast(t('profile.password_updated'), 'success');
                 closeModal('changePasswordModal');
                 changePasswordForm.reset();
             } else {
-                Utils.showToast(result.error || 'Failed to update password', 'error');
+                Utils.showToast(result.error || t('profile.password_failed'), 'error');
             }
 
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Update Password';
+            submitBtn.textContent = t('profile.update_password');
         });
     }
 }
@@ -267,7 +267,7 @@ async function logout() {
     if (result.success) {
         window.location.href = 'auth.html';
     } else {
-        Utils.showToast('Failed to logout', 'error');
+        Utils.showToast(t('auth.logout_failed'), 'error');
     }
 }
 

@@ -1,19 +1,33 @@
 /**
  * SYNAWATCH - ElevenLabs TTS Integration
  * Text-to-Speech using ElevenLabs API
+ * Supports language-aware voice switching (Indonesian & English)
  */
 
 const ElevenLabsTTS = {
-    voiceId: 'JBFqnCBsd6RMkjVDRZzb', // George - free tier compatible
-    modelId: 'eleven_turbo_v2_5', // New model for free tier
+    // Voice map per language - using natural sounding voices
+    voices: {
+        id: 'pMsXgVXv4MrvPzMd1L5l', // Serenity - Natural female voice
+        en: 'EXAVITQu4vr4xnSDxMaL'  // Ava - Natural English female
+    },
+    modelId: 'eleven_multilingual_v2',
     isEnabled: true,
-    _isSpeaking: false, // Guard against concurrent speak calls
+    _isSpeaking: false,
+
+    /**
+     * Get the active voice ID based on current language
+     */
+    getVoiceId() {
+        const lang = (typeof I18n !== 'undefined') ? I18n.currentLang : 'id';
+        return this.voices[lang] || this.voices['id'];
+    },
 
     /**
      * Check if TTS is configured
      */
     isConfigured() {
-        return CONFIG.ELEVENLABS_API_KEY &&
+        return typeof CONFIG !== 'undefined' &&
+               CONFIG.ELEVENLABS_API_KEY &&
                CONFIG.ELEVENLABS_API_KEY !== 'YOUR_ELEVENLABS_API_KEY';
     },
 
@@ -43,9 +57,11 @@ const ElevenLabsTTS = {
             return;
         }
 
+        const voiceId = this.getVoiceId();
+
         try {
             const response = await fetch(
-                `https://api.elevenlabs.io/v1/text-to-speech/${this.voiceId}`,
+                `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
                 {
                     method: 'POST',
                     headers: {
@@ -56,9 +72,9 @@ const ElevenLabsTTS = {
                         text: text.trim(),
                         model_id: this.modelId,
                         voice_settings: {
-                            stability: 0.35,
-                            similarity_boost: 0.85,
-                            style: 0.7,
+                            stability: 0.65,
+                            similarity_boost: 0.75,
+                            style: 0.5,
                             use_speaker_boost: true
                         }
                     })
@@ -69,7 +85,6 @@ const ElevenLabsTTS = {
                 const errorText = await response.text();
                 console.error('ElevenLabs API error:', response.status, errorText);
                 this._isSpeaking = false;
-                // Fallback to browser TTS only if not a concurrent error
                 this.browserSpeak(text, onSpeakingChange);
                 return;
             }
@@ -87,7 +102,7 @@ const ElevenLabsTTS = {
     },
 
     /**
-     * Fallback browser TTS
+     * Fallback browser TTS - also language-aware
      */
     browserSpeak(text, onSpeakingChange) {
         if (!('speechSynthesis' in window)) {
@@ -95,11 +110,11 @@ const ElevenLabsTTS = {
             return;
         }
 
-        // Cancel any existing browser speech first
         window.speechSynthesis.cancel();
 
+        const lang = (typeof I18n !== 'undefined') ? I18n.currentLang : 'id';
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'id-ID'; // Indonesian
+        utterance.lang = lang === 'en' ? 'en-US' : 'id-ID';
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
 

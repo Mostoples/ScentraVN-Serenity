@@ -87,11 +87,11 @@ const Views = {
                             </div>
                             <div>
                                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
-                                    <span style="font-size:15px;font-weight:800;color:#fff;">Kuesioner Pengujian</span>
+                                    <span style="font-size:15px;font-weight:800;color:#fff;">${t('questionnaire.title')}</span>
                                     <span style="background:rgba(255,255,255,0.25);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:0.5px;">BETA</span>
                                 </div>
                                 <p style="font-size:12px;color:rgba(255,255,255,0.82);margin:0;line-height:1.4;">
-                                    Bantu kami tingkatkan SynaWatch — isi kuesioner &amp; beri feedback!
+                                    ${t('questionnaire.banner_desc')}
                                 </p>
                             </div>
                         </div>
@@ -251,8 +251,8 @@ const Views = {
                                 <i class="fas fa-clipboard-list"></i>
                             </div>
                             <div class="card-content">
-                                <h4 class="card-title">Kuesioner</h4>
-                                <p class="card-subtitle">Beri Feedback</p>
+                                <h4 class="card-title">${t('questionnaire.title')}</h4>
+                                <p class="card-subtitle">${t('questionnaire.give_feedback')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
@@ -803,7 +803,7 @@ const Views = {
                         </div>
                         <div class="list-item-content">
                             <div class="list-item-title">${t('profile.change_password')}</div>
-                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Perbarui kredensial keamanan Anda' : 'Update your security credentials'}</div>
+                            <div class="list-item-subtitle">${t('profile.update_security')}</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
@@ -813,7 +813,7 @@ const Views = {
                         </div>
                         <div class="list-item-content">
                             <div class="list-item-title">${t('profile.health_assistant')}</div>
-                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Chat dengan Dr. Synachat' : 'Chat with Dr. Synachat'}</div>
+                            <div class="list-item-subtitle">${t('profile.chat_subtitle')}</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
@@ -822,8 +822,8 @@ const Views = {
                             <i class="fas fa-clipboard-list"></i>
                         </div>
                         <div class="list-item-content">
-                            <div class="list-item-title">Kuesioner Pengujian</div>
-                            <div class="list-item-subtitle">Bantu kami tingkatkan SynaWatch</div>
+                            <div class="list-item-title">${t('questionnaire.title')}</div>
+                            <div class="list-item-subtitle">${t('questionnaire.subtitle')}</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
@@ -833,7 +833,7 @@ const Views = {
                         </div>
                         <div class="list-item-content">
                             <div class="list-item-title">${t('profile.language')}</div>
-                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Pilih bahasa aplikasi' : 'Select app language'}</div>
+                            <div class="list-item-subtitle">${t('profile.select_language')}</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <button onclick="I18n.setLang('id')" class="btn btn-sm ${I18n.currentLang === 'id' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 12px; font-size: 0.75rem;">
@@ -887,7 +887,7 @@ const Views = {
                     <div id="avatarCanvas" class="avatar-canvas">
                         <div class="avatar-loading">
                             <div class="loading-spinner"></div>
-                            <p>Initializing AI Assistant...</p>
+                            <p>${t('synachat.initializing')}</p>
                         </div>
                     </div>
 
@@ -920,7 +920,7 @@ const Views = {
                     <div id="healthContext" class="health-context-bar">
                         <div class="health-context-label">
                             <i class="fas fa-activity"></i>
-                            Live Health
+                            ${t('synachat.live_health')}
                         </div>
                         <div class="health-context-items">
                             <span><i class="fas fa-heart"></i> <span id="contextHr">--</span> bpm</span>
@@ -934,22 +934,22 @@ const Views = {
                         <!-- Welcome Message - Premium Design -->
                         <div id="welcomeMessage" class="welcome-message">
                             <div class="welcome-icon">
-                                <i class="fas fa-robot"></i>
+                                <img class="welcome-icon-img" src="images/ai.png" alt="Dr. Synachat" width="80" height="80" loading="lazy">
                             </div>
-                            <h3>Hello, I'm Dr. Synachat</h3>
-                            <p>Your personal AI health companion. I can analyze your vitals, offer wellness advice, and support your health journey.</p>
+                            <h3>${t('synachat.hello')}</h3>
+                            <p>${t('synachat.welcome_msg')}</p>
                             <div class="quick-actions">
-                                <button class="quick-action" onclick="sendQuickMessage('Analyze my current heart rate')">
+                                <button class="quick-action" onclick="sendQuickMessage('${t('synachat.qa_heart_msg')}')">
                                     <i class="fas fa-heart-pulse"></i>
-                                    Heart Analysis
+                                    ${t('synachat.qa_heart')}
                                 </button>
-                                <button class="quick-action" onclick="sendQuickMessage('Help me manage my stress levels')">
+                                <button class="quick-action" onclick="sendQuickMessage('${t('synachat.qa_stress_msg')}')">
                                     <i class="fas fa-spa"></i>
-                                    Stress Relief
+                                    ${t('synachat.qa_stress')}
                                 </button>
-                                <button class="quick-action" onclick="sendQuickMessage('Give me personalized health tips')">
+                                <button class="quick-action" onclick="sendQuickMessage('${t('synachat.qa_tips_msg')}')">
                                     <i class="fas fa-wand-magic-sparkles"></i>
-                                    Health Tips
+                                    ${t('synachat.qa_tips')}
                                 </button>
                             </div>
                         </div>
@@ -987,48 +987,63 @@ const Views = {
                 <div class="health-hero" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);">
                     <i class="fas fa-moon" style="font-size: 2.5rem; margin-bottom: 12px; color: #a5b4fc;"></i>
                     <div class="big-value" style="color: white; font-size: 3rem;"><span id="sleepScoreValue">--</span></div>
-                    <div class="label" style="color: #c7d2fe;">${t('sleep.title')}</div>
+                    <div id="sleepScoreCategory" class="label" style="color: #c7d2fe;">${t('sleep.title')}</div>
                 </div>
+
+                <!-- Tips -->
+                <div id="sleepTipsContainer"></div>
 
                 <!-- Relaxation Audio -->
                 <h3 class="section-title">${t('sleep.audio_title')}</h3>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
-                    <div class="card" style="text-align: center; cursor: pointer; padding: 16px;" onclick="SleepLab.playSound('rain')">
+                <div id="sleepAudioGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 8px;">
+                    <div class="card sound-btn" data-sound="rain" style="text-align: center; cursor: pointer; padding: 16px; transition: all 0.3s;" onclick="SleepLab.playSound('rain')">
                         <i class="fas fa-cloud-rain" style="font-size: 1.5rem; color: var(--info-500); margin-bottom: 8px;"></i>
                         <div style="font-size: 0.8rem; font-weight: 600;">${t('sleep.audio_rain')}</div>
                     </div>
-                    <div class="card" style="text-align: center; cursor: pointer; padding: 16px;" onclick="SleepLab.playSound('forest')">
+                    <div class="card sound-btn" data-sound="forest" style="text-align: center; cursor: pointer; padding: 16px; transition: all 0.3s;" onclick="SleepLab.playSound('forest')">
                         <i class="fas fa-tree" style="font-size: 1.5rem; color: var(--success-500); margin-bottom: 8px;"></i>
                         <div style="font-size: 0.8rem; font-weight: 600;">${t('sleep.audio_forest')}</div>
                     </div>
-                    <div class="card" style="text-align: center; cursor: pointer; padding: 16px;" onclick="SleepLab.playSound('noise')">
+                    <div class="card sound-btn" data-sound="noise" style="text-align: center; cursor: pointer; padding: 16px; transition: all 0.3s;" onclick="SleepLab.playSound('noise')">
                         <i class="fas fa-water" style="font-size: 1.5rem; color: var(--primary-500); margin-bottom: 8px;"></i>
                         <div style="font-size: 0.8rem; font-weight: 600;">${t('sleep.audio_waves')}</div>
+                    </div>
+                </div>
+                <!-- Volume Control -->
+                <div id="sleepVolumeControl" style="display: none; padding: 0 4px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-volume-down" style="color: var(--text-tertiary); font-size: 0.85rem;"></i>
+                        <input type="range" id="sleepVolumeSlider" min="0" max="100" value="70" style="flex: 1; accent-color: var(--primary-500); height: 6px;" oninput="SleepLab.setVolume(this.value)">
+                        <i class="fas fa-volume-up" style="color: var(--text-tertiary); font-size: 0.85rem;"></i>
                     </div>
                 </div>
 
                 <!-- Bedtime Checklist -->
                 <h3 class="section-title">${t('sleep.routine_title')}</h3>
+                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: -8px 0 12px;">${t('sleep.routine_hint')}</p>
                 <div class="card" style="padding: 0; overflow: hidden;">
-                    <div class="list-item" style="cursor: pointer;" onclick="SleepLab.toggleChecklist(this)">
+                    <div class="list-item" data-routine="bath" style="cursor: pointer;" onclick="SleepLab.toggleChecklist(this)">
                         <div class="list-item-icon" style="background: transparent; color: var(--text-tertiary);"><i class="far fa-circle"></i></div>
                         <div class="list-item-content">
                             <div class="list-item-title">${t('sleep.routine_bath')}</div>
                         </div>
                     </div>
-                    <div class="list-item" style="cursor: pointer;" onclick="SleepLab.toggleChecklist(this)">
+                    <div class="list-item" data-routine="screen" style="cursor: pointer;" onclick="SleepLab.toggleChecklist(this)">
                         <div class="list-item-icon" style="background: transparent; color: var(--text-tertiary);"><i class="far fa-circle"></i></div>
                         <div class="list-item-content">
                             <div class="list-item-title">${t('sleep.routine_screen')}</div>
                         </div>
                     </div>
-                    <div class="list-item" style="cursor: pointer; border-bottom: none;" onclick="SleepLab.toggleChecklist(this)">
+                    <div class="list-item" data-routine="drink" style="cursor: pointer; border-bottom: none;" onclick="SleepLab.toggleChecklist(this)">
                         <div class="list-item-icon" style="background: transparent; color: var(--text-tertiary);"><i class="far fa-circle"></i></div>
                         <div class="list-item-content">
                             <div class="list-item-title">${t('sleep.routine_drink')}</div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Sleep History -->
+                <div id="sleepHistoryContainer" style="margin-top: 24px;"></div>
             </div>
         `;
     },

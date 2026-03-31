@@ -76,7 +76,7 @@ async function connectBLE() {
     }
 
     isConnecting = true;
-    updateConnectionStatus('connecting', 'Menghubungkan ke perangkat...');
+    updateConnectionStatus('connecting', t('ble.connecting'));
 
     try {
         console.log('Requesting BLE device...');
@@ -120,7 +120,7 @@ async function connectBLE() {
         isConnected = true;
         isConnecting = false;
         reconnectAttempts = 0;
-        updateConnectionStatus('connected', 'Terhubung ke ' + bleDevice.name);
+        updateConnectionStatus('connected', t('ble.connected_to', { name: bleDevice.name }));
         notifyConnectionChange(true);
 
         // Start auto-saving health data to Firestore
@@ -412,7 +412,7 @@ async function disconnectBLE() {
         }
 
         resetConnectionState();
-        updateConnectionStatus('disconnected', 'Terputus dari perangkat');
+        updateConnectionStatus('disconnected', t('ble.disconnected'));
         notifyConnectionChange(false);
     }
 }
@@ -423,14 +423,14 @@ async function disconnectBLE() {
 function onDisconnected(event) {
     console.log('Device disconnected');
     resetConnectionState();
-    updateConnectionStatus('disconnected', 'Terputus dari perangkat');
+    updateConnectionStatus('disconnected', t('ble.disconnected'));
     notifyConnectionChange(false);
 
     // Attempt reconnection
     if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         reconnectAttempts++;
         console.log(`Attempting reconnection (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
-        updateConnectionStatus('connecting', `Mencoba menghubungkan kembali (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+        updateConnectionStatus('connecting', t('ble.reconnecting', { attempt: reconnectAttempts, max: MAX_RECONNECT_ATTEMPTS }));
 
         setTimeout(async () => {
             if (!isConnected && bleDevice) {
@@ -443,7 +443,7 @@ function onDisconnected(event) {
 
                     isConnected = true;
                     reconnectAttempts = 0;
-                    updateConnectionStatus('connected', 'Terhubung kembali ke ' + bleDevice.name);
+                    updateConnectionStatus('connected', t('ble.reconnected_to', { name: bleDevice.name }));
                     notifyConnectionChange(true);
                 } catch (error) {
                     console.error('Reconnection failed:', error);
@@ -452,7 +452,7 @@ function onDisconnected(event) {
             }
         }, 2000);
     } else {
-        updateConnectionStatus('error', 'Gagal menghubungkan kembali. Silakan coba manual.');
+        updateConnectionStatus('error', t('ble.reconnect_failed'));
     }
 }
 

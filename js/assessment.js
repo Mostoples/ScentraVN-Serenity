@@ -97,7 +97,7 @@ const Assessment = {
      * Get latest completed assessment from Firestore
      */
     async getLatestAssessment(userId) {
-        if (typeof db === 'undefined') return null;
+        if (typeof db === 'undefined' || typeof FirebaseService === 'undefined') return null;
 
         try {
             const snapshot = await FirebaseService.userCol(userId, 'assessments')
@@ -126,9 +126,9 @@ const Assessment = {
         const progressBar = document.getElementById('assessmentProgress');
         if (progressBar) progressBar.style.width = '0%';
 
-        // Show progress wrapper
+        // Hide progress wrapper on intro
         const progressWrapper = document.getElementById('assessmentProgressWrapper');
-        if (progressWrapper) progressWrapper.style.display = 'block';
+        if (progressWrapper) progressWrapper.style.display = 'none';
 
         container.innerHTML = `
             <div style="text-align: center; animation: fadeIn 0.5s;">
@@ -166,6 +166,9 @@ const Assessment = {
                 year: 'numeric'
             });
         }
+
+        // Cache results for intervention engine
+        this.cacheAssessmentResults(phq9Score, phq9Category, uclaScore, uclaCategory);
 
         const container = document.getElementById('assessmentContent');
         if (!container) return;
@@ -235,6 +238,8 @@ const Assessment = {
      */
     retakeAssessment() {
         this.clearProgress();
+        // Also clear cached assessment results
+        try { localStorage.removeItem('synawatch_assessment'); } catch (e) {}
         this.currentStage = 'intro';
         this.currentIndex = 0;
         this.answers = { phq9: [], ucla: [] };
@@ -450,6 +455,22 @@ const Assessment = {
      * Finish Assessment, calculate scores and save to Firestore
      */
     async finish() {
+        // Validate all answers are present (guard against corrupted data)
+        const phq9Valid = this.answers.phq9.length === this.phq9.length &&
+            this.answers.phq9.every(a => typeof a === 'number' && a >= 0 && a <= 3);
+        const uclaValid = this.answers.ucla.length === this.ucla.length &&
+            this.answers.ucla.every(a => typeof a === 'number' && a >= 1 && a <= 4);
+
+        if (!phq9Valid || !uclaValid) {
+            console.error('Invalid answers detected, restarting assessment');
+            this.clearProgress();
+            this.currentStage = 'intro';
+            this.currentIndex = 0;
+            this.answers = { phq9: [], ucla: [] };
+            this.renderIntro();
+            return;
+        }
+
         // Calculate PHQ-9 (Sum of all answers: 0-27)
         const phq9Score = this.answers.phq9.reduce((a, b) => a + b, 0);
 
@@ -491,47 +512,159 @@ const Assessment = {
             `;
         }
 
+        // Cache assessment results for intervention engine (always, even if Firestore fails)
+        this.cacheAssessmentResults(phq9Score, phq9Category, uclaScore, uclaCategory);
+
+        const user = auth?.currentUser;
+        const firestoreAvailable = user && typeof db !== 'undefined' && typeof FirebaseService !== 'undefined';
+
+        if (!firestoreAvailable) {
+            // No Firestore available - cache locally and show results
+            console.warn('Firestore not available, assessment cached locally only');
+            this.clearProgress();
+            this.showResults(phq9Score, phq9Category, uclaScore, uclaCategory);
+            return;
+        }
+
         try {
             // Save to Firestore
-            const user = auth?.currentUser;
-            if (user && typeof db !== 'undefined') {
-                await FirebaseService.userCol(user.uid, 'assessments').add({
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    date: new Date().toISOString(),
-                    phq9: {
-                        score: phq9Score,
-                        category: phq9Category,
-                        answers: this.answers.phq9
-                    },
-                    ucla: {
-                        score: uclaScore,
-                        category: uclaCategory,
-                        answers: this.answers.ucla
-                    }
-                });
+            await FirebaseService.userCol(user.uid, 'assessments').add({
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                date: new Date().toISOString(),
+                phq9: {
+                    score: phq9Score,
+                    category: phq9Category,
+                    answers: this.answers.phq9
+                },
+                ucla: {
+                    score: uclaScore,
+                    category: uclaCategory,
+                    answers: this.answers.ucla
+                }
+            });
 
-                // Update User document to mark onboarding complete
-                await db.collection('users').doc(user.uid).set({
-                    onboardingCompleted: true,
-                    lastAssessmentDate: firebase.firestore.FieldValue.serverTimestamp(),
-                    initialPhq9Score: phq9Score
-                }, { merge: true });
+            // Update User document to mark onboarding complete
+            await db.collection('users').doc(user.uid).set({
+                onboardingCompleted: true,
+                lastAssessmentDate: firebase.firestore.FieldValue.serverTimestamp(),
+                initialPhq9Score: phq9Score,
+                initialUclaScore: uclaScore
+            }, { merge: true });
 
-                // Clear localStorage progress since we're done
-                this.clearProgress();
-            }
+            // Clear localStorage progress since we're done
+            this.clearProgress();
 
             // Show results
             this.showResults(phq9Score, phq9Category, uclaScore, uclaCategory);
         } catch (error) {
             console.error("Error saving assessment:", error);
+            // Store scores temporarily so retry can use them
+            this._pendingResults = { phq9Score, phq9Category, uclaScore, uclaCategory };
+            const cont = document.getElementById('assessmentContent');
+            if (cont) {
+                cont.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-500); margin-bottom: 20px;"></i>
+                        <h3>Gagal Menyimpan</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Terjadi kesalahan saat menyimpan data ke server. Data Anda tetap tersimpan secara lokal.</p>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <button class="btn btn-primary" onclick="Assessment.retryFinish()" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-redo"></i> Coba Simpan Ulang
+                            </button>
+                            <button class="btn btn-outline" onclick="Assessment.showResults(${phq9Score}, '${phq9Category}', ${uclaScore}, '${uclaCategory}')" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-chart-pie"></i> Lihat Hasil Saja
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    },
+
+    /**
+     * Cache assessment results to localStorage for intervention engine
+     */
+    cacheAssessmentResults(phq9Score, phq9Category, uclaScore, uclaCategory) {
+        try {
+            localStorage.setItem('synawatch_assessment', JSON.stringify({
+                phq9Score,
+                phq9Category,
+                uclaScore,
+                uclaCategory,
+                cachedAt: new Date().toISOString()
+            }));
+        } catch (e) {
+            console.error('Error caching assessment results:', e);
+        }
+    },
+
+    /**
+     * Retry saving assessment to Firestore after a failed attempt
+     */
+    async retryFinish() {
+        const pending = this._pendingResults;
+        if (!pending) return;
+
+        const container = document.getElementById('assessmentContent');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
+                    <p>Menyimpan ulang hasil evaluasi...</p>
+                </div>
+            `;
+        }
+
+        const user = auth?.currentUser;
+        if (!user || typeof db === 'undefined' || typeof FirebaseService === 'undefined') {
+            // Still no Firestore - show results from cache
+            this.clearProgress();
+            this.showResults(pending.phq9Score, pending.phq9Category, pending.uclaScore, pending.uclaCategory);
+            return;
+        }
+
+        try {
+            await FirebaseService.userCol(user.uid, 'assessments').add({
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                date: new Date().toISOString(),
+                phq9: {
+                    score: pending.phq9Score,
+                    category: pending.phq9Category,
+                    answers: this.answers.phq9
+                },
+                ucla: {
+                    score: pending.uclaScore,
+                    category: pending.uclaCategory,
+                    answers: this.answers.ucla
+                }
+            });
+
+            await db.collection('users').doc(user.uid).set({
+                onboardingCompleted: true,
+                lastAssessmentDate: firebase.firestore.FieldValue.serverTimestamp(),
+                initialPhq9Score: pending.phq9Score,
+                initialUclaScore: pending.uclaScore
+            }, { merge: true });
+
+            this.clearProgress();
+            this._pendingResults = null;
+            this.showResults(pending.phq9Score, pending.phq9Category, pending.uclaScore, pending.uclaCategory);
+        } catch (error) {
+            console.error("Retry save failed:", error);
             if (container) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-500); margin-bottom: 20px;"></i>
-                        <h3>Gagal Menyimpan</h3>
-                        <p>Terjadi kesalahan saat menyimpan data. Silakan coba lagi nanti.</p>
-                        <button class="btn btn-primary" onclick="Router.navigate('dashboard')" style="margin-top: 20px;">Kembali ke Dashboard</button>
+                        <h3>Masih Gagal Menyimpan</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Periksa koneksi internet Anda. Data tetap tersimpan lokal.</p>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <button class="btn btn-primary" onclick="Assessment.retryFinish()" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-redo"></i> Coba Lagi
+                            </button>
+                            <button class="btn btn-outline" onclick="Assessment.showResults(${pending.phq9Score}, '${pending.phq9Category}', ${pending.uclaScore}, '${pending.uclaCategory}')" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-chart-pie"></i> Lihat Hasil Saja
+                            </button>
+                        </div>
                     </div>
                 `;
             }
@@ -605,7 +738,7 @@ const Assessment = {
      */
     async renderLongitudinalChart(container) {
         const user = auth?.currentUser;
-        if (!user || typeof db === 'undefined') return;
+        if (!user || typeof db === 'undefined' || typeof FirebaseService === 'undefined') return;
 
         try {
             const snapshot = await FirebaseService.userCol(user.uid, 'assessments')

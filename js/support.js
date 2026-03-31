@@ -211,8 +211,8 @@ const SupportHub = {
 
     renderRiskBanner(state, risk) {
         const sensorBadge = state.hasSensor
-            ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.12);color:#10B981;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:600;"><i class="fas fa-broadcast-tower" style="font-size:0.6rem;"></i> Sensor Aktif</span>`
-            : `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(156,163,175,0.12);color:#9CA3AF;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:600;"><i class="fas fa-unlink" style="font-size:0.6rem;"></i> Sensor Offline</span>`;
+            ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.12);color:#10B981;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:600;"><i class="fas fa-broadcast-tower" style="font-size:0.6rem;"></i> ${t('status.sensor_active')}</span>`
+            : `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(156,163,175,0.12);color:#9CA3AF;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:600;"><i class="fas fa-unlink" style="font-size:0.6rem;"></i> ${t('status.sensor_offline')}</span>`;
 
         return `
         <div style="background:${risk.bg};border:1px solid ${risk.color}25;border-left:4px solid ${risk.color};border-radius:14px;padding:16px;margin-bottom:16px;">
@@ -400,7 +400,7 @@ const SupportHub = {
     openSafetyPlan() {
         const user = auth?.currentUser;
         if (!user) {
-            Utils.showToast('Silakan login terlebih dahulu', 'error');
+            Utils.showToast(t('support.login_required'), 'error');
             return;
         }
 
@@ -484,7 +484,7 @@ const SupportHub = {
         const reasonsForLiving = document.getElementById('spReasonsForLiving')?.value?.trim();
 
         if (!warningSigns && !copingStrategies) {
-            Utils.showToast('Isi minimal tanda peringatan atau strategi koping', 'error');
+            Utils.showToast(t('support.fill_minimum'), 'error');
             return;
         }
 
@@ -494,7 +494,7 @@ const SupportHub = {
         const btn = document.getElementById('spSaveBtn');
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('support.saving_plan')}`;
         }
 
         try {
@@ -509,7 +509,7 @@ const SupportHub = {
             await FirebaseService.userCol(user.uid, 'safetyPlans').doc('plan').set(planData);
 
             this.cachedSafetyPlan = planData;
-            Utils.showToast('Rencana keselamatan berhasil disimpan', 'success');
+            Utils.showToast(t('support.save_success'), 'success');
 
             const overlay = document.querySelector('.support-plan-overlay');
             if (overlay) overlay.remove();
@@ -518,10 +518,10 @@ const SupportHub = {
             this.render();
         } catch (e) {
             console.error('Error saving safety plan:', e);
-            Utils.showToast('Gagal menyimpan rencana', 'error');
+            Utils.showToast(t('support.save_failed'), 'error');
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save"></i> Simpan Rencana';
+                btn.innerHTML = `<i class="fas fa-save"></i> ${t('support.save_plan_btn')}`;
             }
         }
     },

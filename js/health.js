@@ -106,7 +106,7 @@ function updateHeartRateDisplay(data) {
         if (hrValue) hrValue.textContent = '--';
         if (hrRing) hrRing.style.strokeDashoffset = 565.48;
         if (hrStatus) {
-            hrStatus.innerHTML = '<span class="status-dot"></span><span>Waiting for data</span>';
+            hrStatus.innerHTML = `<span class="status-dot"></span><span>${t('status.waiting_data')}</span>`;
             hrStatus.className = 'hr-status';
         }
     }
@@ -154,16 +154,16 @@ function updateTemperatureDisplay(data) {
 
     if (tempStatus && data.bt) {
         if (data.bt >= 36.1 && data.bt <= 37.2) {
-            tempStatus.textContent = 'Normal';
+            tempStatus.textContent = t('status.normal');
             tempStatus.className = 'vital-badge normal';
         } else if (data.bt > 37.2 && data.bt <= 38) {
-            tempStatus.textContent = 'Elevated';
+            tempStatus.textContent = t('status.elevated');
             tempStatus.className = 'vital-badge warning';
         } else if (data.bt > 38) {
-            tempStatus.textContent = 'Fever';
+            tempStatus.textContent = t('status.fever');
             tempStatus.className = 'vital-badge danger';
         } else {
-            tempStatus.textContent = 'Low';
+            tempStatus.textContent = t('status.low');
             tempStatus.className = 'vital-badge warning';
         }
     }
@@ -212,11 +212,11 @@ function updateStressDisplay(data) {
 
     if (stressTip) {
         if (data.stress <= 30) {
-            stressTip.textContent = "You're doing great! Keep it up.";
+            stressTip.textContent = t('health.doing_great');
         } else if (data.stress <= 60) {
-            stressTip.textContent = "Consider taking a short break.";
+            stressTip.textContent = t('health.tip_break');
         } else {
-            stressTip.textContent = "Try some breathing exercises.";
+            stressTip.textContent = t('health.tip_breathing');
         }
     }
 }
@@ -309,9 +309,9 @@ function updateFingerStatus(detected) {
     if (!fingerStatus) return;
 
     if (detected) {
-        fingerStatus.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Finger detected';
+        fingerStatus.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i> ${t('ble.finger_detected')}`;
     } else {
-        fingerStatus.textContent = 'Place finger on sensor';
+        fingerStatus.textContent = t('ble.place_finger');
     }
 }
 
@@ -336,11 +336,11 @@ function handleHealthConnectionChange(connected) {
     updateConnectionUI(connected);
 
     if (connected) {
-        Utils.showToast('Connected to SYNAWATCH', 'success');
+        Utils.showToast(t('ble.connected'), 'success');
         showAutoRecordStatus(true);
         startHealthRecordingTimer();
     } else {
-        Utils.showToast('Disconnected from device', 'error');
+        Utils.showToast(t('ble.disconnected'), 'error');
         showAutoRecordStatus(false);
         stopHealthRecordingTimer();
     }
@@ -364,7 +364,7 @@ function updateConnectionUI(connected) {
     }
 
     if (bleStatusText) {
-        bleStatusText.textContent = connected ? 'Connected' : 'Connect';
+        bleStatusText.textContent = connected ? t('status.connected') : t('ble.connect');
     }
 
     if (liveIndicator) {
@@ -425,7 +425,7 @@ function stopHealthRecordingTimer() {
 
     const countEl = document.getElementById('recordingCount');
     if (countEl) {
-        countEl.textContent = '0 readings';
+        countEl.textContent = t('health.readings_count', { count: '0' });
     }
 
     healthReadingCount = 0;

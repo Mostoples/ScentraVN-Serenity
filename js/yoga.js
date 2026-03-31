@@ -243,7 +243,7 @@ const YogaModule = {
         const categorySelect = document.getElementById('yogaCategoryFilter');
         if (categorySelect) {
             // Rebuild options every init so categories never duplicate (retry / re-enter route)
-            categorySelect.innerHTML = '<option value="all">Semua Kategori</option>';
+            categorySelect.innerHTML = `<option value="all">${t('yoga.all_categories')}</option>`;
             this.categories.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat.category_name;

@@ -257,6 +257,8 @@ const I18n = {
             'health.relaxed': 'Rileks',
             'health.skin_normal': 'Konduktansi kulit normal.',
             'health.doing_great': 'Anda melakukannya dengan baik! Pertahankan.',
+            'health.tip_break': 'Pertimbangkan untuk istirahat sejenak.',
+            'health.tip_breathing': 'Coba lakukan latihan pernapasan.',
             'health.recording': 'Merekam',
             'health.readings': 'pembacaan',
             'health.view_analytics': 'Lihat Analitik',
@@ -314,8 +316,100 @@ const I18n = {
             'journal.moderate': 'Moderat',
             'journal.relaxed': 'Rileks',
 
+            // BLE / Device Connection
+            'ble.connect': 'Hubungkan',
+            'ble.disconnect': 'Putuskan',
+            'ble.connecting': 'Menghubungkan ke perangkat...',
+            'ble.connected_to': 'Terhubung ke {name}',
+            'ble.connected': 'Terhubung ke SYNAWATCH',
+            'ble.disconnected': 'Terputus dari perangkat',
+            'ble.reconnecting': 'Mencoba menghubungkan kembali ({attempt}/{max})...',
+            'ble.reconnected_to': 'Terhubung kembali ke {name}',
+            'ble.reconnect_failed': 'Gagal menghubungkan kembali. Silakan coba manual.',
+            'ble.finger_detected': 'Jari terdeteksi',
+            'ble.place_finger': 'Letakkan jari di sensor',
+            'ble.detected': 'Terdeteksi',
+            'ble.not_detected': 'Tidak Terdeteksi',
+
+            // Status
+            'status.live': 'Live',
+            'status.offline': 'Offline',
+            'status.connected': 'Terhubung',
+            'status.sensor_offline': 'Sensor Offline',
+            'status.sensor_active': 'Sensor Aktif',
+            'status.waiting_data': 'Menunggu data',
+            'status.normal': 'Normal',
+            'status.elevated': 'Meningkat',
+            'status.fever': 'Demam',
+            'status.low': 'Rendah',
+            'status.initializing': 'Menginisialisasi...',
+
+            // Auth / Login
+            'auth.logout_failed': 'Gagal keluar',
+            'auth.login_google': 'Masuk dengan Google',
+            'auth.connecting': 'Menghubungkan...',
+            'auth.processing': 'Memproses...',
+            'auth.copied': 'Tersalin!',
+            'auth.copy_command': 'Salin Perintah',
+
+            // Profile actions
+            'profile.edit_soon': 'Edit Profil segera hadir!',
+            'profile.password_soon': 'Ubah Kata Sandi segera hadir!',
+            'profile.select_language': 'Pilih bahasa aplikasi',
+            'profile.update_security': 'Perbarui kredensial keamanan Anda',
+            'profile.saving': 'Menyimpan...',
+            'profile.updating': 'Memperbarui...',
+            'profile.save_changes': 'Simpan Perubahan',
+            'profile.update_password': 'Perbarui Kata Sandi',
+            'profile.updated_success': 'Profil berhasil diperbarui',
+            'profile.update_failed': 'Gagal memperbarui profil',
+            'profile.password_updated': 'Kata sandi berhasil diperbarui',
+            'profile.password_failed': 'Gagal memperbarui kata sandi',
+            'profile.password_mismatch': 'Kata sandi tidak cocok',
+            'profile.enter_name': 'Masukkan nama Anda',
+            'profile.member_since': 'Anggota sejak {date}',
+
+            // Support actions
+            'support.login_required': 'Silakan login terlebih dahulu',
+            'support.fill_minimum': 'Isi minimal tanda peringatan atau strategi koping',
+            'support.saving_plan': 'Menyimpan...',
+            'support.save_success': 'Rencana keselamatan berhasil disimpan',
+            'support.save_failed': 'Gagal menyimpan rencana',
+            'support.save_plan_btn': 'Simpan Rencana',
+
+            // Synachat
+            'synachat.initializing': 'Menginisialisasi AI Assistant...',
+            'synachat.live_health': 'Kesehatan Live',
+            'synachat.hello': 'Halo, saya Dr. Synachat',
+            'synachat.welcome_msg': 'Asisten kesehatan AI personal Anda. Tanyakan apa saja tentang kesehatan Anda.',
+            'synachat.qa_heart': 'Analisis Jantung',
+            'synachat.qa_heart_msg': 'Analisis detak jantung saya saat ini',
+            'synachat.qa_stress': 'Redakan Stres',
+            'synachat.qa_stress_msg': 'Bantu saya mengelola tingkat stres',
+            'synachat.qa_tips': 'Tips Kesehatan',
+            'synachat.qa_tips_msg': 'Berikan tips kesehatan personal untuk saya',
+
             // Moodbooster
             'moodbooster.loading': 'Memuat Mood Booster...',
+            'moodbooster.track_unavailable': 'Track tidak tersedia',
+            'moodbooster.click_to_play': 'Klik sekali lagi untuk memutar',
+            'moodbooster.mood_recorded': 'Mood dicatat. Playlist disesuaikan!',
+
+            // Profile extras
+            'profile.chat_subtitle': 'Chat dengan Dr. Synachat',
+
+            // Questionnaire
+            'questionnaire.title': 'Kuesioner Pengujian',
+            'questionnaire.subtitle': 'Bantu kami tingkatkan SynaWatch',
+            'questionnaire.banner_desc': 'Bantu kami tingkatkan SynaWatch — isi kuesioner &amp; beri feedback!',
+            'questionnaire.give_feedback': 'Beri Feedback',
+            'questionnaire.save_failed': 'Gagal menyimpan data. Periksa koneksi internet Anda dan coba lagi.',
+
+            // Yoga
+            'yoga.all_categories': 'Semua Kategori',
+
+            // Health recordings
+            'health.readings_count': '{count} pembacaan',
 
             // Support
             'support.loading': 'Memuat Support Hub...',
@@ -624,6 +718,8 @@ const I18n = {
             'health.relaxed': 'Relaxed',
             'health.skin_normal': 'Skin conductance is normal.',
             'health.doing_great': "You're doing great! Keep it up.",
+            'health.tip_break': 'Consider taking a short break.',
+            'health.tip_breathing': 'Try some breathing exercises.',
             'health.recording': 'Recording',
             'health.readings': 'readings',
             'health.view_analytics': 'View Analytics',
@@ -681,8 +777,100 @@ const I18n = {
             'journal.moderate': 'Moderate',
             'journal.relaxed': 'Relaxed',
 
+            // BLE / Device Connection
+            'ble.connect': 'Connect',
+            'ble.disconnect': 'Disconnect',
+            'ble.connecting': 'Connecting to device...',
+            'ble.connected_to': 'Connected to {name}',
+            'ble.connected': 'Connected to SYNAWATCH',
+            'ble.disconnected': 'Disconnected from device',
+            'ble.reconnecting': 'Attempting to reconnect ({attempt}/{max})...',
+            'ble.reconnected_to': 'Reconnected to {name}',
+            'ble.reconnect_failed': 'Failed to reconnect. Please try manually.',
+            'ble.finger_detected': 'Finger detected',
+            'ble.place_finger': 'Place finger on sensor',
+            'ble.detected': 'Detected',
+            'ble.not_detected': 'Not Detected',
+
+            // Status
+            'status.live': 'Live',
+            'status.offline': 'Offline',
+            'status.connected': 'Connected',
+            'status.sensor_offline': 'Sensor Offline',
+            'status.sensor_active': 'Sensor Active',
+            'status.waiting_data': 'Waiting for data',
+            'status.normal': 'Normal',
+            'status.elevated': 'Elevated',
+            'status.fever': 'Fever',
+            'status.low': 'Low',
+            'status.initializing': 'Initializing...',
+
+            // Auth / Login
+            'auth.logout_failed': 'Failed to logout',
+            'auth.login_google': 'Sign in with Google',
+            'auth.connecting': 'Connecting...',
+            'auth.processing': 'Processing...',
+            'auth.copied': 'Copied!',
+            'auth.copy_command': 'Copy Command',
+
+            // Profile actions
+            'profile.edit_soon': 'Edit Profile coming soon!',
+            'profile.password_soon': 'Change Password coming soon!',
+            'profile.select_language': 'Select app language',
+            'profile.update_security': 'Update your security credentials',
+            'profile.saving': 'Saving...',
+            'profile.updating': 'Updating...',
+            'profile.save_changes': 'Save Changes',
+            'profile.update_password': 'Update Password',
+            'profile.updated_success': 'Profile updated successfully',
+            'profile.update_failed': 'Failed to update profile',
+            'profile.password_updated': 'Password updated successfully',
+            'profile.password_failed': 'Failed to update password',
+            'profile.password_mismatch': 'Passwords do not match',
+            'profile.enter_name': 'Please enter your name',
+            'profile.member_since': 'Member since {date}',
+
+            // Support actions
+            'support.login_required': 'Please login first',
+            'support.fill_minimum': 'Fill at least warning signs or coping strategies',
+            'support.saving_plan': 'Saving...',
+            'support.save_success': 'Safety plan saved successfully',
+            'support.save_failed': 'Failed to save plan',
+            'support.save_plan_btn': 'Save Plan',
+
+            // Synachat
+            'synachat.initializing': 'Initializing AI Assistant...',
+            'synachat.live_health': 'Live Health',
+            'synachat.hello': 'Hello, I\'m Dr. Synachat',
+            'synachat.welcome_msg': 'Your personal AI health companion. Ask me anything about your health.',
+            'synachat.qa_heart': 'Heart Analysis',
+            'synachat.qa_heart_msg': 'Analyze my current heart rate',
+            'synachat.qa_stress': 'Stress Relief',
+            'synachat.qa_stress_msg': 'Help me manage my stress levels',
+            'synachat.qa_tips': 'Health Tips',
+            'synachat.qa_tips_msg': 'Give me personalized health tips',
+
             // Moodbooster
             'moodbooster.loading': 'Loading Mood Booster...',
+            'moodbooster.track_unavailable': 'Track not available',
+            'moodbooster.click_to_play': 'Click once more to play',
+            'moodbooster.mood_recorded': 'Mood recorded. Playlist adjusted!',
+
+            // Profile extras
+            'profile.chat_subtitle': 'Chat with Dr. Synachat',
+
+            // Questionnaire
+            'questionnaire.title': 'App Testing Questionnaire',
+            'questionnaire.subtitle': 'Help us improve SynaWatch',
+            'questionnaire.banner_desc': 'Help us improve SynaWatch — fill in the questionnaire &amp; give feedback!',
+            'questionnaire.give_feedback': 'Give Feedback',
+            'questionnaire.save_failed': 'Failed to save data. Check your internet connection and try again.',
+
+            // Yoga
+            'yoga.all_categories': 'All Categories',
+
+            // Health recordings
+            'health.readings_count': '{count} readings',
 
             // Support
             'support.loading': 'Loading Support Hub...',
@@ -760,6 +948,11 @@ const I18n = {
     setLang(lang) {
         this.currentLang = lang;
         localStorage.setItem('synawatch_lang', lang);
+
+        // Update global language toggle label
+        const label = document.getElementById('langToggleLabel');
+        if (label) label.textContent = lang.toUpperCase();
+
         if (typeof Router !== 'undefined') {
             Router.handleRoute();
         }

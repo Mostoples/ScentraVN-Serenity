@@ -324,7 +324,7 @@ function showAvatarFallback(container) {
     container.innerHTML = `
         <div class="avatar-fallback">
             <div class="avatar-fallback-icon">
-                <i class="fas fa-robot"></i>
+                <img class="avatar-fallback-img" src="images/ai.png" alt="Dr. Synachat" width="100" height="100" loading="lazy">
             </div>
             <p>Dr. Synachat</p>
         </div>
@@ -703,8 +703,8 @@ function parseMessageTimestamp(ts) {
 function getMessageAvatarParts(role) {
     if (role === 'assistant') {
         return {
-            avatarClass: 'message-avatar',
-            inner: '<i class="fas fa-robot"></i>'
+            avatarClass: 'message-avatar message-avatar--user-photo',
+            inner: '<img class="message-avatar-img" src="images/ai.png" alt="Dr. Synachat" width="36" height="36" loading="lazy">'
         };
     }
     const user = typeof auth !== 'undefined' && auth.currentUser ? auth.currentUser : null;
@@ -809,7 +809,7 @@ function showTypingIndicator() {
     const typingHtml = `
         <div id="typingIndicator" class="message assistant">
             <div class="message-avatar">
-                <i class="fas fa-robot"></i>
+                <img class="message-avatar-img" src="images/ai.png" alt="Dr. Synachat" width="36" height="36" loading="lazy">
             </div>
             <div class="message-content">
                 <div class="message-bubble">
@@ -1015,7 +1015,7 @@ async function clearChat() {
         container.innerHTML = `
             <div id="welcomeMessage" class="welcome-message">
                 <div class="welcome-icon">
-                    <i class="fas fa-robot"></i>
+                    <img class="welcome-icon-img" src="images/ai.png" alt="Dr. Synachat" width="80" height="80" loading="lazy">
                 </div>
                 <h3>Hello, I'm Dr. Synachat</h3>
                 <p>Your personal AI health companion. I can analyze your vitals, offer wellness advice, and support your health journey.</p>

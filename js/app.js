@@ -35,6 +35,12 @@ const App = {
         this.updateTime();
         setInterval(() => this.updateTime(), 1000);
 
+        // Set language toggle label to current language
+        const langLabel = document.getElementById('langToggleLabel');
+        if (langLabel && typeof I18n !== 'undefined') {
+            langLabel.textContent = I18n.currentLang.toUpperCase();
+        }
+
         this.initialized = true;
         this._initializing = false;
         console.log('SYNAWATCH SPA initialized');
@@ -382,7 +388,8 @@ const App = {
         const timeEl = document.getElementById('currentTime');
         if (timeEl) {
             const now = new Date();
-            timeEl.textContent = now.toLocaleTimeString('id-ID', {
+            const locale = (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID';
+            timeEl.textContent = now.toLocaleTimeString(locale, {
                 hour: '2-digit',
                 minute: '2-digit'
             });
@@ -403,7 +410,7 @@ const App = {
         }
         // Label matches toggle: connect vs disconnect (same as BLE status UI)
         if (bleStatus) {
-            bleStatus.textContent = connected ? 'Disconnect' : 'Connect';
+            bleStatus.textContent = connected ? t('ble.disconnect') : t('ble.connect');
         }
 
         // Update dashboard chart mode (if on dashboard)
@@ -446,9 +453,9 @@ const App = {
         const fingerEl = document.getElementById('fingerStatus');
         if (fingerEl) {
             if (fingerEl.querySelector('span')) {
-                fingerEl.querySelector('span').textContent = data.finger ? 'Finger detected' : 'Place finger on sensor';
+                fingerEl.querySelector('span').textContent = data.finger ? t('ble.finger_detected') : t('ble.place_finger');
             } else {
-                fingerEl.textContent = data.finger ? 'Detected' : 'Not Detected';
+                fingerEl.textContent = data.finger ? t('ble.detected') : t('ble.not_detected');
                 fingerEl.style.color = data.finger ? 'var(--success-400)' : 'var(--danger-400)';
             }
         }
@@ -553,7 +560,8 @@ const App = {
         // Set current date
         const dateEl = document.getElementById('currentDate');
         if (dateEl) {
-            dateEl.textContent = new Date().toLocaleDateString('id-ID', {
+            const locale = (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID';
+            dateEl.textContent = new Date().toLocaleDateString(locale, {
                 day: 'numeric',
                 month: 'short',
                 year: 'numeric'
@@ -584,7 +592,9 @@ const App = {
             const joinedEl = document.getElementById('profileJoined');
             if (joinedEl && this.currentUser.metadata?.creationTime) {
                 const joinDate = new Date(this.currentUser.metadata.creationTime);
-                joinedEl.textContent = `Joined ${joinDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`;
+                const jLocale = (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID';
+                const dateStr = joinDate.toLocaleDateString(jLocale, { month: 'long', year: 'numeric' });
+                joinedEl.textContent = t('profile.member_since', { date: dateStr });
             }
         }
 
@@ -689,6 +699,9 @@ const App = {
         if (previousRoute === 'moodbooster' && typeof MoodBooster !== 'undefined') {
             MoodBooster.destroy();
         }
+        if (previousRoute === 'sleep' && typeof SleepLab !== 'undefined') {
+            SleepLab.destroy();
+        }
     }
 };
 
@@ -768,7 +781,7 @@ async function performLogout() {
             if (result.success) {
                 window.location.href = 'auth.html';
             } else {
-                Utils.showToast('Failed to logout', 'error');
+                Utils.showToast(t('auth.logout_failed'), 'error');
                 closeLogoutModal();
             }
         } else if (typeof auth !== 'undefined') {
@@ -777,7 +790,7 @@ async function performLogout() {
         }
     } catch (error) {
         console.error('Logout error:', error);
-        Utils.showToast('Failed to logout', 'error');
+        Utils.showToast(t('auth.logout_failed'), 'error');
         closeLogoutModal();
     }
 }
@@ -786,14 +799,14 @@ async function performLogout() {
  * Open Edit Profile Modal
  */
 function openEditProfile() {
-    Utils.showToast('Edit Profile coming soon!', 'info');
+    Utils.showToast(t('profile.edit_soon'), 'info');
 }
 
 /**
  * Open Change Password Modal
  */
 function openChangePassword() {
-    Utils.showToast('Change Password coming soon!', 'info');
+    Utils.showToast(t('profile.password_soon'), 'info');
 }
 
 // Make functions globally available

@@ -824,7 +824,7 @@ const Questionnaire = {
 
         } catch (err) {
             console.error('Questionnaire submit error:', err);
-            this._showPageError(8, 'Gagal menyimpan data. Periksa koneksi internet Anda dan coba lagi.');
+            this._showPageError(8, t('questionnaire.save_failed'));
             btn.classList.remove('q-loading');
             btn.disabled = false;
         }
