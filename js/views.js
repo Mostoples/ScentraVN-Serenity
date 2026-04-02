@@ -57,6 +57,37 @@ const Views = {
                     </div>
                 </div>
 
+                <!-- HEROIC Wellness Widget -->
+                <div class="card" style="margin-top: 20px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="Router.navigate('heroic')"
+                     onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(124, 58, 237, 0.2)';"
+                     onmouseleave="this.style.transform=''; this.style.boxShadow='';">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #7C3AED, #5B21B6);
+                                        border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-star-of-life" style="color: white; font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin: 0;">HEROIC Wellness Index</p>
+                                <div style="display: flex; align-items: baseline; gap: 8px;">
+                                    <span id="dashboardHeroicScore" style="font-size: 2rem; font-weight: 800; color: var(--text-primary);">--</span>
+                                    <span style="font-size: 0.9rem; color: var(--text-secondary);">/100</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+                                        background: rgba(124, 58, 237, 0.1); border-radius: 20px; margin-bottom: 4px;">
+                                <i class="fas fa-brain" style="font-size: 0.75rem; color: #7C3AED;"></i>
+                                <span style="font-size: 0.75rem; font-weight: 600; color: #7C3AED;">XAI Powered</span>
+                            </div>
+                            <p style="font-size: 0.7rem; color: var(--text-tertiary); margin: 0;">
+                                <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Banner Kuesioner Pengujian Aplikasi -->
                 <div style="margin-top: 24px;">
                     <div onclick="Router.navigate('questionnaire')" style="
@@ -227,6 +258,19 @@ const Views = {
                             <div class="card-content">
                                 <h4 class="card-title">${t('menu.academy')}</h4>
                                 <p class="card-subtitle">${t('menu.academy_sub')}</p>
+                            </div>
+                            <div class="card-hover-bg"></div>
+                        </div>
+
+                        <!-- HEROIC Program -->
+                        <div class="quick-menu-card heroic-card" onclick="Router.navigate('heroic')" data-card="heroic">
+                            <div class="card-decorative-bg"></div>
+                            <div class="card-icon-box" style="background: linear-gradient(135deg, #7C3AED, #5B21B6);">
+                                <i class="fas fa-star-of-life"></i>
+                            </div>
+                            <div class="card-content">
+                                <h4 class="card-title">${t('menu.heroic')}</h4>
+                                <p class="card-subtitle">${t('menu.heroic_sub')}</p>
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>

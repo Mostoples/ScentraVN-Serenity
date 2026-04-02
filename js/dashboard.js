@@ -37,6 +37,9 @@ async function initDashboard() {
     // Load today's data from Firebase
     await loadTodayData();
 
+    // Update HEROIC score if available
+    updateHeroicScore();
+
     // Listen for BLE data updates
     BLEConnection.onDataUpdate(handleDataUpdate);
 
@@ -91,6 +94,26 @@ async function loadUserData() {
         }
     } catch (error) {
         console.error('Error loading user data:', error);
+    }
+}
+
+/**
+ * Update HEROIC Wellness Score in dashboard
+ */
+function updateHeroicScore() {
+    const scoreElement = document.getElementById('dashboardHeroicScore');
+    if (scoreElement && typeof HeroicXAI !== 'undefined') {
+        const score = HeroicXAI.getOverallScore();
+        scoreElement.textContent = score;
+
+        // Color code based on score
+        if (score >= 70) {
+            scoreElement.style.color = '#10B981'; // Green
+        } else if (score >= 50) {
+            scoreElement.style.color = '#F59E0B'; // Amber
+        } else {
+            scoreElement.style.color = '#EF4444'; // Red
+        }
     }
 }
 

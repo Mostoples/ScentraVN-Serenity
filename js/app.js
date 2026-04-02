@@ -211,6 +211,13 @@ const App = {
             if (typeof Questionnaire !== 'undefined') Questionnaire.init();
         });
 
+        Router.register('heroic', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.heroic());
+            if (typeof HeroicProgram !== 'undefined') HeroicProgram.init();
+        });
+
         // Initialize router
         Router.init();
 
@@ -269,17 +276,17 @@ const App = {
                 </div>
                 <span class="nav-label">${typeof t !== 'undefined' ? t('nav.health') : 'Health'}</span>
             </a>
+            <a class="nav-item" data-route="heroic">
+                <div class="nav-icon">
+                    <i class="fas fa-star-of-life"></i>
+                </div>
+                <span class="nav-label">${typeof t !== 'undefined' ? t('nav.heroic') : 'HEROIC'}</span>
+            </a>
             <a class="nav-item" data-route="synachat">
                 <div class="nav-icon">
                     <i class="fas fa-comments"></i>
                 </div>
                 <span class="nav-label">${typeof t !== 'undefined' ? t('nav.chat') : 'AI Chat'}</span>
-            </a>
-            <a class="nav-item" data-route="analytics">
-                <div class="nav-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <span class="nav-label">${typeof t !== 'undefined' ? t('nav.analytics') : 'Analytics'}</span>
             </a>
             <a class="nav-item nav-more-trigger" onclick="App.toggleMoreMenu(event)">
                 <div class="nav-icon">
@@ -303,6 +310,10 @@ const App = {
                     <button onclick="App.closeMoreMenu()" style="background: none; border: none; font-size: 1.2rem; color: var(--text-tertiary); cursor: pointer;"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="more-menu-grid">
+                    <a class="more-menu-item" data-route="analytics" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;"><i class="fas fa-chart-line"></i></div>
+                        <span>${typeof t !== 'undefined' ? t('nav.analytics') : 'Analytics'}</span>
+                    </a>
                     <a class="more-menu-item" data-route="sleep" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(49, 46, 129, 0.12); color: #312e81;"><i class="fas fa-moon"></i></div>
                         <span>${typeof t !== 'undefined' ? t('menu.sleep') : 'Sleep Lab'}</span>

@@ -27,7 +27,8 @@
       "WebFetch(domain:json2video.com)",
       "WebFetch(domain:elevenlabs-sdk.mintlify.app)",
       "WebFetch(domain:help.blotato.com)",
-      "WebFetch(domain:voximplant.com)"
+      "WebFetch(domain:voximplant.com)",
+      "Bash(ls:*)"
     ]
   }
 }
