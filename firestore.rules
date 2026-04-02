@@ -31,7 +31,7 @@ service cloud.firestore {
       // musicTherapyLogs, sessions, journals, interventions
       match /{subcollection}/{docId} {
         allow read, write: if isOwner(userId);
-        allow read: if isAdmin();
+        allow read, write: if isAdmin(); // Admin can write subcollections too
       }
     }
 
@@ -43,6 +43,7 @@ service cloud.firestore {
 
       match /{sub=**} {
         allow read, write: if isAuthenticated();
+        allow read, write: if isAdmin();
       }
     }
 
@@ -87,13 +88,29 @@ service cloud.firestore {
     // ===== RESEARCH DATA =====
     match /researchData/{docId} {
       allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow read: if isAdmin();
+      allow read, write: if isAdmin(); // Admin can write too
     }
 
     // ===== QUESTIONNAIRE RESULTS =====
     match /questionnaireResults/{docId} {
       allow create: if isAuthenticated();
-      allow read: if isAdmin();
+      allow read, write: if isAdmin(); // Admin can edit/delete questionnaires
+    }
+
+    // ===== HEROIC ACTIVITIES =====
+    match /heroicActivities/{docId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
+    }
+
+    // ===== HEROIC SCORE HISTORY =====
+    match /heroicScoreHistory/{docId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
     }
 
     // ===== DENY ALL OTHER =====

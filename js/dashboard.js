@@ -100,7 +100,12 @@ async function loadUserData() {
 /**
  * Update HEROIC Wellness Score in dashboard
  */
-function updateHeroicScore() {
+async function updateHeroicScore() {
+    // Initialize Firestore and load scores if not already loaded
+    if (typeof HeroicFirestore !== 'undefined' && auth?.currentUser) {
+        await HeroicFirestore.init();
+    }
+
     const scoreElement = document.getElementById('dashboardHeroicScore');
     if (scoreElement && typeof HeroicXAI !== 'undefined') {
         const score = HeroicXAI.getOverallScore();

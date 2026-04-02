@@ -890,6 +890,20 @@ const Views = {
                     </div>
                 </div>
 
+                <!-- Admin Dashboard (only for admin role) -->
+                <div id="adminMenuCard" class="card" style="padding: 0; overflow: hidden; margin-bottom: var(--space-4); display: none;">
+                    <div class="list-item" onclick="Router.navigate('admin')" style="border-bottom: none; cursor: pointer;">
+                        <div class="list-item-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7); color: white;">
+                            <i class="fas fa-shield-halved"></i>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title" style="color: var(--primary-500); font-weight: 700;">Admin Dashboard</div>
+                            <div class="list-item-subtitle">${I18n.currentLang === 'id' ? 'Kelola sistem & data pengguna' : 'Manage system & user data'}</div>
+                        </div>
+                        <i class="fas fa-arrow-right" style="color: var(--primary-500);"></i>
+                    </div>
+                </div>
+
                 <div class="card" style="padding: 0; overflow: hidden; margin-bottom: var(--space-6);">
                     <div class="list-item" onclick="confirmLogout()" style="border-bottom: none;">
                         <div class="list-item-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger-400);">
@@ -901,6 +915,20 @@ const Views = {
                         </div>
                     </div>
                 </div>
+
+                <script>
+                // Show admin menu only for admin users
+                (async function() {
+                    const user = auth.currentUser;
+                    if (user) {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists && userDoc.data().role === 'admin') {
+                            const adminCard = document.getElementById('adminMenuCard');
+                            if (adminCard) adminCard.style.display = 'block';
+                        }
+                    }
+                })();
+                </script>
 
                 <!-- Version -->
                 <div style="text-align: center; padding: var(--space-5); color: var(--text-muted); font-size: var(--text-xs);">
@@ -1421,129 +1449,6 @@ const Views = {
     },
 
     /**
-     * Admin Dashboard View
-     */
-    admin() {
-        return `
-            <div class="view-container" style="max-width: 1200px; margin: 0 auto; padding-top: 40px;">
-                <!-- Admin Header -->
-                <div style="margin-bottom: 32px;">
-                    <h1 style="font-size: var(--text-3xl); font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
-                        <i class="fas fa-shield-alt" style="color: var(--primary-500); margin-right: 12px;"></i>${t('admin.title')}
-                    </h1>
-                    <p style="color: var(--text-secondary);">${t('admin.subtitle')}</p>
-                </div>
-
-                <!-- Tabs Navigation -->
-                <div class="admin-tabs" style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid var(--border-color);">
-                    <button class="admin-tab-btn active" data-tab="dashboard" onclick="AdminUI.switchTab('dashboard')">
-                        <i class="fas fa-chart-line"></i> ${t('admin.dashboard')}
-                    </button>
-                    <button class="admin-tab-btn" data-tab="api-keys" onclick="AdminUI.switchTab('api-keys')">
-                        <i class="fas fa-key"></i> ${t('admin.api_keys')}
-                    </button>
-                    <button class="admin-tab-btn" data-tab="users" onclick="AdminUI.switchTab('users')">
-                        <i class="fas fa-users"></i> ${t('admin.users')}
-                    </button>
-                    <button class="admin-tab-btn" data-tab="settings" onclick="AdminUI.switchTab('settings')">
-                        <i class="fas fa-cog"></i> ${t('admin.settings')}
-                    </button>
-                </div>
-
-                <!-- Dashboard Tab -->
-                <div id="dashboard-tab" class="admin-tab-content" style="display: block;">
-                    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 32px;">
-                        <div class="card" style="padding: 24px; border-left: 4px solid var(--primary-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.total_users')}</p>
-                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-500);" id="totalUsers">--</div>
-                            <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-arrow-up" style="color: #10b981;"></i> +12% this month</p>
-                        </div>
-                        <div class="card" style="padding: 24px; border-left: 4px solid var(--info-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.api_calls')}</p>
-                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--info-500);" id="totalApiCalls">--</div>
-                            <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-arrow-up" style="color: #10b981;"></i> +24% this month</p>
-                        </div>
-                        <div class="card" style="padding: 24px; border-left: 4px solid var(--success-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.system_uptime')}</p>
-                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--success-500);" id="systemUptime">--</div>
-                            <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;">Last 30 days</p>
-                        </div>
-                        <div class="card" style="padding: 24px; border-left: 4px solid var(--warning-500);">
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 8px;">${t('admin.active_keys')}</p>
-                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--warning-500);" id="activeKeys">--</div>
-                            <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 8px;"><i class="fas fa-circle" style="color: #10b981;"></i> All healthy</p>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activity -->
-                    <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">${t('admin.recent_activity')}</h3>
-                        <div id="recentActivity" style="space-y: 12px;">
-                            <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
-                                <p>${t('admin.loading')}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- API Keys Tab -->
-                <div id="api-keys-tab" class="admin-tab-content" style="display: none;">
-                    <div style="margin-bottom: 24px;">
-                        <button class="btn btn-primary" onclick="AdminUI.showCreateKeyModal()" style="display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-plus"></i> ${t('admin.create_key')}
-                        </button>
-                    </div>
-
-                    <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">${t('admin.key_management')}</h3>
-                        <div id="apiKeysTable" style="overflow-x: auto;">
-                            <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
-                                <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
-                                <p>${t('admin.loading')}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Users Tab -->
-                <div id="users-tab" class="admin-tab-content" style="display: none;">
-                    <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">${t('admin.user_management')}</h3>
-                        <div id="usersTable" style="overflow-x: auto;">
-                            <div style="text-align: center; padding: 20px; color: var(--text-tertiary);">
-                                <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
-                                <p>${t('admin.loading')}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Settings Tab -->
-                <div id="settings-tab" class="admin-tab-content" style="display: none;">
-                    <div class="card" style="padding: 24px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 24px;">${t('admin.system_settings')}</h3>
-
-                        <div style="margin-bottom: 24px;">
-                            <label style="display: block; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">${t('admin.rotation_policy')}</label>
-                            <div style="background: var(--bg-secondary); padding: 12px; border-radius: var(--radius-md); margin-bottom: 12px; color: var(--text-secondary);">
-                                <select id="rotationPolicy" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                                    <option value="30">Rotate every 30 days</option>
-                                    <option value="60">Rotate every 60 days</option>
-                                    <option value="90">Rotate every 90 days</option>
-                                    <option value="manual">Manual only</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-primary" onclick="AdminUI.saveSettings()" style="display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-save"></i> ${t('admin.save_settings')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    },
-
-    /**
      * Questionnaire View
      */
     questionnaire() {
@@ -1785,6 +1690,391 @@ const Views = {
 
                 </div>
             </div>
+        `;
+    },
+
+    /**
+     * Admin Dashboard View - Embedded in SPA
+     */
+    admin() {
+        const user = auth.currentUser;
+        const userEmail = user ? user.email : 'Admin';
+
+        return `
+            <!-- Admin CSS -->
+            <link rel="stylesheet" href="css/admin.css">
+            <link rel="stylesheet" href="css/admin-layout.css">
+
+            <style>
+                /* FORCE HIDE USER UI */
+                .bottom-nav {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                }
+
+                .app-header {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                    pointer-events: none !important;
+                }
+
+                .app-container {
+                    padding-top: 0 !important;
+                    padding-bottom: 0 !important;
+                }
+
+                /* Reset admin page styling */
+                .view-container {
+                    padding: 0 !important;
+                    max-width: 100% !important;
+                    margin: 0 !important;
+                }
+
+                /* Admin Navbar */
+                .admin-navbar {
+                    position: sticky;
+                    top: 0;
+                    z-index: 1000;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .admin-navbar-container {
+                    max-width: 100%;
+                    padding: 12px 32px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 24px;
+                    flex-wrap: wrap;
+                }
+
+                .admin-brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    color: white;
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                }
+
+                .admin-brand:hover {
+                    transform: scale(1.02);
+                }
+
+                .admin-brand-icon {
+                    width: 44px;
+                    height: 44px;
+                    background: rgba(255, 255, 255, 0.25);
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.4rem;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                }
+
+                .admin-brand-text h1 {
+                    font-size: 1.35rem;
+                    font-weight: 800;
+                    margin: 0;
+                    color: white;
+                    letter-spacing: -0.5px;
+                }
+
+                .admin-brand-text p {
+                    font-size: 0.75rem;
+                    margin: 2px 0 0;
+                    opacity: 0.85;
+                    color: rgba(255, 255, 255, 0.9);
+                }
+
+                .admin-nav-links {
+                    display: flex;
+                    gap: 6px;
+                    flex: 1;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+
+                .admin-nav-link {
+                    padding: 10px 18px;
+                    background: rgba(255, 255, 255, 0.12);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    text-decoration: none;
+                    white-space: nowrap;
+                }
+
+                .admin-nav-link:hover {
+                    background: rgba(255, 255, 255, 0.22);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+                }
+
+                .admin-nav-link.active {
+                    background: rgba(255, 255, 255, 0.3);
+                    border-color: rgba(255, 255, 255, 0.4);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                }
+
+                .admin-nav-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .admin-user-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 8px 14px;
+                    background: rgba(255, 255, 255, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 10px;
+                    color: white;
+                }
+
+                .admin-user-avatar {
+                    width: 34px;
+                    height: 34px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 0.95rem;
+                }
+
+                .admin-user-details {
+                    display: flex;
+                    flex-direction: column;
+                    line-height: 1.3;
+                }
+
+                .admin-user-name {
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                }
+
+                .admin-user-role {
+                    font-size: 0.7rem;
+                    opacity: 0.85;
+                }
+
+                .admin-btn {
+                    padding: 10px 16px;
+                    background: rgba(255, 255, 255, 0.18);
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 0.9rem;
+                }
+
+                .admin-btn:hover {
+                    background: rgba(255, 255, 255, 0.28);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+                }
+
+                .admin-btn.logout {
+                    background: rgba(239, 68, 68, 0.25);
+                    border-color: rgba(239, 68, 68, 0.4);
+                }
+
+                .admin-btn.logout:hover {
+                    background: rgba(239, 68, 68, 0.35);
+                }
+
+                /* Admin Content Area */
+                #adminDashboardContent {
+                    min-height: calc(100vh - 80px);
+                    padding: 32px;
+                    background: #f8fafc;
+                    max-width: 1400px;
+                    margin: 0 auto;
+                }
+
+                /* Mobile Responsive */
+                @media (max-width: 968px) {
+                    .admin-navbar-container {
+                        padding: 12px 16px;
+                    }
+
+                    .admin-nav-links {
+                        order: 3;
+                        width: 100%;
+                        justify-content: flex-start;
+                        gap: 6px;
+                    }
+
+                    .admin-user-details {
+                        display: none;
+                    }
+
+                    .admin-brand-text p {
+                        display: none;
+                    }
+
+                    .admin-btn span {
+                        display: none;
+                    }
+
+                    #adminDashboardContent {
+                        padding: 20px 16px;
+                    }
+                }
+
+                @media (max-width: 640px) {
+                    .admin-user-info {
+                        padding: 8px;
+                    }
+
+                    .admin-nav-link span {
+                        display: none;
+                    }
+
+                    .admin-nav-link {
+                        padding: 10px 12px;
+                    }
+                }
+            </style>
+
+            <!-- Modern Sidebar Layout -->
+            <div class="admin-layout">
+                <!-- Sidebar -->
+                <aside class="admin-sidebar">
+                    <!-- Header -->
+                    <div class="admin-sidebar-header">
+                        <div class="admin-logo" onclick="AdminUI.switchTab('dashboard')">
+                            <div class="admin-logo-icon">
+                                <i class="fas fa-shield-halved"></i>
+                            </div>
+                            <div class="admin-logo-text">
+                                <h1>SYNAWATCH</h1>
+                                <p>Admin Dashboard</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav class="admin-sidebar-nav">
+                        <div class="admin-nav-section">
+                            <span class="admin-nav-label">Main Menu</span>
+                            <div class="admin-nav-item active" data-tab="dashboard" onclick="AdminUI.switchTab('dashboard')">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Dashboard</span>
+                            </div>
+                            <div class="admin-nav-item" data-tab="users" onclick="AdminUI.switchTab('users')">
+                                <i class="fas fa-users"></i>
+                                <span>Users</span>
+                            </div>
+                            <div class="admin-nav-item" data-tab="patients" onclick="AdminUI.switchTab('patients')">
+                                <i class="fas fa-user-injured"></i>
+                                <span>Patients</span>
+                            </div>
+                            <div class="admin-nav-item" data-tab="questionnaires" onclick="AdminUI.switchTab('questionnaires')">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>Questionnaires</span>
+                            </div>
+                        </div>
+
+                        <div class="admin-nav-section">
+                            <span class="admin-nav-label">System</span>
+                            <div class="admin-nav-item" onclick="Router.navigate('dashboard')">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Back to App</span>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <!-- Footer -->
+                    <div class="admin-sidebar-footer">
+                        <div class="admin-user-card">
+                            <div class="admin-user-avatar">
+                                ${userEmail.split('@')[0].charAt(0).toUpperCase()}
+                            </div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name">${userEmail.split('@')[0]}</div>
+                                <div class="admin-user-role">Administrator</div>
+                            </div>
+                            <button class="admin-logout-btn" onclick="AdminUI.logout()" title="Logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <main class="admin-main">
+                    <!-- Header -->
+                    <header class="admin-header">
+                        <div class="admin-header-left">
+                            <h2>Dashboard</h2>
+                            <div class="admin-breadcrumb">
+                                <span><i class="fas fa-home"></i> Admin</span>
+                                <i class="fas fa-chevron-right"></i>
+                                <span id="currentPageName">Dashboard</span>
+                            </div>
+                        </div>
+                        <div class="admin-header-right">
+                            <div class="admin-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search anything...">
+                            </div>
+                            <button class="admin-header-btn" onclick="location.reload()">
+                                <i class="fas fa-sync-alt"></i>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- Content -->
+                    <div id="adminDashboardContent">
+                        <div style="text-align: center; padding: 100px 20px;">
+                            <div class="loading-spinner" style="margin: 0 auto 24px; width: 50px; height: 50px;"></div>
+                            <p style="color: #64748b; font-size: 1.1rem; font-weight: 500;">Loading Dashboard...</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            <script>
+                // Logout function
+                window.AdminUI = window.AdminUI || {};
+
+                AdminUI.logout = async function() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        try {
+                            await auth.signOut();
+                            window.location.href = 'auth.html';
+                        } catch (error) {
+                            console.error('Logout error:', error);
+                            alert('Failed to logout: ' + error.message);
+                        }
+                    }
+                };
+            </script>
         `;
     }
 };

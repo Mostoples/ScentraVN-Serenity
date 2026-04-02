@@ -233,7 +233,13 @@ const HeroicXAI = {
 
         this.lastUpdated = Date.now();
         this._saveToStorage();
-        this._logToFirestore('activity', { dimension: dim, activityName, durationMin, gain: totalGain, sensorPre, sensorPost });
+
+        // Save to Firestore via HeroicFirestore service
+        if (typeof HeroicFirestore !== 'undefined') {
+            setTimeout(() => HeroicFirestore.saveCurrentScores(auth?.currentUser?.uid), 500);
+        } else {
+            this._logToFirestore('activity', { dimension: dim, activityName, durationMin, gain: totalGain, sensorPre, sensorPost });
+        }
 
         // Build XAI explanation
         const explanation = this.XAI_EXPLANATIONS.activityCompleted(dim, activityName);

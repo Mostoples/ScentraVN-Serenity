@@ -100,8 +100,33 @@ const App = {
         });
 
         Router.register('dashboard', () => {
+            // Restore bottom navigation
             const nav = document.querySelector('.bottom-nav');
-            if (nav) nav.style.display = 'flex';
+            if (nav) {
+                nav.style.display = 'flex';
+                nav.style.visibility = 'visible';
+            }
+
+            // Restore app header
+            const header = document.querySelector('.app-header');
+            if (header) {
+                header.style.display = 'flex';
+                header.style.visibility = 'visible';
+            }
+
+            // Restore app container padding
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                appContainer.style.paddingTop = '';
+                appContainer.style.paddingBottom = '';
+            }
+
+            // Restore view container padding
+            const viewContainer = document.getElementById('view-container');
+            if (viewContainer) {
+                viewContainer.style.padding = '';
+            }
+
             Router.render(Views.dashboard());
             this.initDashboardView();
         });
@@ -184,8 +209,33 @@ const App = {
         });
 
         Router.register('admin', () => {
+            // Hide bottom navigation for admin
             const nav = document.querySelector('.bottom-nav');
-            if (nav) nav.style.display = 'none'; // Hide nav for admin
+            if (nav) {
+                nav.style.display = 'none';
+                nav.style.visibility = 'hidden';
+            }
+
+            // Hide app header for admin
+            const header = document.querySelector('.app-header');
+            if (header) {
+                header.style.display = 'none';
+                header.style.visibility = 'hidden';
+            }
+
+            // Remove padding from app container for full-screen admin
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                appContainer.style.paddingTop = '0';
+                appContainer.style.paddingBottom = '0';
+            }
+
+            // Remove padding from view container
+            const viewContainer = document.getElementById('view-container');
+            if (viewContainer) {
+                viewContainer.style.padding = '0';
+            }
+
             Router.render(Views.admin());
             if (typeof AdminUI !== 'undefined') AdminUI.init();
         });

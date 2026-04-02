@@ -27,6 +27,11 @@ start "" cmd /c "timeout /t 2 >nul && start http://localhost:8000/auth.html"
 
 echo  Server berjalan di: http://localhost:8000
 echo.
+echo  URLs:
+echo  - App        : http://localhost:8000/app.html
+echo  - Admin      : http://localhost:8000/app.html#admin
+echo  - Setup Admin: http://localhost:8000/setup-admin-user.html
+echo.
 echo  Tekan Ctrl+C untuk menghentikan server
 echo.
 echo  ====================================

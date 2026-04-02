@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Admin Role - SYNAWATCH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-weight: 600;
+        }
+
+        .status.loading {
+            background: #eff6ff;
+            color: #1e40af;
+            text-align: center;
+        }
+
+        .status.success {
+            background: #dcfce7;
+            color: #15803d;
+            border: 2px solid #22c55e;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        .status.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .steps {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .steps h3 {
+            color: #1e40af;
+            margin-bottom: 12px;
+        }
+
+        .steps ol {
+            margin-left: 20px;
+        }
+
+        .steps li {
+            margin: 8px 0;
+            color: #334155;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Admin Role</h1>
+        <p class="subtitle">Memperbaiki role admin untuk admin@synawatch.com</p>
+
+        <div id="status" class="status loading">
+            ⏳ Menginisialisasi Firebase...
+        </div>
+
+        <div id="result"></div>
+
+        <button id="fixBtn" class="btn" onclick="fixAdminRole()" style="display: none;">
+            🔧 Fix Admin Role Sekarang
+        </button>
+
+        <div class="steps" style="display: none;" id="nextSteps">
+            <h3>✅ Langkah Selanjutnya:</h3>
+            <ol>
+                <li><strong>Logout</strong> dari akun admin yang sedang login</li>
+                <li><strong>Clear browser cache:</strong> Tekan <code>Ctrl + Shift + Delete</code></li>
+                <li><strong>Hard reload:</strong> Tekan <code>Ctrl + F5</code></li>
+                <li><strong>Login lagi</strong> dengan admin@synawatch.com</li>
+                <li>Sekarang seharusnya otomatis redirect ke <strong>/admin</strong></li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFuHo6oQp1h_VTkPfUOJC6Y_2kAfVBNI8",
+            authDomain: "synawacth-id.firebaseapp.com",
+            projectId: "synawacth-id",
+            storageBucket: "synawacth-id.firebasestorage.app",
+            messagingSenderId: "454326963433",
+            appId: "1:454326963433:web:3f7f32e820fe11bd2ee9b7",
+            measurementId: "G-DHPB8VFQY0"
+        };
+
+        // Initialize Firebase
+        let db, auth;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            console.log('✅ Firebase initialized');
+
+            // Wait for auth state
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    console.log('✅ User logged in:', user.email);
+                    checkAdminUser(user);
+                } else {
+                    console.log('❌ User not logged in');
+                    document.getElementById('status').innerHTML = `
+                        <div class="status warning">
+                            ⚠️ Anda belum login!
+                        </div>
+                    `;
+                    document.getElementById('result').innerHTML = `
+                        <div class="steps">
+                            <h3>🔑 Login Required</h3>
+                            <p>Untuk melihat dan mengubah role, Anda harus login terlebih dahulu.</p>
+                            <ol>
+                                <li>Buka <a href="auth.html" target="_blank">auth.html</a></li>
+                                <li>Login dengan <strong>admin@synawatch.com</strong></li>
+                                <li>Setelah login, kembali ke halaman ini</li>
+                            </ol>
+                        </div>
+                    `;
+                }
+            });
+        } catch (error) {
+            console.error('❌ Firebase init error:', error);
+            document.getElementById('status').innerHTML = `
+                <div class="status error">
+                    ❌ Error inisialisasi Firebase: ${error.message}
+                </div>
+            `;
+        }
+
+        async function checkAdminUser(user) {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            const fixBtn = document.getElementById('fixBtn');
+
+            statusDiv.className = 'status loading';
+            statusDiv.innerHTML = `🔍 Mengecek role untuk ${user.email}...`;
+
+            try {
+                // Ambil data user dari Firestore menggunakan UID
+                const userDoc = await db.collection('users').doc(user.uid).get();
+
+                if (!userDoc.exists) {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `
+                        ❌ Data user tidak ditemukan di Firestore!
+                    `;
+                    resultDiv.innerHTML = `
+                        <div class="steps">
+                            <h3>⚠️ User belum terdaftar di database!</h3>
+                            <p>Kemungkinan penyebab:</p>
+                            <ol>
+                                <li>User baru dibuat di Firebase Auth tapi belum ada di Firestore</li>
+                                <li>Coba logout dan register ulang</li>
+                                <li>Atau tambahkan data user secara manual di Firebase Console</li>
+                            </ol>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const userData = userDoc.data();
+                const userId = userDoc.id;
+
+                // Tampilkan data user
+                resultDiv.innerHTML = `
+                    <div class="info-box">
+                        <strong>📋 User Data:</strong><br>
+                        User ID: ${userId}<br>
+                        Email: ${userData.email || '-'}<br>
+                        Name: ${userData.name || '-'}<br>
+                        Role: <strong>${userData.role || 'tidak ada'}</strong><br>
+                        Created: ${userData.createdAt ? new Date(userData.createdAt.toDate()).toLocaleString('id-ID') : '-'}
+                    </div>
+                `;
+
+                // Cek role
+                if (userData.role === 'admin') {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `
+                        ✅ Role sudah benar: <strong>admin</strong>
+                    `;
+                    document.getElementById('nextSteps').style.display = 'block';
+                } else {
+                    statusDiv.className = 'status warning';
+                    statusDiv.innerHTML = `
+                        ⚠️ Role SALAH: <strong>${userData.role || 'tidak ada'}</strong><br>
+                        Harus diubah menjadi: <strong>admin</strong>
+                    `;
+                    fixBtn.style.display = 'block';
+                    fixBtn.setAttribute('data-user-id', userId);
+                }
+
+            } catch (error) {
+                console.error('Error checking user:', error);
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+                resultDiv.innerHTML = `<pre>${error.stack}</pre>`;
+            }
+        }
+
+        async function fixAdminRole() {
+            const statusDiv = document.getElementById('status');
+            const fixBtn = document.getElementById('fixBtn');
+            const userId = fixBtn.getAttribute('data-user-id');
+
+            fixBtn.disabled = true;
+            statusDiv.className = 'status loading';
+            statusDiv.innerHTML = '⏳ Mengupdate role ke admin...';
+
+            try {
+                // Update role
+                await db.collection('users').doc(userId).update({
+                    role: 'admin',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = '✅ Role berhasil diupdate menjadi <strong>admin</strong>!';
+                fixBtn.style.display = 'none';
+                document.getElementById('nextSteps').style.display = 'block';
+
+                // Refresh data
+                setTimeout(() => {
+                    const currentUser = auth.currentUser;
+                    if (currentUser) {
+                        checkAdminUser(currentUser);
+                    }
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error updating role:', error);
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ Gagal update role: ${error.message}`;
+                fixBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

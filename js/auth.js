@@ -334,6 +334,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await Auth.login(email, password, rememberMe);
 
             if (result.success) {
+                // Check if user is admin
+                try {
+                    const user = result.user; // Use user from login result
+                    if (user) {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        const userData = userDoc.data();
+
+                        console.log('User data after login:', userData); // Debug log
+
+                        if (userData && userData.role === 'admin') {
+                            showAlert('👑 Welcome Admin! Mengalihkan ke Admin Dashboard...', 'success');
+                            setTimeout(() => {
+                                window.location.href = 'app.html#admin';
+                            }, 1000);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error checking admin role:', e);
+                }
+
+                // Normal user redirect
                 showAlert('Login berhasil! Mengalihkan...', 'success');
                 setTimeout(() => {
                     window.location.href = 'app.html';
@@ -385,6 +407,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await Auth.register(email, password, name);
 
             if (result.success) {
+                // Check if user is admin
+                try {
+                    const user = result.user; // Use user from register result
+                    if (user) {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        const userData = userDoc.data();
+
+                        console.log('User data after registration:', userData); // Debug log
+
+                        if (userData && userData.role === 'admin') {
+                            showAlert('👑 Welcome Admin! Mengalihkan ke Admin Dashboard...', 'success');
+                            setTimeout(() => {
+                                window.location.href = 'app.html#admin';
+                            }, 1000);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error checking admin role:', e);
+                }
+
+                // Normal user redirect
                 showAlert('Registrasi berhasil! Mengalihkan...', 'success');
                 setTimeout(() => {
                     window.location.href = 'app.html';
@@ -418,6 +462,28 @@ document.addEventListener('DOMContentLoaded', () => {
             googleBtn.innerHTML = `<i class="fab fa-google"></i> ${typeof t !== 'undefined' ? t('auth.login_google') : 'Masuk dengan Google'}`;
 
             if (result.success) {
+                // Check if user is admin
+                try {
+                    const user = result.user; // Use user from Google login result
+                    if (user) {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        const userData = userDoc.data();
+
+                        console.log('User data after Google login:', userData); // Debug log
+
+                        if (userData && userData.role === 'admin') {
+                            showAlert('👑 Welcome Admin! Mengalihkan ke Admin Dashboard...', 'success');
+                            setTimeout(() => {
+                                window.location.href = 'app.html#admin';
+                            }, 1000);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error checking admin role:', e);
+                }
+
+                // Normal user redirect
                 showAlert('Login berhasil! Mengalihkan...', 'success');
                 setTimeout(() => {
                     window.location.href = 'app.html';

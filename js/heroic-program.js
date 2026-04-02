@@ -778,7 +778,12 @@ const HeroicProgram = {
     async init() {
         console.log('[HeroicProgram] Initializing...');
 
-        // Load today's completions
+        // Initialize Firestore and load data
+        if (typeof HeroicFirestore !== 'undefined') {
+            await HeroicFirestore.init();
+        }
+
+        // Load today's completions (from Firestore or localStorage)
         await this._loadCompletions();
 
         // Init radar chart
@@ -1166,6 +1171,9 @@ const HeroicProgram = {
         const sensorPre  = modal ? modal._sensorPre : null;
         const sensorPost = this._getSensorSnapshot();
 
+        // Capture scores before activity
+        const scoresBefore = typeof HeroicXAI !== 'undefined' ? { ...HeroicXAI.scores } : {};
+
         // Mark as completed
         this.completedToday.add(actId);
         this._saveCompletions();
@@ -1176,8 +1184,28 @@ const HeroicProgram = {
             gainReport = HeroicXAI.applyActivityGain(act.dim, act.title, act.duration, sensorPre, sensorPost);
         }
 
-        // Save to Firestore
-        await this._logActivityToFirestore(act, reflectionText, gainReport, sensorPre, sensorPost);
+        // Capture scores after activity
+        const scoresAfter = typeof HeroicXAI !== 'undefined' ? { ...HeroicXAI.scores } : {};
+
+        // Save to Firestore using new service
+        if (typeof HeroicFirestore !== 'undefined') {
+            await HeroicFirestore.saveActivityCompletion({
+                activityId: act.id,
+                activityTitle: act.title,
+                dimension: act.dim,
+                durationMin: act.duration,
+                reflection: reflectionText,
+                scoresBefore: scoresBefore,
+                scoresAfter: scoresAfter,
+                scoreGain: gainReport?.gain || 0,
+                sensorPre: sensorPre,
+                sensorPost: sensorPost,
+                xaiExplanation: gainReport?.xaiExplanation || ''
+            });
+        } else {
+            // Fallback to old method
+            await this._logActivityToFirestore(act, reflectionText, gainReport, sensorPre, sensorPost);
+        }
 
         // Analyze text with Gemini if present
         if (reflectionText && typeof HeroicXAI !== 'undefined') {
