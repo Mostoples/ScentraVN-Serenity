@@ -181,25 +181,48 @@ function handleDataNotification(event) {
         );
 
         // ============================================
-        // ANALISIS STRES
-        // Panggil fungsi analyzeStress setiap data baru masuk
+        // STRESS CALCULATION (NEW)
+        // Using new stress calculator with exponential smoothing
+        // ============================================
+        const stressResult = StressStore.getStress({
+            hr: data.hr || 0,
+            spo2: data.spo2 || 0,
+            bt: data.bt || 0,
+            at: data.at || 0,
+            ax: data.ax || 0,
+            ay: data.ay || 0,
+            az: data.az || 0,
+            act: data.act || 'DIAM',
+            finger: data.finger || false,
+            gsrRaw: data.gsrRaw || 0,
+            gsrBase: data.gsrBase || 0,
+            gsrCal: data.gsrCal || false
+        });
+
+        // ============================================
+        // LEGACY STRESS ANALYSIS (KEEP FOR COMPATIBILITY)
+        // Keep the old analyzeStress for backward compatibility
         // ============================================
         const stressAnalysis = Utils.analyzeStress({
             hr: data.hr || 0,
-            gsr: data.gsrRaw || data.gsr || 0,  // Gunakan raw GSR jika ada
-            suhu: data.bt || 0,                  // Body temperature
+            gsr: data.gsrRaw || data.gsr || 0,
+            suhu: data.bt || 0,
             spo2: data.spo2 || 0,
             imu: imuMagnitude
         });
 
-        // Update sensor data dengan hasil analisis stres
+        // Update sensor data with new stress calculation
         sensorData = {
             ...sensorData,
             ...data,
             imuMagnitude: imuMagnitude,
-            // Override stress dengan hasil kalkulasi baru
-            stress: stressAnalysis.valid ? stressAnalysis.score : sensorData.stress,
-            stressAnalysis: stressAnalysis,  // Simpan detail analisis
+            // Use NEW stress calculation
+            stress: stressResult.stressScore,
+            stressScore: stressResult.stressScore,
+            stressLevel: stressResult.stressLevel,
+            stressComponents: stressResult.stressComponents,
+            // Keep legacy for backward compatibility
+            stressAnalysis: stressAnalysis,
             lastUpdate: Date.now()
         };
 
@@ -409,6 +432,11 @@ async function disconnectBLE() {
         // Stop auto-saving health data
         if (typeof Analytics !== 'undefined') {
             Analytics.stopAutoSave();
+        }
+
+        // Reset stress calculation history
+        if (typeof StressStore !== 'undefined') {
+            StressStore.resetStressHistory();
         }
 
         resetConnectionState();

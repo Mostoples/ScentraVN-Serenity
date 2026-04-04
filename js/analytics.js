@@ -124,15 +124,27 @@ const Analytics = {
             }
 
             const stressAnalysis = sensorData.stressAnalysis || {};
+            const stressComponents = sensorData.stressComponents || {};
 
             const healthData = {
                 hr: sensorData.hr || 0,
                 spo2: sensorData.spo2 || 0,
                 bodyTemp: sensorData.bt || 0,
                 ambientTemp: sensorData.at || 0,
-                stress: sensorData.stress || 0,
-                stressLevel: stressAnalysis.level ?? -1,
-                stressLabel: stressAnalysis.label || 'Unknown',
+                // New stress calculation fields
+                stress: sensorData.stressScore || sensorData.stress || 0,
+                stressScore: sensorData.stressScore || 0,
+                stressLevel: sensorData.stressLevel || 'UNKNOWN',
+                stressComponents: {
+                    hrScore: stressComponents.hrScore || 0,
+                    spo2Score: stressComponents.spo2Score || 0,
+                    gsrScore: stressComponents.gsrScore || 0,
+                    tempScore: stressComponents.tempScore || 0
+                },
+                calculatedAt: new Date().toISOString(),
+                // Legacy stress fields (keep for backward compatibility)
+                stressLegacyLevel: stressAnalysis.level ?? -1,
+                stressLegacyLabel: stressAnalysis.label || 'Unknown',
                 stressValid: stressAnalysis.valid !== false,
                 gsr: sensorData.gsr || 0,
                 gsrRaw: sensorData.gsrRaw || 0,
