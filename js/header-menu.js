@@ -149,6 +149,8 @@ const HeaderMenu = {
 
     /**
      * Clone header items to dropdown
+     * BLE button stays in header (always visible on mobile)
+     * PWA install button moves into dropdown
      */
     cloneHeaderItems(container) {
         if (!container) return;
@@ -156,12 +158,14 @@ const HeaderMenu = {
         // Clear existing items
         container.innerHTML = '';
 
-        // Get all header-right children except hamburger
+        // Get all header-right children except hamburger, BLE button, and BLE indicator
+        // BLE stays visible in the header on mobile
         const headerRight = document.querySelector('.header-right');
         if (!headerRight) return;
 
+        const skipIds = ['hamburgerBtn', 'headerDropdown', 'bleConnectBtn', 'bleIndicator'];
         const items = Array.from(headerRight.children).filter(
-            child => child.id !== 'hamburgerBtn' && child.id !== 'headerDropdown'
+            child => !skipIds.includes(child.id)
         );
 
         items.forEach(item => {
@@ -176,10 +180,10 @@ const HeaderMenu = {
                 clonedItem.className = 'dropdown-music-btn';
             } else if (clonedItem.id === 'langToggleBtn') {
                 clonedItem.className = 'dropdown-lang-btn';
-            } else if (clonedItem.id === 'bleConnectBtn') {
-                clonedItem.className = 'dropdown-ble-btn';
-            } else if (clonedItem.id === 'bleIndicator') {
-                clonedItem.className = 'dropdown-ble-indicator';
+            } else if (clonedItem.id === 'pwa-mini-install') {
+                // PWA install button — restyle for dropdown
+                clonedItem.className = 'dropdown-pwa-btn';
+                clonedItem.innerHTML = '<i class="fas fa-download" aria-hidden="true"></i><span class="pwa-install-label">Install App</span>';
             }
 
             // Re-attach event listeners
@@ -210,10 +214,10 @@ const HeaderMenu = {
             };
         }
 
-        // BLE connect
-        if (clonedItem.id === 'bleConnectBtn' && typeof BLE !== 'undefined') {
+        // PWA install
+        if (clonedItem.id === 'pwa-mini-install' && typeof PWAManager !== 'undefined') {
             clonedItem.onclick = () => {
-                BLE.connect();
+                PWAManager.showInstallPrompt();
                 this.close();
             };
         }

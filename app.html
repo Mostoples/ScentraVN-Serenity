@@ -40,16 +40,91 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Critical: Loading Screen CSS (must be in head to prevent FOUC) -->
+    <style>
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #F0F4F7 0%, #F5F3FF 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        .loading-content {
+            text-align: center;
+            padding: 20px;
+        }
+        .loading-logo {
+            width: 130px;
+            height: 130px;
+            background: transparent;
+            border: none;
+            outline: none;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: loadingPulse 2s ease-in-out infinite;
+        }
+        .loading-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: none;
+            outline: none;
+            box-shadow: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .loading-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(139, 92, 246, 0.15);
+            border-top-color: #8B5CF6;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            animation: loadingSpin 1s linear infinite;
+        }
+        .loading-text {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        @keyframes loadingPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes loadingSpin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header-menu.css">
+    <link rel="stylesheet" href="css/onboarding-tour.css">
 </head>
 <body>
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-content">
             <div class="loading-logo">
-                <img src="images/logo.png" alt="SYNAWATCH" style="width:100%;height:100%;object-fit:contain;">
+                <img src="images/logo.png" alt="SYNAWATCH" style="width:100%;height:100%;object-fit:contain;border:none!important;outline:none!important;box-shadow:none!important;-webkit-appearance:none;filter:none;">
             </div>
             <h1 class="loading-title">SYNAWATCH</h1>
             <div class="loading-spinner"></div>
@@ -158,6 +233,9 @@
     <!-- Header Menu (Mobile Hamburger) -->
     <script src="js/header-menu.js"></script>
 
+    <!-- Onboarding Tour -->
+    <script src="js/onboarding-tour.js"></script>
+
     <script src="js/app.js"></script>
 
     <!-- PWA Support -->
@@ -244,73 +322,6 @@
     </script>
 
     <style>
-        /* Loading Screen - Light Theme */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, #F0F4F7 0%, #F5F3FF 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.3s ease;
-        }
-
-        .loading-content {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading-logo {
-            width: 130px;
-            height: 130px;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .loading-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 24px;
-            letter-spacing: -0.02em;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(139, 92, 246, 0.15);
-            border-top-color: #8B5CF6;
-            border-radius: 50%;
-            margin: 0 auto 12px;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-text {
-            color: #64748b;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }

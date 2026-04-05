@@ -100,6 +100,7 @@
 }
 
 /* ===== Dropdown Buttons ===== */
+.dropdown-pwa-btn,
 .dropdown-music-btn,
 .dropdown-lang-btn,
 .dropdown-ble-btn {
@@ -118,16 +119,32 @@
     color: var(--text-primary);
 }
 
+.dropdown-pwa-btn:hover,
 .dropdown-music-btn:hover,
 .dropdown-lang-btn:hover,
 .dropdown-ble-btn:hover {
     background: rgba(139, 92, 246, 0.05);
 }
 
+.dropdown-pwa-btn:active,
 .dropdown-music-btn:active,
 .dropdown-lang-btn:active,
 .dropdown-ble-btn:active {
     background: rgba(139, 92, 246, 0.1);
+}
+
+/* PWA Install Button in Dropdown */
+.dropdown-pwa-btn {
+    justify-content: flex-start;
+}
+
+.dropdown-pwa-btn i {
+    font-size: 1.2rem;
+    color: var(--primary-600);
+}
+
+.dropdown-pwa-btn .pwa-install-label {
+    font-weight: 500;
 }
 
 /* Music Button in Dropdown */
@@ -237,12 +254,46 @@
         justify-content: center;
     }
 
-    /* Hide original header buttons on mobile */
+    /* Hide these header buttons on mobile — they move into hamburger dropdown */
     .header-right > #headerMusicBtn,
     .header-right > #langToggleBtn,
-    .header-right > #bleConnectBtn,
-    .header-right > #bleIndicator {
+    .header-right > .pwa-mini-install {
         display: none !important;
+    }
+
+    /* BLE button stays visible in header on mobile — compact icon-only style */
+    .header-right > #bleConnectBtn {
+        padding: 7px 10px;
+        font-size: 0.75rem;
+        gap: 5px;
+        border-radius: 10px;
+        order: 1;
+    }
+
+    .header-right > #bleConnectBtn .ble-status {
+        display: none;
+    }
+
+    .header-right > #bleConnectBtn i {
+        font-size: 1rem;
+    }
+
+    /* BLE indicator stays visible next to button */
+    .header-right > #bleIndicator {
+        width: 10px;
+        height: 10px;
+        order: 2;
+    }
+
+    /* Hamburger always at far right */
+    .header-right > #hamburgerBtn {
+        order: 3;
+    }
+
+    /* Hidden items get high order so they don't affect layout */
+    .header-right > #langToggleBtn,
+    .header-right > .pwa-mini-install {
+        order: 99;
     }
 
     /* Adjust dropdown for mobile */
@@ -251,6 +302,7 @@
         overflow-y: auto;
     }
 
+    .dropdown-pwa-btn,
     .dropdown-music-btn,
     .dropdown-lang-btn,
     .dropdown-ble-btn {
@@ -279,6 +331,7 @@
         height: 2.5px;
     }
 
+    .dropdown-pwa-btn,
     .dropdown-music-btn,
     .dropdown-lang-btn,
     .dropdown-ble-btn {
