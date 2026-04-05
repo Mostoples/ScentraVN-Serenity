@@ -58,6 +58,11 @@ const AdminUI = {
             }
         });
 
+        // Hide/show static tab divs (admin.html legacy layout)
+        document.querySelectorAll('.admin-content').forEach(el => el.classList.remove('active'));
+        const staticTab = document.getElementById(tabName + '-tab');
+        if (staticTab) staticTab.classList.add('active');
+
         // Update breadcrumb and header title
         const breadcrumbEl = document.getElementById('currentPageName');
         const headerTitleEl = document.querySelector('.admin-header-left h2');
@@ -65,13 +70,14 @@ const AdminUI = {
             'dashboard': 'Dashboard',
             'users': 'Users Management',
             'patients': 'Patient Data',
-            'questionnaires': 'Questionnaires'
+            'questionnaires': 'Questionnaires',
+            'competition': 'Kesiapan Kompetisi'
         };
         const pageName = pageNames[tabName] || tabName;
         if (breadcrumbEl) breadcrumbEl.textContent = pageName;
         if (headerTitleEl) headerTitleEl.textContent = pageName;
 
-        // Load tab content - render directly to adminDashboardContent
+        // Load tab content
         if (tabName === 'dashboard') {
             this.renderDashboard();
         } else if (tabName === 'users') {
@@ -80,6 +86,8 @@ const AdminUI = {
             this.renderPatientsTab();
         } else if (tabName === 'questionnaires') {
             this.renderQuestionnairesTab();
+        } else if (tabName === 'competition') {
+            this.renderCompetitionTab();
         }
     },
 
@@ -2763,6 +2771,553 @@ const AdminUI = {
                 }
             });
         }
+    },
+
+    // =====================================================================
+    // COMPETITION READINESS TAB
+    // Evaluasi kesiapan SynaWatch untuk kompetisi Junior Category
+    // Kriteria: Originality(20), Usefulness(30), Creativity(15),
+    //           Prototype Readiness(15), Presentation(20)
+    // =====================================================================
+
+    renderCompetitionTab() {
+        const content = document.getElementById('competitionTabContent') || document.getElementById('adminDashboardContent');
+        if (!content) return;
+
+        // ── Checklist Data ────────────────────────────────────────────────
+        const criteria = [
+            {
+                id: 'originality',
+                title: 'Originality of Innovation',
+                maxScore: 20,
+                color: '#8b5cf6',
+                icon: 'fa-lightbulb',
+                items: [
+                    { id: 'o1', label: 'Produk unik vs smartwatch komersial (Apple/Fitbit)', done: true,  impact: 'HIGH' },
+                    { id: 'o2', label: 'Algoritma stres multi-sensor (HR+SpO2+GSR+Suhu)', done: true,  impact: 'HIGH' },
+                    { id: 'o3', label: 'Framework HEROIC (psikologi positif lokal)', done: true,  impact: 'HIGH' },
+                    { id: 'o4', label: 'Explainable AI (XAI) pada setiap intervensi', done: true,  impact: 'HIGH' },
+                    { id: 'o5', label: 'Closed-loop JITAI (sensor → intervensi otomatis)', done: true,  impact: 'HIGH' },
+                    { id: 'o6', label: 'Dokumentasi keunikan vs produk sejenis (comparison table)', done: false, impact: 'MEDIUM', action: 'Buat slide/doc perbandingan SynaWatch vs Apple Watch vs Fitbit vs Headspace' },
+                    { id: 'o7', label: 'Inovasi dual-source sleep tracking (watch + phone IMU)', done: true,  impact: 'MEDIUM' },
+                ],
+                estimatedScore: 16
+            },
+            {
+                id: 'market',
+                title: 'Usefulness — Market Potential',
+                maxScore: 15,
+                color: '#10b981',
+                icon: 'fa-chart-pie',
+                items: [
+                    { id: 'm1', label: 'Target user terdefinisi jelas (young professional, mahasiswa, klinisi)', done: true,  impact: 'HIGH' },
+                    { id: 'm2', label: 'Analisis pasar Indonesia (273M penduduk, 15-20M depresif)', done: true,  impact: 'HIGH' },
+                    { id: 'm3', label: 'Manfaat konkret terdokumentasi (musik terapi, yoga, JITAI)', done: true,  impact: 'HIGH' },
+                    { id: 'm4', label: 'Survei calon pengguna (minimal 10 responden)', done: false, impact: 'HIGH',   action: 'Lakukan survei Google Form: masalah kesehatan mental, kebutuhan fitur, willingness to pay' },
+                    { id: 'm5', label: 'Bukti testimonial / feedback awal dari pengguna beta', done: false, impact: 'HIGH',   action: 'Kumpulkan 5-10 testimonial dari teman/keluarga yang mencoba SynaWatch' },
+                    { id: 'm6', label: 'Model bisnis freemium dijelaskan', done: true,  impact: 'MEDIUM' },
+                    { id: 'm7', label: 'Potensi kolaborasi dengan klinik/psikolog disebutkan', done: false, impact: 'MEDIUM', action: 'Tambahkan rencana kemitraan dengan puskesmas / psikolog ke deck presentasi' },
+                ],
+                estimatedScore: 9
+            },
+            {
+                id: 'collab',
+                title: 'Usefulness — Industry Collaboration',
+                maxScore: 15,
+                color: '#3b82f6',
+                icon: 'fa-handshake',
+                items: [
+                    { id: 'c1', label: 'Identifikasi mitra industri potensial', done: false, impact: 'HIGH',   action: 'Hubungi: Halodoc, Alodokter, K24, atau psikolog kampus untuk kolaborasi' },
+                    { id: 'c2', label: 'Surat / bukti komunikasi dengan mitra', done: false, impact: 'HIGH',   action: 'Kirim email resmi ke minimal 1 organisasi. Simpan screenshotnya sebagai bukti.' },
+                    { id: 'c3', label: 'Foto kegiatan kolaborasi (jika ada)', done: false, impact: 'HIGH',   action: 'Wajib untuk "agency collaboration" — foto meeting, diskusi, atau demo ke mitra' },
+                    { id: 'c4', label: 'Input dari diskusi mitra untuk improvement produk', done: false, impact: 'MEDIUM', action: 'Dokumentasikan saran dari mitra dan tunjukkan bagaimana diimplementasikan' },
+                    { id: 'c5', label: 'Konsultasi dengan psikolog / dokter', done: false, impact: 'MEDIUM', action: 'Minta review algoritma stres/intervensi dari profesional kesehatan mental' },
+                ],
+                estimatedScore: 3
+            },
+            {
+                id: 'creativity',
+                title: 'Creativity — Scientific & Technological Principles',
+                maxScore: 15,
+                color: '#f59e0b',
+                icon: 'fa-flask',
+                items: [
+                    { id: 'cr1', label: 'Prinsip ilmiah: RMSSD HRV (Task Force 1996)', done: true,  impact: 'HIGH' },
+                    { id: 'cr2', label: 'Prinsip ilmiah: Weighted stress score (GSR/HR/Temp/SpO2)', done: true,  impact: 'HIGH' },
+                    { id: 'cr3', label: 'Prinsip ilmiah: JITAI (Nahum-Shani 2018)', done: true,  impact: 'HIGH' },
+                    { id: 'cr4', label: 'Prinsip ilmiah: Music therapy BPM (Leubner 2020)', done: true,  impact: 'MEDIUM' },
+                    { id: 'cr5', label: 'Laporan eksperimen ilmiah (scientific experiment report)', done: false, impact: 'HIGH',   action: 'WAJIB untuk math/science: buat dokumen validasi algoritma stres. Tunjukkan grafik akurasi prediksi vs ground truth dari 10-20 session.' },
+                    { id: 'cr6', label: 'Referensi jurnal ilmiah terdaftar di presentasi', done: false, impact: 'MEDIUM', action: 'Cantumkan minimal 5 referensi jurnal di slide presentasi atau poster' },
+                    { id: 'cr7', label: 'Grafik akurasi SynaScore vs user-reported ground truth', done: false, impact: 'HIGH',   action: 'Gunakan data ground-truth.js yang sudah ada → buat visualisasi chart di admin/laporan' },
+                ],
+                estimatedScore: 10
+            },
+            {
+                id: 'prototype',
+                title: 'Prototype Readiness',
+                maxScore: 15,
+                color: '#ef4444',
+                icon: 'fa-microchip',
+                items: [
+                    { id: 'p1', label: 'PWA aplikasi berjalan di browser/mobile', done: true,  impact: 'HIGH' },
+                    { id: 'p2', label: 'Koneksi BLE smartwatch ESP32 berfungsi', done: true,  impact: 'HIGH' },
+                    { id: 'p3', label: 'Sensor HR/SpO2/GSR/IMU terkirim ke app', done: true,  impact: 'HIGH' },
+                    { id: 'p4', label: 'Kalkulasi stres real-time bekerja', done: true,  impact: 'HIGH' },
+                    { id: 'p5', label: 'Intervensi otomatis trigger saat stres tinggi', done: true,  impact: 'HIGH' },
+                    { id: 'p6', label: 'Sleep tracking (dual IMU) berjalan', done: true,  impact: 'MEDIUM' },
+                    { id: 'p7', label: 'Smartwatch fisik tersedia untuk demo', done: false, impact: 'HIGH',   action: 'Pastikan unit ESP32 dirakit, charged, dan bisa di-pair saat demo. Bawa spare unit cadangan.' },
+                    { id: 'p8', label: 'Video demo produk (1-3 menit)', done: false, impact: 'HIGH',   action: 'Rekam video: pakai smartwatch → buka app → lihat data stres → intervensi otomatis → lihat hasil' },
+                    { id: 'p9', label: 'Dapat proceed ke next level (fitur roadmap jelas)', done: false, impact: 'MEDIUM', action: 'Buat roadmap 6-12 bulan: clinical study → HEROIC full → therapist platform → launch' },
+                ],
+                estimatedScore: 11
+            },
+            {
+                id: 'presentation',
+                title: 'Presentation & Demonstration',
+                maxScore: 20,
+                color: '#6366f1',
+                icon: 'fa-presentation-screen',
+                items: [
+                    { id: 'pr1', label: 'Penjelasan produk jelas dan terstruktur', done: false, impact: 'HIGH',   action: 'Buat deck: Problem → Solution → How it Works → Algorithm → Demo → Market → Roadmap' },
+                    { id: 'pr2', label: 'Objek/produk terlihat jelas (poster / prototype fisik)', done: false, impact: 'HIGH',   action: 'Siapkan poster A1 dengan: diagram sistem, screenshot UI, foto hardware, grafik hasil' },
+                    { id: 'pr3', label: 'Presentasi menunjukkan kerja tim', done: false, impact: 'MEDIUM', action: 'Jelaskan siapa yang mengerjakan apa: hardware, software, research, design' },
+                    { id: 'pr4', label: 'Pengetahuan ilmiah ditunjukkan (bisa jawab pertanyaan juri)', done: false, impact: 'HIGH',   action: 'Latih penjelasan: cara kerja algoritma stres, mengapa GSR paling sensitif, referensi jurnal' },
+                    { id: 'pr5', label: 'Demo langsung saat presentasi', done: false, impact: 'HIGH',   action: 'Demo live: kenakan smartwatch, buka app di laptop/HP, tunjukkan data real-time, trigger intervensi' },
+                    { id: 'pr6', label: 'Slide / poster dengan grafik data hasil pengujian', done: false, impact: 'HIGH',   action: 'Tampilkan: chart stres 7 hari, grafik akurasi ground truth, distribusi sleep quality' },
+                ],
+                estimatedScore: 8
+            }
+        ];
+
+        // ── Calculate totals ──────────────────────────────────────────────
+        let totalEstimated = 0;
+        let totalMax = 0;
+        let totalDone = 0;
+        let totalItems = 0;
+        criteria.forEach(c => {
+            totalEstimated += c.estimatedScore;
+            totalMax += c.maxScore;
+            c.items.forEach(i => { totalItems++; if (i.done) totalDone++; });
+        });
+        const overallPct = Math.round((totalEstimated / totalMax) * 100);
+        const checklistPct = Math.round((totalDone / totalItems) * 100);
+
+        // ── Priority Actions (not done, HIGH impact) ──────────────────────
+        const priorityActions = [];
+        criteria.forEach(c => {
+            c.items.filter(i => !i.done && i.impact === 'HIGH').forEach(i => {
+                priorityActions.push({ criterion: c.title, label: i.label, action: i.action, color: c.color, icon: c.icon });
+            });
+        });
+
+        // ── Render ────────────────────────────────────────────────────────
+        content.innerHTML = `
+        <div style="padding:0 0 40px;">
+
+            <!-- Header -->
+            <div style="margin-bottom:24px;">
+                <h2 style="font-size:1.5rem;font-weight:800;color:var(--admin-text-primary);margin-bottom:4px;">
+                    <i class="fas fa-trophy" style="color:#f59e0b;margin-right:8px;"></i>
+                    Kesiapan Kompetisi — Junior Category
+                </h2>
+                <p style="color:var(--admin-text-secondary);font-size:0.88rem;">
+                    Evaluasi berdasarkan 5 kriteria penilaian juri. Selesaikan semua action item untuk memaksimalkan skor.
+                </p>
+            </div>
+
+            <!-- Overall Score Card -->
+            <div class="admin-stat-card" style="margin-bottom:24px;padding:24px;background:linear-gradient(135deg,#1e1b4b,#312e81);color:white;border-radius:16px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+                    <div>
+                        <div style="font-size:0.8rem;opacity:0.8;margin-bottom:4px;font-weight:600;letter-spacing:1px;">ESTIMASI SKOR SAAT INI</div>
+                        <div style="font-size:3rem;font-weight:900;line-height:1;">${totalEstimated}<span style="font-size:1.5rem;opacity:0.7;">/${totalMax}</span></div>
+                        <div style="margin-top:8px;font-size:0.85rem;opacity:0.8;">Selesaikan semua action item untuk mencapai ~85/100</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.8rem;opacity:0.8;margin-bottom:8px;font-weight:600;">CHECKLIST PROGRESS</div>
+                        <div style="font-size:2rem;font-weight:700;">${totalDone}/${totalItems}</div>
+                        <div style="font-size:0.8rem;opacity:0.7;">item selesai (${checklistPct}%)</div>
+                        <div style="margin-top:10px;height:8px;background:rgba(255,255,255,0.2);border-radius:4px;width:160px;">
+                            <div style="height:100%;width:${checklistPct}%;background:#10b981;border-radius:4px;transition:width 0.8s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Score bars per criteria -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:24px;">
+                ${criteria.map(c => {
+                    const pct = Math.round((c.estimatedScore / c.maxScore) * 100);
+                    const donePct = Math.round((c.items.filter(i=>i.done).length / c.items.length) * 100);
+                    return `
+                    <div class="admin-stat-card" style="padding:16px;border-left:3px solid ${c.color};">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                            <i class="fas ${c.icon}" style="color:${c.color};width:16px;"></i>
+                            <span style="font-size:0.82rem;font-weight:700;color:var(--admin-text-primary);">${c.title}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;">
+                            <span style="font-size:1.5rem;font-weight:800;color:${c.color};">${c.estimatedScore}</span>
+                            <span style="font-size:0.75rem;color:var(--admin-text-secondary);">dari ${c.maxScore} (${pct}%)</span>
+                        </div>
+                        <div style="height:6px;background:var(--admin-bg-secondary,#f1f5f9);border-radius:3px;margin-bottom:6px;">
+                            <div style="height:100%;width:${pct}%;background:${c.color};border-radius:3px;"></div>
+                        </div>
+                        <div style="font-size:0.72rem;color:var(--admin-text-secondary);">
+                            ${c.items.filter(i=>i.done).length}/${c.items.length} checklist (${donePct}%)
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <!-- Priority Action Items -->
+            <div style="margin-bottom:24px;">
+                <h3 style="font-size:1rem;font-weight:700;color:var(--admin-text-primary);margin-bottom:12px;">
+                    <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:6px;"></i>
+                    Priority Actions — Dampak Tinggi Belum Dikerjakan (${priorityActions.length} item)
+                </h3>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    ${priorityActions.map((a, idx) => `
+                    <div style="background:var(--admin-bg-card,white);border-radius:12px;padding:14px 16px;border-left:3px solid ${a.color};box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <div style="width:24px;height:24px;background:${a.color}15;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                                <span style="font-size:0.7rem;font-weight:800;color:${a.color};">${idx+1}</span>
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-size:0.72rem;color:${a.color};font-weight:600;margin-bottom:2px;">
+                                    <i class="fas ${a.icon}"></i> ${a.criterion}
+                                </div>
+                                <div style="font-size:0.85rem;font-weight:600;color:var(--admin-text-primary);margin-bottom:4px;">${a.label}</div>
+                                <div style="font-size:0.78rem;color:var(--admin-text-secondary);">${a.action}</div>
+                            </div>
+                            <span style="background:#ef444415;color:#ef4444;padding:2px 8px;border-radius:8px;font-size:0.65rem;font-weight:700;flex-shrink:0;">HIGH</span>
+                        </div>
+                    </div>`).join('')}
+                </div>
+            </div>
+
+            <!-- Detailed Checklist per Criteria -->
+            ${criteria.map(c => `
+            <div style="margin-bottom:20px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                    <h3 style="font-size:0.95rem;font-weight:700;color:var(--admin-text-primary);margin:0;">
+                        <i class="fas ${c.icon}" style="color:${c.color};margin-right:6px;"></i>
+                        ${c.title}
+                    </h3>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:0.75rem;color:var(--admin-text-secondary);">${c.items.filter(i=>i.done).length}/${c.items.length} done</span>
+                        <span style="background:${c.color};color:white;padding:2px 10px;border-radius:10px;font-size:0.75rem;font-weight:700;">${c.estimatedScore}/${c.maxScore}</span>
+                    </div>
+                </div>
+                <div style="background:var(--admin-bg-card,white);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                    ${c.items.map((item, i) => `
+                    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;${i < c.items.length-1 ? 'border-bottom:1px solid var(--admin-border,#e5e7eb);' : ''}">
+                        <div style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+                             background:${item.done ? '#10b981' : 'var(--admin-bg-secondary,#f1f5f9)'};
+                             border:${item.done ? 'none' : '2px dashed var(--admin-border,#d1d5db)'};">
+                            ${item.done ? '<i class="fas fa-check" style="font-size:0.6rem;color:white;"></i>' : ''}
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:0.85rem;font-weight:600;color:${item.done ? 'var(--admin-text-secondary)' : 'var(--admin-text-primary)'};
+                                 text-decoration:${item.done ? 'line-through' : 'none'};margin-bottom:${item.done ? '0' : '3px'};">
+                                ${item.label}
+                            </div>
+                            ${!item.done && item.action ? `<div style="font-size:0.76rem;color:var(--admin-text-secondary);line-height:1.4;">→ ${item.action}</div>` : ''}
+                        </div>
+                        <span style="padding:2px 8px;border-radius:8px;font-size:0.65rem;font-weight:700;flex-shrink:0;
+                             background:${item.impact==='HIGH'?'#ef444415':item.impact==='MEDIUM'?'#f59e0b15':'#6366f115'};
+                             color:${item.impact==='HIGH'?'#ef4444':item.impact==='MEDIUM'?'#f59e0b':'#6366f1'};">
+                            ${item.impact}
+                        </span>
+                    </div>`).join('')}
+                </div>
+            </div>`).join('')}
+
+            <!-- Scientific Experiment Report Section -->
+            <div style="margin-bottom:20px;" id="sciExpReportSection">
+                <h3 style="font-size:0.95rem;font-weight:700;color:var(--admin-text-primary);margin-bottom:10px;">
+                    <i class="fas fa-flask" style="color:#f59e0b;margin-right:6px;"></i>
+                    Scientific Experiment Report — Validasi Akurasi Algoritma
+                    <span style="background:#ef444415;color:#ef4444;padding:2px 8px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:8px;">WAJIB</span>
+                </h3>
+                <div id="sciExpReportContent">
+                    <div style="text-align:center;padding:30px;color:var(--admin-text-secondary);">
+                        <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:8px;"></i>
+                        <div>Memuat data ground truth...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benefactor Survey Section -->
+            <div style="margin-bottom:20px;" id="benefactorSection">
+                <h3 style="font-size:0.95rem;font-weight:700;color:var(--admin-text-primary);margin-bottom:10px;">
+                    <i class="fas fa-users" style="color:#10b981;margin-right:6px;"></i>
+                    Survei Pengguna & Bukti Kolaborasi
+                    <span style="background:#f59e0b15;color:#f59e0b;padding:2px 8px;border-radius:8px;font-size:0.65rem;font-weight:700;margin-left:8px;">DIPERLUKAN</span>
+                </h3>
+                <div style="background:var(--admin-bg-card,white);border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                    <!-- Survey links and collaboration evidence upload -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                        <div style="background:#f0fdf4;border-radius:10px;padding:14px;border:1px solid #86efac;">
+                            <div style="font-size:0.8rem;font-weight:700;color:#15803d;margin-bottom:6px;">
+                                <i class="fas fa-poll"></i> Survei Pengguna
+                            </div>
+                            <div style="font-size:0.75rem;color:#166534;line-height:1.5;margin-bottom:10px;">
+                                Buat Google Form dengan pertanyaan:<br>
+                                • Seberapa sering kamu merasa stres?<br>
+                                • Fitur apa yang kamu butuhkan?<br>
+                                • Apakah kamu mau pakai SynaWatch?
+                            </div>
+                            <button onclick="AdminUI.openSurveyGuide()" style="width:100%;padding:8px;background:#10b981;color:white;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">
+                                <i class="fas fa-external-link-alt"></i> Panduan Buat Survei
+                            </button>
+                        </div>
+                        <div style="background:#eff6ff;border-radius:10px;padding:14px;border:1px solid #93c5fd;">
+                            <div style="font-size:0.8rem;font-weight:700;color:#1e40af;margin-bottom:6px;">
+                                <i class="fas fa-handshake"></i> Kolaborasi Industri
+                            </div>
+                            <div style="font-size:0.75rem;color:#1e3a8a;line-height:1.5;margin-bottom:10px;">
+                                Hubungi salah satu:<br>
+                                • Psikolog kampus<br>
+                                • Klinik kesehatan mental<br>
+                                • Halodoc / Alodokter (email partnership)
+                            </div>
+                            <button onclick="AdminUI.openCollabGuide()" style="width:100%;padding:8px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">
+                                <i class="fas fa-envelope"></i> Template Email Kolaborasi
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Collaboration evidence input -->
+                    <div style="border-top:1px solid var(--admin-border,#e5e7eb);padding-top:14px;">
+                        <div style="font-size:0.8rem;font-weight:700;color:var(--admin-text-primary);margin-bottom:8px;">Catat Bukti Kolaborasi</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <input id="collabOrgInput" type="text" placeholder="Nama organisasi/mitra..."
+                                   style="width:100%;padding:8px 12px;border:1px solid var(--admin-border,#e5e7eb);border-radius:8px;font-size:0.82rem;box-sizing:border-box;">
+                            <input id="collabDescInput" type="text" placeholder="Deskripsi kolaborasi (misal: konsultasi algoritma stres)..."
+                                   style="width:100%;padding:8px 12px;border:1px solid var(--admin-border,#e5e7eb);border-radius:8px;font-size:0.82rem;box-sizing:border-box;">
+                            <button onclick="AdminUI.saveCollabEvidence()"
+                                    style="padding:8px 16px;background:#6366f1;color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;align-self:flex-start;">
+                                <i class="fas fa-save"></i> Simpan Bukti
+                            </button>
+                        </div>
+                        <div id="collabEvidenceList" style="margin-top:12px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Notes -->
+            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:12px;padding:16px;">
+                <h4 style="font-size:0.9rem;font-weight:700;color:#15803d;margin-bottom:8px;">
+                    <i class="fas fa-info-circle"></i> Catatan Penting untuk Juri
+                </h4>
+                <ul style="font-size:0.82rem;color:#166534;line-height:1.8;margin:0;padding-left:16px;">
+                    <li><strong>Scientific Experiment Report</strong> WAJIB jika kategori math/science — data akurasi ground truth sudah dikumpulkan otomatis dari pengguna</li>
+                    <li><strong>Foto kegiatan kolaborasi</strong> diperlukan untuk full credit di kriteria Industry Collaboration</li>
+                    <li><strong>Survei pengguna</strong> minimal 10 responden untuk membuktikan market potential</li>
+                    <li>Demo langsung lebih berkesan dari slide — pastikan hardware berfungsi saat presentasi</li>
+                    <li>Jawab pertanyaan juri: <em>"Mengapa GSR bobotnya 35%?"</em> → GSR paling sensitif terhadap aktivasi sistem saraf simpatetis (Nkurikiyeyezu 2019)</li>
+                    <li>Jawab: <em>"Bagaimana adaptive threshold bekerja?"</em> → personal mean + 1.5 SD dari 50 reading terakhir (Nahum-Shani 2018)</li>
+                </ul>
+            </div>
+
+        </div>`;
+
+        // Load ground truth data asynchronously
+        this.loadGroundTruthReport();
+        this.loadCollabEvidence();
+    },
+
+    async loadGroundTruthReport() {
+        const el = document.getElementById('sciExpReportContent');
+        if (!el) return;
+
+        try {
+            // Try to get ground truth data from Firestore (all users aggregate)
+            let records = [];
+            if (typeof db !== 'undefined') {
+                const snap = await db.collectionGroup('groundTruth')
+                    .orderBy('timestamp', 'desc')
+                    .limit(200)
+                    .get()
+                    .catch(() => null);
+
+                if (snap && !snap.empty) {
+                    records = snap.docs.map(d => d.data());
+                }
+            }
+
+            const components = [
+                { key: 'synaScoreError', label: 'SynaScore Accuracy', color: '#8b5cf6', scale: 100 },
+                { key: 'stressError',    label: 'Stress Detection Accuracy', color: '#ef4444', scale: 100 },
+                { key: 'sleepError',     label: 'Sleep Quality Accuracy', color: '#3b82f6', scale: 100 }
+            ];
+
+            const stats = components.map(c => {
+                const vals = records.filter(r => r[c.key] !== undefined).map(r => r[c.key]);
+                if (vals.length === 0) return { ...c, accuracy: null, n: 0, avgError: null };
+                const avgError = vals.reduce((s, v) => s + v, 0) / vals.length;
+                const accuracy = Math.round(Math.max(0, 100 - (avgError / c.scale) * 100));
+                return { ...c, accuracy, n: vals.length, avgError: Math.round(avgError * 10) / 10 };
+            });
+
+            // Crisis stats
+            const crisisRecords = records.filter(r => r.crisisPredicted !== undefined);
+            const tp = crisisRecords.filter(r => r.crisisPredicted && r.crisisActual).length;
+            const fp = crisisRecords.filter(r => r.crisisPredicted && !r.crisisActual).length;
+            const fn = crisisRecords.filter(r => !r.crisisPredicted && r.crisisActual).length;
+            const precision = tp + fp > 0 ? Math.round((tp / (tp + fp)) * 100) : null;
+            const recall = tp + fn > 0 ? Math.round((tp / (tp + fn)) * 100) : null;
+
+            const hasData = records.length > 0;
+            const overallAccuracy = stats.filter(s => s.accuracy !== null).length > 0
+                ? Math.round(stats.filter(s=>s.accuracy!==null).reduce((s,c)=>s+c.accuracy,0) / stats.filter(s=>s.accuracy!==null).length)
+                : null;
+
+            el.innerHTML = `
+                <div style="background:var(--admin-bg-card,white);border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                    ${!hasData ? `
+                    <div style="background:#fef3c7;border-radius:10px;padding:12px 16px;margin-bottom:16px;border:1px solid #fcd34d;">
+                        <div style="font-size:0.82rem;color:#92400e;font-weight:600;margin-bottom:4px;">
+                            <i class="fas fa-exclamation-triangle"></i> Belum Ada Data Ground Truth
+                        </div>
+                        <div style="font-size:0.78rem;color:#78350f;line-height:1.5;">
+                            Data akurasi dikumpulkan otomatis saat pengguna merespons prompt validasi (setelah assessment, sleep tracking, atau crisis alert).
+                            Minta beberapa pengguna beta untuk menggunakan aplikasi minimal 1-3 sesi agar data muncul di sini.
+                        </div>
+                    </div>` : ''}
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
+                        ${stats.map(s => `
+                        <div style="text-align:center;padding:16px;background:${s.color}08;border-radius:10px;border:1px solid ${s.color}20;">
+                            <div style="font-size:0.75rem;font-weight:700;color:${s.color};margin-bottom:8px;">${s.label}</div>
+                            <div style="font-size:2rem;font-weight:900;color:${s.accuracy !== null ? s.color : 'var(--admin-text-tertiary,#9ca3af)'};">
+                                ${s.accuracy !== null ? s.accuracy + '%' : '--'}
+                            </div>
+                            <div style="font-size:0.7rem;color:var(--admin-text-secondary);margin-top:4px;">
+                                ${s.n > 0 ? `n=${s.n} | avg error: ${s.avgError}` : 'Belum ada data'}
+                            </div>
+                            ${s.accuracy !== null ? `
+                            <div style="margin-top:8px;height:6px;background:${s.color}20;border-radius:3px;">
+                                <div style="height:100%;width:${s.accuracy}%;background:${s.color};border-radius:3px;"></div>
+                            </div>` : ''}
+                        </div>`).join('')}
+                        <div style="text-align:center;padding:16px;background:#6366f108;border-radius:10px;border:1px solid #6366f120;">
+                            <div style="font-size:0.75rem;font-weight:700;color:#6366f1;margin-bottom:8px;">Crisis Detection</div>
+                            <div style="font-size:1.1rem;font-weight:700;color:${precision!==null?'#6366f1':'var(--admin-text-tertiary)'};">
+                                ${precision!==null ? `P: ${precision}% | R: ${recall}%` : '--'}
+                            </div>
+                            <div style="font-size:0.7rem;color:var(--admin-text-secondary);margin-top:4px;">
+                                ${crisisRecords.length > 0 ? `TP:${tp} FP:${fp} FN:${fn}` : 'Belum ada data'}
+                            </div>
+                        </div>
+                    </div>
+
+                    ${overallAccuracy !== null ? `
+                    <div style="background:linear-gradient(135deg,#8b5cf615,#6366f115);border-radius:10px;padding:14px;text-align:center;">
+                        <div style="font-size:0.8rem;color:#6366f1;font-weight:700;margin-bottom:4px;">OVERALL SYSTEM ACCURACY</div>
+                        <div style="font-size:2.5rem;font-weight:900;color:#6366f1;">${overallAccuracy}%</div>
+                        <div style="font-size:0.75rem;color:var(--admin-text-secondary);margin-top:4px;">
+                            Berdasarkan ${records.length} ground truth records dari pengguna
+                        </div>
+                    </div>` : ''}
+
+                    <div style="margin-top:14px;padding:12px;background:#eff6ff;border-radius:8px;font-size:0.78rem;color:#1e40af;line-height:1.5;">
+                        <strong>Untuk laporan ilmiah:</strong> Data ini menunjukkan bahwa SynaWatch menggunakan <em>crowdsourced ground truth validation</em>
+                        — pengguna sendiri melaporkan kondisi sebenarnya untuk divalidasi dengan prediksi sistem.
+                        Formula: <code>accuracy = 100 - (|predicted - actual| / scale) × 100</code>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            el.innerHTML = `<div style="color:#ef4444;font-size:0.82rem;padding:12px;">Gagal memuat data: ${e.message}</div>`;
+        }
+    },
+
+    async saveCollabEvidence() {
+        const org  = document.getElementById('collabOrgInput')?.value?.trim();
+        const desc = document.getElementById('collabDescInput')?.value?.trim();
+        if (!org || !desc) { alert('Isi nama organisasi dan deskripsi.'); return; }
+
+        const key = 'synawatch_collab_evidence';
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        existing.unshift({ org, desc, date: new Date().toLocaleDateString('id-ID'), id: Date.now() });
+        localStorage.setItem(key, JSON.stringify(existing));
+
+        document.getElementById('collabOrgInput').value = '';
+        document.getElementById('collabDescInput').value = '';
+        this.loadCollabEvidence();
+    },
+
+    loadCollabEvidence() {
+        const el = document.getElementById('collabEvidenceList');
+        if (!el) return;
+        const key = 'synawatch_collab_evidence';
+        const items = JSON.parse(localStorage.getItem(key) || '[]');
+        if (items.length === 0) { el.innerHTML = '<p style="font-size:0.78rem;color:var(--admin-text-tertiary);">Belum ada bukti kolaborasi tercatat.</p>'; return; }
+        el.innerHTML = items.map(i => `
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--admin-bg-secondary,#f8fafc);border-radius:8px;margin-bottom:6px;">
+                <i class="fas fa-handshake" style="color:#3b82f6;"></i>
+                <div style="flex:1;">
+                    <div style="font-size:0.82rem;font-weight:600;color:var(--admin-text-primary);">${i.org}</div>
+                    <div style="font-size:0.75rem;color:var(--admin-text-secondary);">${i.desc} · ${i.date}</div>
+                </div>
+                <button onclick="AdminUI._deleteCollab(${i.id})" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:0.75rem;">✕</button>
+            </div>`).join('');
+    },
+
+    _deleteCollab(id) {
+        const key = 'synawatch_collab_evidence';
+        const items = JSON.parse(localStorage.getItem(key) || '[]').filter(i => i.id !== id);
+        localStorage.setItem(key, JSON.stringify(items));
+        this.loadCollabEvidence();
+    },
+
+    openSurveyGuide() {
+        const html = `
+            <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
+                <div style="background:white;border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;">
+                    <h3 style="margin-bottom:16px;font-size:1rem;font-weight:700;">📋 Panduan Survei Pengguna</h3>
+                    <p style="font-size:0.82rem;color:#374151;margin-bottom:12px;">Buat Google Form dengan pertanyaan berikut (minimal 10 responden):</p>
+                    <ol style="font-size:0.82rem;color:#374151;line-height:2;padding-left:16px;margin-bottom:16px;">
+                        <li>Seberapa sering kamu merasa stres dalam seminggu terakhir? (1-5)</li>
+                        <li>Apakah kamu pernah menggunakan aplikasi kesehatan mental?</li>
+                        <li>Fitur apa yang paling kamu butuhkan? (stres monitoring, sleep tracking, yoga, musik)</li>
+                        <li>Apakah kamu mau memakai smartwatch untuk pantau kesehatan mental?</li>
+                        <li>Berapa harga yang wajar untuk berlangganan (per bulan)?</li>
+                        <li>Setelah mencoba SynaWatch, seberapa puas? (1-10) — untuk pengguna beta</li>
+                    </ol>
+                    <div style="background:#f0fdf4;border-radius:8px;padding:12px;font-size:0.78rem;color:#166534;margin-bottom:16px;">
+                        <strong>Tips:</strong> Bagikan ke grup WhatsApp / LINE kampus, teman kuliah, atau keluarga. Target minimal 20 responden untuk kredibilitas lebih tinggi.
+                    </div>
+                    <button onclick="this.closest('div[style*=\"position:fixed\"]').remove()" style="width:100%;padding:10px;background:#6366f1;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Tutup</button>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+    },
+
+    openCollabGuide() {
+        const html = `
+            <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
+                <div style="background:white;border-radius:16px;padding:24px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;">
+                    <h3 style="margin-bottom:16px;font-size:1rem;font-weight:700;">📧 Template Email Kolaborasi Industri</h3>
+                    <div style="background:#f8fafc;border-radius:8px;padding:16px;font-size:0.8rem;color:#374151;line-height:1.7;margin-bottom:16px;font-family:monospace;">
+                        Yth. [Nama / Tim Klinik/Organisasi],<br><br>
+                        Perkenalkan, kami adalah tim SynaWatch dari [Sekolah/Universitas]. Kami sedang mengembangkan aplikasi pemantauan kesehatan mental berbasis smartwatch yang menggabungkan sensor biometrik (detak jantung, GSR, suhu) dengan kecerdasan buatan.<br><br>
+                        Kami ingin memohon masukan dan kolaborasi dari pihak [nama organisasi] untuk:<br>
+                        1. Validasi pendekatan ilmiah yang kami gunakan<br>
+                        2. Saran dari perspektif klinis/profesional<br>
+                        3. Potensi pilot program bersama<br><br>
+                        Apakah kami bisa menjadwalkan pertemuan singkat (15-30 menit) untuk berdiskusi?<br><br>
+                        Terima kasih atas perhatiannya.<br><br>
+                        Salam,<br>
+                        Tim SynaWatch
+                    </div>
+                    <div style="background:#fef3c7;border-radius:8px;padding:12px;font-size:0.78rem;color:#92400e;margin-bottom:16px;">
+                        <strong>Penting:</strong> Simpan screenshot reply email atau foto pertemuan sebagai bukti untuk juri. Ini diperlukan untuk mendapat nilai penuh di kriteria Industry Collaboration.
+                    </div>
+                    <button onclick="this.closest('div[style*=\"position:fixed\"]').remove()" style="width:100%;padding:10px;background:#3b82f6;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Tutup</button>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
     }
 };
 

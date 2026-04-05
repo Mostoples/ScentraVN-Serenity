@@ -136,6 +136,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.health());
             this.initHealthView();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('health');
         });
 
         Router.register('analytics', () => {
@@ -143,6 +144,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.analytics());
             this.initAnalyticsView();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('analytics');
         });
 
         Router.register('profile', () => {
@@ -150,6 +152,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.profile());
             this.initProfileView();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('profile');
         });
 
         Router.register('synachat', () => {
@@ -157,6 +160,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.synachat());
             this.initSynachatView();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('synachat');
         });
 
         Router.register('support', () => {
@@ -164,6 +168,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.support());
             if (typeof SupportHub !== 'undefined') SupportHub.initSupportHub();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('support');
         });
 
         Router.register('academy', () => {
@@ -171,6 +176,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.academy());
             if (typeof Academy !== 'undefined') Academy.initAcademy();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('academy');
         });
 
         Router.register('sleep', () => {
@@ -178,6 +184,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.sleep());
             if (typeof SleepLab !== 'undefined') SleepLab.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('sleep');
         });
 
         Router.register('moodbooster', () => {
@@ -185,6 +192,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.moodbooster());
             if (typeof MoodBooster !== 'undefined') MoodBooster.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('moodbooster');
         });
 
         Router.register('mindful', () => {
@@ -192,6 +200,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.mindful());
             if (typeof Mindful !== 'undefined') Mindful.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('mindful');
         });
 
         Router.register('journal', () => {
@@ -199,6 +208,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.journal());
             if (typeof Journal !== 'undefined') Journal.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('journal');
         });
 
         Router.register('research', () => {
@@ -206,6 +216,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.research());
             if (typeof ResearchFoundation !== 'undefined') ResearchFoundation.initResearch();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('research');
         });
 
         Router.register('admin', () => {
@@ -245,6 +256,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.games());
             if (typeof GamesModule !== 'undefined') GamesModule.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('games');
         });
 
         Router.register('yoga', () => {
@@ -252,6 +264,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.yoga());
             if (typeof YogaModule !== 'undefined') YogaModule.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('yoga');
         });
 
         Router.register('questionnaire', () => {
@@ -259,6 +272,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.questionnaire());
             if (typeof Questionnaire !== 'undefined') Questionnaire.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('questionnaire');
         });
 
         Router.register('heroic', () => {
@@ -266,6 +280,7 @@ const App = {
             if (nav) nav.style.display = 'flex';
             Router.render(Views.heroic());
             if (typeof HeroicProgram !== 'undefined') HeroicProgram.init();
+            if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('heroic');
         });
 
         // Initialize router
@@ -597,6 +612,11 @@ const App = {
 
         // Charts will remain static until device is connected
         // No demo animation - just show placeholder data
+
+        // Check and start onboarding tour for new users
+        if (typeof OnboardingTour !== 'undefined') {
+            OnboardingTour.checkAndStart('dashboard');
+        }
     },
 
     /**

@@ -778,35 +778,26 @@ const CountryMusic = {
                 console.log('[CountryMusic] Country saved successfully');
             }
 
-            // Play audio using HTML5 Audio (no YouTube needed)
-            console.log('[CountryMusic] Loading audio player...');
-
-            // Wait a bit before playing
+            // Close modal with animation
             setTimeout(() => {
-                console.log('[CountryMusic] Starting music playback...');
-                this.playAudioFile();
-
-                // Close modal with animation after a bit
-                setTimeout(() => {
-                    if (modal) {
-                        const modalContent = modal.querySelector('.country-modal');
-                        if (modalContent) {
-                            modalContent.style.animation = 'slideDown 0.4s ease';
-                        }
-                        modal.style.animation = 'fadeOut 0.4s ease';
-                        setTimeout(() => modal.remove(), 400);
+                if (modal) {
+                    const modalContent = modal.querySelector('.country-modal');
+                    if (modalContent) {
+                        modalContent.style.animation = 'slideDown 0.4s ease';
                     }
+                    modal.style.animation = 'fadeOut 0.4s ease';
+                    setTimeout(() => modal.remove(), 400);
+                }
 
-                    // Show welcome toast
-                    if (typeof Utils !== 'undefined') {
-                        Utils.showToast(
-                            `🎵 Selamat datang! Menikmati musik tradisional ${country.name}`,
-                            'success',
-                            4000
-                        );
-                    }
-                }, 1000);
-            }, 1500);
+                // Show welcome toast
+                if (typeof Utils !== 'undefined') {
+                    Utils.showToast(
+                        `${country.flag} Preferensi negara disimpan! Temukan musik tradisional ${country.name} di Mood Booster.`,
+                        'success',
+                        4000
+                    );
+                }
+            }, 800);
 
         } catch (error) {
             console.error('[CountryMusic] Error in selectCountry:', error);
@@ -874,6 +865,12 @@ const CountryMusic = {
         if (this.audioPlayer) {
             this.audioPlayer.pause();
             this.audioPlayer = null;
+        }
+
+        // Stop MoodBooster audio if playing
+        if (typeof MoodBooster !== 'undefined' && MoodBooster.currentAudio) {
+            MoodBooster.stopAudio();
+            MoodBooster._updateTrackButtons();
         }
 
         // Create new audio player
@@ -1928,7 +1925,7 @@ const CountryMusic = {
             .music-controller {
                 right: 16px;
                 left: 16px;
-                bottom: 16px;
+                bottom: 90px;
                 max-width: none;
                 min-width: unset;
                 padding: 14px;
@@ -1966,7 +1963,7 @@ const CountryMusic = {
         /* Mobile Large (landscape phones) */
         @media (max-width: 640px) {
             .music-controller {
-                bottom: 14px;
+                bottom: 85px;
                 right: 14px;
                 left: 14px;
                 padding: 12px;
@@ -2014,7 +2011,7 @@ const CountryMusic = {
         /* Mobile Standard */
         @media (max-width: 480px) {
             .music-controller {
-                bottom: 12px;
+                bottom: 80px;
                 right: 12px;
                 left: 12px;
                 padding: 10px;

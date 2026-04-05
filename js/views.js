@@ -1092,9 +1092,10 @@ const Views = {
 
                 <!-- Sleep Tracking -->
                 <h3 class="section-title">🌙 Sleep Tracking</h3>
-                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: -8px 0 12px;">Track tidur Anda sepanjang malam dengan data IMU</p>
+                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: -8px 0 12px;">Analisis pola tidur menggunakan IMU smartwatch + sensor hape</p>
                 <div class="card" style="padding: 20px;">
-                    <div id="sleepTrackingStatus" style="text-align: center; margin-bottom: 16px; font-weight: 600; color: var(--text-tertiary);"></div>
+                    <div id="sleepTrackingStatus" style="text-align: center; margin-bottom: 4px; font-weight: 600; color: var(--text-tertiary);"></div>
+                    <div id="sleepTrackingMode" style="text-align: center; margin-bottom: 16px; font-size: 0.78rem; color: #8b5cf6; font-weight: 500;"></div>
 
                     <button id="startSleepTrackingBtn" onclick="SleepTracker.startTracking()"
                             style="width: 100%; padding: 14px; background: linear-gradient(135deg, #1e1b4b, #312e81);
@@ -1112,9 +1113,13 @@ const Views = {
                         <span>Stop Tracking & Lihat Hasil</span>
                     </button>
 
-                    <p style="font-size: 0.75rem; color: var(--text-tertiary); margin: 12px 0 0; text-align: center;">
-                        <i class="fas fa-info-circle"></i> Pastikan perangkat BLE terhubung sebelum memulai tracking
-                    </p>
+                    <div style="margin-top: 12px; background: var(--bg-primary); border-radius: 10px; padding: 10px 12px;">
+                        <div style="font-size: 0.73rem; color: var(--text-tertiary); line-height: 1.6;">
+                            <div><i class="fas fa-watch" style="color:#8b5cf6;width:14px;"></i> Smartwatch terhubung → data tahap tidur + detak jantung</div>
+                            <div><i class="fas fa-mobile-alt" style="color:#3b82f6;width:14px;"></i> Sensor hape → deteksi gangguan tidur (hape bergerak)</div>
+                            <div><i class="fas fa-info-circle" style="color:#94a3b8;width:14px;"></i> Tracking bisa berjalan tanpa smartwatch (mode hape saja)</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Bedtime Checklist -->

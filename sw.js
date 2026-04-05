@@ -3,7 +3,7 @@
  * PWA Offline Support & Caching Strategy
  */
 
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.7.0';
 const CACHE_NAME = `synawatch-v${APP_VERSION}`;
 const STATIC_CACHE = `synawatch-static-v${APP_VERSION}`;
 const DYNAMIC_CACHE = `synawatch-dynamic-v${APP_VERSION}`;
@@ -170,7 +170,7 @@ self.addEventListener('fetch', (event) => {
         fetch(request)
             .then((response) => {
                 // Cache successful responses
-                if (response.ok) {
+                if (response.ok && response.status !== 206) {
                     const responseClone = response.clone();
                     caches.open(DYNAMIC_CACHE)
                         .then((cache) => cache.put(request, responseClone));

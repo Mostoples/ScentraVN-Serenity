@@ -472,6 +472,95 @@ const I18n = {
             'admin.rotation_policy': 'Kebijakan Rotasi API Key',
             'admin.save_settings': 'Simpan Pengaturan',
             'admin.loading': 'Memuat...',
+
+            // Onboarding Tour
+            // Onboarding Tour — Common
+            'tour.welcome_title': 'Selamat Datang di SYNAWATCH!',
+            'tour.welcome_desc': 'Mari kami perkenalkan fitur-fitur utama untuk membantu Anda memantau kesehatan dengan lebih baik.',
+            'tour.finish_title': 'Selesai!',
+            'tour.finish_desc': 'Anda sudah memahami halaman ini. Jelajahi fitur lainnya dan hubungkan perangkat sensor untuk pengalaman penuh.',
+            'tour.skip': 'Lewati',
+            'tour.start_tour': 'Mulai Tur',
+            'tour.next': 'Lanjut',
+            'tour.back': 'Kembali',
+            'tour.got_it': 'Mengerti!',
+            'tour.swipe_hint': 'Geser untuk navigasi',
+            // Dashboard
+            'tour.dash.score_title': 'Health Score',
+            'tour.dash.score_desc': 'Skor kesehatan harian Anda dihitung berdasarkan data sensor. Semakin tinggi skor, semakin baik kondisi Anda.',
+            'tour.dash.heroic_title': 'HEROIC Wellness',
+            'tour.dash.heroic_desc': 'Program kesejahteraan 6 dimensi berbasis psikologi positif, didukung Explainable AI (XAI) yang memberikan rekomendasi personal.',
+            'tour.dash.menu_title': 'Menu Cepat',
+            'tour.dash.menu_desc': 'Akses cepat ke semua fitur: AI Chat, Asesmen Mental, Sleep Lab, Jurnal, Mindfulness, Games, dan lainnya.',
+            // Health
+            'tour.health.hr_title': 'Detak Jantung',
+            'tour.health.hr_desc': 'Letakkan jari Anda di sensor untuk mengukur detak jantung secara real-time. Cincin animasi menunjukkan status: hijau = normal, kuning = waspada, merah = tinggi.',
+            'tour.health.vitals_title': 'Tanda Vital',
+            'tour.health.vitals_desc': 'SpO2 (oksigen darah), suhu tubuh, suhu ruangan, dan status aktivitas. Rentang normal ditampilkan di setiap kartu.',
+            'tour.health.gsr_title': 'Stres & GSR',
+            'tour.health.gsr_desc': 'GSR (Galvanic Skin Response) mengukur aktivitas keringat di kulit yang menandakan tingkat emosi/stres. Semakin tinggi = semakin tegang.',
+            // Analytics
+            'tour.analytics.filter_title': 'Filter Periode',
+            'tour.analytics.filter_desc': 'Pilih "Hari Ini", "Minggu Ini", atau "Bulan Ini" untuk melihat tren data kesehatan di periode berbeda.',
+            'tour.analytics.chart_title': 'Grafik Tren',
+            'tour.analytics.chart_desc': 'Grafik menampilkan pola detak jantung, stres, GSR, dan SpO2 Anda. Perhatikan rata-rata (Avg) di sudut kanan atas tiap grafik.',
+            // Synachat
+            'tour.synachat.ai_title': 'Dr. Synachat',
+            'tour.synachat.ai_desc': 'Asisten AI untuk dukungan emosional dan edukasi kesehatan. Bukan dokter sungguhan — untuk konsultasi medis, hubungi profesional.',
+            'tour.synachat.context_title': 'Data Kesehatan Live',
+            'tour.synachat.context_desc': 'AI dapat melihat data sensor Anda saat ini (detak jantung, SpO2, stres) untuk memberikan saran yang lebih relevan.',
+            'tour.synachat.quick_title': 'Pertanyaan Cepat',
+            'tour.synachat.quick_desc': 'Ketuk tombol ini untuk bertanya langsung, atau ketik pesan Anda sendiri di kolom bawah. Ikon speaker mengaktifkan suara.',
+            // Sleep
+            'tour.sleep.score_title': 'Skor Kesiapan Tidur',
+            'tour.sleep.score_desc': 'Skor ini menunjukkan seberapa siap tubuh Anda untuk tidur berdasarkan stres, detak jantung, dan kebiasaan malam Anda.',
+            'tour.sleep.audio_title': 'Audio Relaksasi',
+            'tour.sleep.audio_desc': 'Pilih suara alam (hujan, hutan, ombak) untuk membantu Anda rileks sebelum tidur. Ketuk untuk memutar, ketuk lagi untuk berhenti.',
+            'tour.sleep.routine_title': 'Rutinitas Sebelum Tidur',
+            'tour.sleep.routine_desc': 'Centang aktivitas yang sudah Anda lakukan. Menyelesaikan checklist ini meningkatkan skor kesiapan tidur Anda.',
+            // Mindful
+            'tour.mindful.circle_title': 'Teknik Napas 4-7-8',
+            'tour.mindful.circle_desc': 'Ikuti lingkaran: membesar = tarik napas 4 detik, diam = tahan 7 detik, mengecil = buang napas 8 detik. Teknik ini meredakan kecemasan.',
+            'tour.mindful.btn_title': 'Mulai Latihan',
+            'tour.mindful.btn_desc': 'Tekan tombol ini untuk memulai sesi pernapasan. Ulangi 4-8 siklus untuk hasil terbaik. Cocok sebelum tidur atau saat stres.',
+            // Journal
+            'tour.journal.input_title': 'Tulis Jurnal',
+            'tour.journal.input_desc': 'Tuliskan perasaan Anda. Jika sensor terhubung, jurnal otomatis ditandai dengan data emosi (stres, detak jantung) saat itu.',
+            'tour.journal.history_title': 'Riwayat Jurnal',
+            'tour.journal.history_desc': 'Lihat catatan sebelumnya beserta konteks sensor. Gunakan untuk menemukan pola: kapan stres tinggi, apa pemicunya.',
+            // HEROIC
+            'tour.heroic.intro_title': 'Program HEROIC',
+            'tour.heroic.intro_desc': 'HEROIC = Hope, Engagement, Resilience, Optimism, Intellectual, Connection. Program 6 dimensi untuk meningkatkan kesejahteraan mental Anda. Ikuti rekomendasi harian yang dipersonalisasi AI.',
+            // Games
+            'tour.games.stats_title': 'Poin & Streak',
+            'tour.games.stats_desc': 'Kumpulkan poin dengan menyelesaikan permainan. Pertahankan streak harian untuk bonus motivasi. Lihat peringkat di leaderboard.',
+            'tour.games.types_title': 'Jenis Permainan',
+            'tour.games.types_desc': 'Setiap permainan melatih aspek berbeda: pernapasan = relaksasi, puzzle = fokus, tantangan = motivasi. Pilih sesuai kebutuhan Anda.',
+            // Support
+            'tour.support.intro_title': 'Bantuan Krisis',
+            'tour.support.intro_desc': 'Halaman ini berisi nomor hotline darurat dan rencana keselamatan. Jika stres terdeteksi sangat tinggi, aplikasi akan mengarahkan Anda ke sini secara otomatis.',
+            // Mood Booster
+            'tour.mood.intro_title': 'Terapi Musik',
+            'tour.mood.intro_desc': 'Dengarkan musik yang disesuaikan dengan suasana hati. Aplikasi merekomendasikan tempo berdasarkan data sensor Anda: lambat untuk relaksasi, cepat untuk energi.',
+            // Profile
+            'tour.profile.intro_title': 'Profil & Pengaturan',
+            'tour.profile.intro_desc': 'Lihat statistik penggunaan, ubah bahasa, kelola akun, dan akses semua pengaturan dari sini.',
+            // Academy
+            'tour.academy.intro_title': 'Academy',
+            'tour.academy.intro_desc': 'Pelajari tentang kesehatan mental, teknik relaksasi, dan cara memaksimalkan fitur SYNAWATCH melalui materi edukasi interaktif.',
+            // Research
+            'tour.research.intro_title': 'Dasar Penelitian',
+            'tour.research.intro_desc': 'Semua fitur SYNAWATCH didukung oleh riset ilmiah. Halaman ini menampilkan referensi dan metodologi yang mendasari setiap fitur.',
+            // Yoga
+            'tour.yoga.search_title': 'Cari Pose',
+            'tour.yoga.search_desc': 'Ketik nama pose, bagian tubuh, atau manfaat yang Anda cari. Misalnya "relaksasi" atau "punggung".',
+            'tour.yoga.filter_title': 'Filter Tingkat Kesulitan',
+            'tour.yoga.filter_desc': 'Pilih tingkat kesulitan (Pemula, Menengah, Ahli) dan kategori pose. Mulai dari "Pemula" jika Anda baru mencoba yoga.',
+            // Questionnaire
+            'tour.questionnaire.intro_title': 'Kuesioner Pengujian',
+            'tour.questionnaire.intro_desc': 'Kuesioner ini membantu kami meningkatkan aplikasi. Jawaban Anda anonim dan hanya digunakan untuk penelitian. Estimasi waktu: ~10 menit.',
+            'tour.questionnaire.progress_title': 'Progres Pengisian',
+            'tour.questionnaire.progress_desc': 'Ada 9 bagian yang perlu diisi. Progres Anda ditampilkan di sini. Anda bisa maju-mundur antar halaman.',
         },
 
         en: {
@@ -936,6 +1025,95 @@ const I18n = {
             'admin.rotation_policy': 'API Key Rotation Policy',
             'admin.save_settings': 'Save Settings',
             'admin.loading': 'Loading...',
+
+            // Onboarding Tour
+            // Onboarding Tour — Common
+            'tour.welcome_title': 'Welcome to SYNAWATCH!',
+            'tour.welcome_desc': 'Let us show you the key features to help you monitor your health better.',
+            'tour.finish_title': 'All Done!',
+            'tour.finish_desc': 'You now understand this page. Explore other features and connect your sensor device for the full experience.',
+            'tour.skip': 'Skip',
+            'tour.start_tour': 'Start Tour',
+            'tour.next': 'Next',
+            'tour.back': 'Back',
+            'tour.got_it': 'Got It!',
+            'tour.swipe_hint': 'Swipe to navigate',
+            // Dashboard
+            'tour.dash.score_title': 'Health Score',
+            'tour.dash.score_desc': 'Your daily health score is calculated from sensor data. The higher the score, the better your condition.',
+            'tour.dash.heroic_title': 'HEROIC Wellness',
+            'tour.dash.heroic_desc': 'A 6-dimension positive psychology program powered by Explainable AI (XAI) that gives you personalized recommendations.',
+            'tour.dash.menu_title': 'Quick Menu',
+            'tour.dash.menu_desc': 'Quick access to all features: AI Chat, Mental Assessment, Sleep Lab, Journal, Mindfulness, Games, and more.',
+            // Health
+            'tour.health.hr_title': 'Heart Rate',
+            'tour.health.hr_desc': 'Place your finger on the sensor to measure heart rate in real-time. The animated ring shows status: green = normal, yellow = caution, red = high.',
+            'tour.health.vitals_title': 'Vital Signs',
+            'tour.health.vitals_desc': 'SpO2 (blood oxygen), body temperature, room temperature, and activity status. Normal ranges are shown on each card.',
+            'tour.health.gsr_title': 'Stress & GSR',
+            'tour.health.gsr_desc': 'GSR (Galvanic Skin Response) measures skin sweat activity indicating emotional/stress levels. Higher = more tense.',
+            // Analytics
+            'tour.analytics.filter_title': 'Period Filter',
+            'tour.analytics.filter_desc': 'Choose "Today", "This Week", or "This Month" to view health data trends across different time periods.',
+            'tour.analytics.chart_title': 'Trend Charts',
+            'tour.analytics.chart_desc': 'Charts show your heart rate, stress, GSR, and SpO2 patterns. Check the average (Avg) in the top-right corner of each chart.',
+            // Synachat
+            'tour.synachat.ai_title': 'Dr. Synachat',
+            'tour.synachat.ai_desc': 'An AI assistant for emotional support and health education. Not a real doctor — for medical advice, consult a professional.',
+            'tour.synachat.context_title': 'Live Health Data',
+            'tour.synachat.context_desc': 'The AI can see your current sensor data (heart rate, SpO2, stress) to give more relevant advice.',
+            'tour.synachat.quick_title': 'Quick Questions',
+            'tour.synachat.quick_desc': 'Tap these buttons to ask directly, or type your own message below. The speaker icon enables voice responses.',
+            // Sleep
+            'tour.sleep.score_title': 'Sleep Readiness Score',
+            'tour.sleep.score_desc': 'This score shows how ready your body is for sleep based on stress, heart rate, and your nighttime habits.',
+            'tour.sleep.audio_title': 'Relaxation Audio',
+            'tour.sleep.audio_desc': 'Choose nature sounds (rain, forest, waves) to help you relax before sleep. Tap to play, tap again to stop.',
+            'tour.sleep.routine_title': 'Bedtime Routine',
+            'tour.sleep.routine_desc': 'Check off activities you have completed. Completing this checklist improves your sleep readiness score.',
+            // Mindful
+            'tour.mindful.circle_title': '4-7-8 Breathing',
+            'tour.mindful.circle_desc': 'Follow the circle: expanding = inhale 4 sec, still = hold 7 sec, shrinking = exhale 8 sec. This technique relieves anxiety.',
+            'tour.mindful.btn_title': 'Start Session',
+            'tour.mindful.btn_desc': 'Press this button to begin a breathing session. Repeat 4-8 cycles for best results. Great before sleep or during stress.',
+            // Journal
+            'tour.journal.input_title': 'Write Journal',
+            'tour.journal.input_desc': 'Write down your feelings. If a sensor is connected, the journal is automatically tagged with emotional data (stress, heart rate).',
+            'tour.journal.history_title': 'Journal History',
+            'tour.journal.history_desc': 'View past entries with sensor context. Use this to spot patterns: when stress is high, what triggers it.',
+            // HEROIC
+            'tour.heroic.intro_title': 'HEROIC Program',
+            'tour.heroic.intro_desc': 'HEROIC = Hope, Engagement, Resilience, Optimism, Intellectual, Connection. A 6-dimension program to improve your mental wellbeing. Follow AI-personalized daily recommendations.',
+            // Games
+            'tour.games.stats_title': 'Points & Streaks',
+            'tour.games.stats_desc': 'Earn points by completing games. Maintain your daily streak for motivation. Check your rank on the leaderboard.',
+            'tour.games.types_title': 'Game Types',
+            'tour.games.types_desc': 'Each game trains different skills: breathing = relaxation, puzzles = focus, challenges = motivation. Choose what you need.',
+            // Support
+            'tour.support.intro_title': 'Crisis Support',
+            'tour.support.intro_desc': 'This page contains emergency hotline numbers and safety plans. If extremely high stress is detected, the app will guide you here automatically.',
+            // Mood Booster
+            'tour.mood.intro_title': 'Music Therapy',
+            'tour.mood.intro_desc': 'Listen to music matched to your mood. The app recommends tempo based on your sensor data: slow for relaxation, fast for energy.',
+            // Profile
+            'tour.profile.intro_title': 'Profile & Settings',
+            'tour.profile.intro_desc': 'View usage statistics, change language, manage your account, and access all settings from here.',
+            // Academy
+            'tour.academy.intro_title': 'Academy',
+            'tour.academy.intro_desc': 'Learn about mental health, relaxation techniques, and how to maximize SYNAWATCH features through interactive educational materials.',
+            // Research
+            'tour.research.intro_title': 'Research Foundation',
+            'tour.research.intro_desc': 'All SYNAWATCH features are backed by scientific research. This page shows the references and methodology behind each feature.',
+            // Yoga
+            'tour.yoga.search_title': 'Search Poses',
+            'tour.yoga.search_desc': 'Type a pose name, body part, or benefit you\'re looking for. For example "relaxation" or "back".',
+            'tour.yoga.filter_title': 'Difficulty Filter',
+            'tour.yoga.filter_desc': 'Choose a difficulty level (Beginner, Intermediate, Advanced) and pose category. Start with "Beginner" if you\'re new to yoga.',
+            // Questionnaire
+            'tour.questionnaire.intro_title': 'App Testing Survey',
+            'tour.questionnaire.intro_desc': 'This survey helps us improve the app. Your answers are anonymous and used for research only. Estimated time: ~10 minutes.',
+            'tour.questionnaire.progress_title': 'Completion Progress',
+            'tour.questionnaire.progress_desc': 'There are 9 sections to fill. Your progress is shown here. You can navigate back and forth between pages.',
         }
     },
 

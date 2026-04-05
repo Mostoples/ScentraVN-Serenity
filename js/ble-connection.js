@@ -40,6 +40,9 @@ let sensorData = {
     gsrR: 0,
     gsrCal: false,
     gsrBase: 0,
+    // P_HRV: RR intervals untuk kalkulasi RMSSD nyata
+    rrIntervals: [],   // Array interval R-R dalam ms, dikirim ESP32 sebagai field "rri" atau "rrIntervals"
+    rmssd: 0,          // RMSSD yang dihitung dari rrIntervals (atau dikirim langsung ESP32 sebagai "rmssd")
     lastUpdate: null
 };
 
@@ -203,12 +206,21 @@ function handleDataNotification(event) {
         // LEGACY STRESS ANALYSIS (KEEP FOR COMPATIBILITY)
         // Keep the old analyzeStress for backward compatibility
         // ============================================
+        // Parse RR intervals: ESP32 bisa kirim sebagai "rri", "rrIntervals", atau "rr"
+        const rrIntervals = data.rri || data.rrIntervals || data.rr || [];
+        // Hitung RMSSD dari RR intervals (atau gunakan nilai RMSSD dari ESP32 langsung)
+        const rmssd = (rrIntervals.length >= 2)
+            ? Utils.calculateRMSSD(rrIntervals)
+            : (data.rmssd || 0);
+
         const stressAnalysis = Utils.analyzeStress({
             hr: data.hr || 0,
             gsr: data.gsrRaw || data.gsr || 0,
             suhu: data.bt || 0,
             spo2: data.spo2 || 0,
-            imu: imuMagnitude
+            imu: imuMagnitude,
+            rrIntervals: rrIntervals,            // P_HRV: kirim ke analyzeStress
+            rmssd: rmssd                         // RMSSD yang sudah dihitung
         });
 
         // Update sensor data with new stress calculation
@@ -216,6 +228,8 @@ function handleDataNotification(event) {
             ...sensorData,
             ...data,
             imuMagnitude: imuMagnitude,
+            rrIntervals: rrIntervals,            // Simpan RR intervals
+            rmssd: rmssd,                        // Simpan RMSSD untuk Firestore & SynaScore
             // Use NEW stress calculation
             stress: stressResult.stressScore,
             stressScore: stressResult.stressScore,

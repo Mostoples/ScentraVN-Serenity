@@ -731,6 +731,9 @@
             <button class="admin-tab-btn" onclick="AdminUI.switchTab('questionnaires')" data-tab="questionnaires">
                 <i class="fas fa-clipboard-list"></i> Questionnaires
             </button>
+            <button class="admin-tab-btn" onclick="AdminUI.switchTab('competition')" data-tab="competition" style="background:linear-gradient(135deg,#f59e0b15,#ef444415);border:1px solid #f59e0b40;">
+                <i class="fas fa-trophy" style="color:#f59e0b;"></i> Kompetisi
+            </button>
         </div>
 
         <!-- Dashboard Tab -->
@@ -873,6 +876,17 @@
                 </div>
             </div>
         </div>
+
+        <!-- Competition Tab -->
+        <div id="competition-tab" class="admin-content">
+            <div id="competitionTabContent">
+                <div style="text-align:center;padding:40px;color:#6b7280;">
+                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;"></i>
+                    Memuat...
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Detail Modal -->

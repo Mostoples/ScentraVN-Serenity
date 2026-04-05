@@ -21,6 +21,9 @@ const YogaModule = {
     CACHE_TTL: 24 * 60 * 60 * 1000, // 24 hours
     yogismPoses: [],
 
+    // ── Session tracking ───────────────────────────────────────
+    activeSession: null,
+
     // ========== INITIALIZATION ==========
 
     async init() {
@@ -54,6 +57,14 @@ const YogaModule = {
 
             this.renderPoses(this.poses);
             this.setupEventListeners();
+
+            // Auto-apply biometric filter jika sensor aktif
+            setTimeout(() => {
+                const ctx = this.getBiometricContext();
+                if (ctx.hasSensor && (ctx.stress > 0 || ctx.hr > 0)) {
+                    this.applyBiometricFilter(null); // auto-detect mode
+                }
+            }, 300);
         } catch (error) {
             console.error('Yoga Module init error:', error);
             this.showError('Gagal memuat data yoga. API mungkin sedang cold-start.');
@@ -517,9 +528,20 @@ const YogaModule = {
 
                     ${variationsHtml}
 
-                    <button class="btn btn-primary btn-block" onclick="YogaModule.closeDetail()" style="margin-top: 20px;">
-                        <i class="fas fa-arrow-left"></i> Kembali ke Daftar Pose
-                    </button>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+                        <button class="btn btn-primary btn-block"
+                                onclick="YogaModule.startSession(${poseId}); this.style.display='none'; document.getElementById('btnEndSession${poseId}').style.display='flex';">
+                            <i class="fas fa-play"></i> Mulai Sesi Yoga
+                        </button>
+                        <button id="btnEndSession${poseId}" class="btn btn-block"
+                                style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:12px;padding:14px;font-weight:600;cursor:pointer;align-items:center;justify-content:center;gap:8px;"
+                                onclick="YogaModule.endSession(null); YogaModule.closeDetail();">
+                            <i class="fas fa-stop"></i> Selesai & Simpan Sesi
+                        </button>
+                        <button class="btn btn-outline btn-block" onclick="YogaModule.closeDetail()" style="color:var(--text-tertiary);">
+                            <i class="fas fa-arrow-left"></i> Kembali ke Daftar Pose
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -555,6 +577,221 @@ const YogaModule = {
         }
     },
 
+    // ========== BIOMETRIC INTEGRATION ==========
+
+    /**
+     * Ambil state sensor terkini dari App/BLEConnection.
+     */
+    getBiometricContext() {
+        const state = (typeof App !== 'undefined' && App.getInterventionState)
+            ? App.getInterventionState() : {};
+        const sensor = (typeof BLEConnection !== 'undefined' && BLEConnection.isConnected())
+            ? BLEConnection.getSensorData() : {};
+        return {
+            stress:    state.stress  || sensor.stress  || 0,
+            hr:        state.hr      || sensor.hr      || 0,
+            gsr:       state.gsr     || sensor.gsr     || 0,
+            spo2:      sensor.spo2   || 0,
+            act:       sensor.act    || 'DIAM',
+            finger:    sensor.finger || false,
+            hasSensor: BLEConnection?.isConnected() || false
+        };
+    },
+
+    /**
+     * Filter pose berdasarkan kondisi biometrik.
+     * mode: 'calm' | 'recovery' | 'energize' | null (auto dari sensor)
+     */
+    getRecommendedPoses(mode) {
+        const ctx = this.getBiometricContext();
+        let targetMode = mode;
+
+        if (!targetMode) {
+            if (ctx.stress > 70 || ctx.gsr > 65)                     targetMode = 'calm';
+            else if (ctx.act === 'LARI' || ctx.act === 'AKTIF')       targetMode = 'recovery';
+            else if (ctx.stress < 30 && ctx.hr > 0 && ctx.hr < 75)   targetMode = 'energize';
+            else                                                       targetMode = 'balance';
+        }
+
+        // Kata kunci manfaat/kategori per mode
+        const modeKeywords = {
+            calm:     ['calm', 'relax', 'stress', 'anxiety', 'restorative', 'balance', 'grounding'],
+            recovery: ['cool', 'stretch', 'relief', 'flexibility', 'recovery', 'gentle', 'forward'],
+            energize: ['energi', 'strength', 'backbend', 'inversion', 'power', 'standing'],
+            balance:  ['balance', 'core', 'focus', 'standing', 'hip']
+        };
+        const keywords = modeKeywords[targetMode] || modeKeywords.balance;
+
+        const scored = this.poses.map(pose => {
+            const text = [
+                pose.pose_benefits || '',
+                pose.pose_description || '',
+                (this.categoryMap[pose.id] || []).join(' ')
+            ].join(' ').toLowerCase();
+
+            const score = keywords.reduce((s, kw) => s + (text.includes(kw) ? 1 : 0), 0);
+            return { pose, score };
+        });
+
+        return scored
+            .filter(x => x.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6)
+            .map(x => x.pose);
+    },
+
+    /**
+     * Terapkan filter biometrik: render poses + tampilkan banner rekomendasi.
+     */
+    applyBiometricFilter(mode) {
+        const ctx = this.getBiometricContext();
+        const recommended = this.getRecommendedPoses(mode);
+
+        const modeInfo = {
+            calm:     { label: 'Relaksasi Stres',  icon: 'fa-spa',        color: '#6366f1', desc: `Stres terdeteksi (${ctx.stress}%). Pose berikut membantu menenangkan sistem saraf.` },
+            recovery: { label: 'Cool-down',         icon: 'fa-snowflake',  color: '#3b82f6', desc: `Setelah aktivitas tinggi (HR ${ctx.hr} bpm). Pose stretching untuk pemulihan.` },
+            energize: { label: 'Energizing',         icon: 'fa-bolt',       color: '#f59e0b', desc: `Kondisi rileks optimal. Saatnya pose yang lebih menantang.` },
+            balance:  { label: 'Keseimbangan',       icon: 'fa-yin-yang',   color: '#10b981', desc: 'Pose untuk menjaga keseimbangan tubuh dan pikiran.' }
+        };
+        const info = modeInfo[mode] || modeInfo.balance;
+
+        // Tampilkan banner biometrik di atas daftar pose
+        this._renderBiometricBanner(ctx, info, recommended.length);
+
+        if (recommended.length > 0) {
+            this.renderPoses(recommended);
+        }
+    },
+
+    _renderBiometricBanner(ctx, info, count) {
+        const container = document.getElementById('yogaResults');
+        if (!container) return;
+
+        const existing = document.getElementById('yogaBiometricBanner');
+        if (existing) existing.remove();
+
+        const banner = document.createElement('div');
+        banner.id = 'yogaBiometricBanner';
+        banner.style.cssText = 'margin-bottom:16px;';
+
+        const sensorBadge = ctx.hasSensor
+            ? `<span style="background:rgba(16,185,129,0.12);color:#10b981;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600;"><i class="fas fa-broadcast-tower"></i> Sensor Aktif</span>`
+            : `<span style="background:rgba(156,163,175,0.12);color:#9ca3af;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600;"><i class="fas fa-unlink"></i> Tanpa Sensor</span>`;
+
+        banner.innerHTML = `
+            <div class="card" style="padding:14px;border-left:3px solid ${info.color};">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                    <i class="fas ${info.icon}" style="color:${info.color};"></i>
+                    <span style="font-weight:700;color:var(--text-primary);font-size:0.9rem;">${info.label}</span>
+                    ${sensorBadge}
+                </div>
+                <p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 8px;">${info.desc}</p>
+                ${ctx.hasSensor ? `
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    ${ctx.hr > 0 ? `<span style="font-size:0.75rem;background:rgba(239,68,68,0.1);color:#ef4444;padding:2px 8px;border-radius:8px;"><i class="fas fa-heart"></i> ${ctx.hr} bpm</span>` : ''}
+                    ${ctx.stress > 0 ? `<span style="font-size:0.75rem;background:rgba(99,102,241,0.1);color:#6366f1;padding:2px 8px;border-radius:8px;"><i class="fas fa-brain"></i> Stres ${ctx.stress}%</span>` : ''}
+                    ${ctx.gsr > 0 ? `<span style="font-size:0.75rem;background:rgba(245,158,11,0.1);color:#f59e0b;padding:2px 8px;border-radius:8px;"><i class="fas fa-bolt"></i> GSR ${ctx.gsr}%</span>` : ''}
+                </div>` : ''}
+                <button onclick="YogaModule._resetBiometricFilter()" style="margin-top:8px;font-size:0.72rem;background:transparent;border:none;color:var(--text-tertiary);cursor:pointer;padding:0;">
+                    <i class="fas fa-times"></i> Tampilkan semua pose
+                </button>
+            </div>
+        `;
+
+        container.parentNode.insertBefore(banner, container);
+    },
+
+    _resetBiometricFilter() {
+        const banner = document.getElementById('yogaBiometricBanner');
+        if (banner) banner.remove();
+        this.applyFilters();
+    },
+
+    // ========== SESSION TRACKING ==========
+
+    /**
+     * Mulai sesi yoga untuk pose tertentu — catat biometrik awal.
+     */
+    startSession(poseId) {
+        const pose = this.poses.find(p => p.id === poseId);
+        if (!pose) return;
+
+        const ctx = this.getBiometricContext();
+        this.activeSession = {
+            poseId,
+            poseName: pose.english_name || 'Unknown',
+            startTime: Date.now(),
+            initialBiometrics: {
+                hr: ctx.hr, gsr: ctx.gsr, stress: ctx.stress, spo2: ctx.spo2
+            }
+        };
+        console.log('[YogaModule] Session started:', this.activeSession.poseName);
+    },
+
+    /**
+     * Akhiri sesi yoga — hitung delta biometrik dan simpan ke Firestore.
+     */
+    async endSession(userRating) {
+        if (!this.activeSession) return;
+
+        const ctx = this.getBiometricContext();
+        const duration = Math.round((Date.now() - this.activeSession.startTime) / 1000); // detik
+
+        const session = {
+            ...this.activeSession,
+            endTime: Date.now(),
+            duration,
+            finalBiometrics: {
+                hr: ctx.hr, gsr: ctx.gsr, stress: ctx.stress, spo2: ctx.spo2
+            },
+            hrDelta:     ctx.hr     - this.activeSession.initialBiometrics.hr,
+            stressDelta: ctx.stress - this.activeSession.initialBiometrics.stress,
+            gsrDelta:    ctx.gsr    - this.activeSession.initialBiometrics.gsr,
+            userRating:  userRating || null
+        };
+
+        this.activeSession = null;
+
+        await this._saveSessionToFirestore(session);
+        this._showSessionResult(session);
+    },
+
+    async _saveSessionToFirestore(session) {
+        if (typeof firebase === 'undefined' || !auth?.currentUser) return;
+        try {
+            await db.collection('yogaSessions').add({
+                userId:            auth.currentUser.uid,
+                poseId:            session.poseId,
+                poseName:          session.poseName,
+                duration:          session.duration,
+                initialBiometrics: session.initialBiometrics,
+                finalBiometrics:   session.finalBiometrics,
+                hrDelta:           session.hrDelta,
+                stressDelta:       session.stressDelta,
+                gsrDelta:          session.gsrDelta,
+                userRating:        session.userRating,
+                timestamp:         firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('[YogaModule] Session saved to Firestore');
+        } catch (e) {
+            console.warn('[YogaModule] Save session error:', e);
+        }
+    },
+
+    _showSessionResult(session) {
+        const stressChange = session.stressDelta;
+        const improved = stressChange < -3;
+        const icon  = improved ? 'fa-smile' : 'fa-check-circle';
+        const color = improved ? '#10b981' : '#6366f1';
+        const msg   = improved
+            ? `Stres turun ${Math.abs(stressChange)}% setelah yoga!`
+            : `Sesi selesai. Durasi: ${Math.round(session.duration / 60)}m ${session.duration % 60}s.`;
+
+        if (typeof Utils !== 'undefined') {
+            Utils.showToast(`✅ ${msg}`, 'success', 4000);
+        }
+    },
+
     // ========== CLEANUP ==========
     destroy() {
         this.closeDetail();
@@ -562,6 +799,9 @@ const YogaModule = {
         this.categories = [];
         this.yogismPoses = [];
         this.isLoading = false;
+        this.activeSession = null;
+        const banner = document.getElementById('yogaBiometricBanner');
+        if (banner) banner.remove();
     }
 };
 
