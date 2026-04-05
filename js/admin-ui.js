@@ -58,6 +58,11 @@ const AdminUI = {
             }
         });
 
+        // Hide/show static tab divs (admin.html legacy layout)
+        document.querySelectorAll('.admin-content').forEach(el => el.classList.remove('active'));
+        const staticTab = document.getElementById(tabName + '-tab');
+        if (staticTab) staticTab.classList.add('active');
+
         // Update breadcrumb and header title
         const breadcrumbEl = document.getElementById('currentPageName');
         const headerTitleEl = document.querySelector('.admin-header-left h2');
@@ -65,13 +70,14 @@ const AdminUI = {
             'dashboard': 'Dashboard',
             'users': 'Users Management',
             'patients': 'Patient Data',
-            'questionnaires': 'Questionnaires'
+            'questionnaires': 'Questionnaires',
+            'competition': 'Kesiapan Kompetisi'
         };
         const pageName = pageNames[tabName] || tabName;
         if (breadcrumbEl) breadcrumbEl.textContent = pageName;
         if (headerTitleEl) headerTitleEl.textContent = pageName;
 
-        // Load tab content - render directly to adminDashboardContent
+        // Load tab content
         if (tabName === 'dashboard') {
             this.renderDashboard();
         } else if (tabName === 'users') {
@@ -2775,7 +2781,7 @@ const AdminUI = {
     // =====================================================================
 
     renderCompetitionTab() {
-        const content = document.getElementById('adminDashboardContent');
+        const content = document.getElementById('competitionTabContent') || document.getElementById('adminDashboardContent');
         if (!content) return;
 
         // ── Checklist Data ────────────────────────────────────────────────
