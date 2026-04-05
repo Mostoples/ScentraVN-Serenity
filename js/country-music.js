@@ -1928,7 +1928,7 @@ const CountryMusic = {
             .music-controller {
                 right: 16px;
                 left: 16px;
-                bottom: 16px;
+                bottom: 90px;
                 max-width: none;
                 min-width: unset;
                 padding: 14px;
@@ -1966,7 +1966,7 @@ const CountryMusic = {
         /* Mobile Large (landscape phones) */
         @media (max-width: 640px) {
             .music-controller {
-                bottom: 14px;
+                bottom: 85px;
                 right: 14px;
                 left: 14px;
                 padding: 12px;
@@ -2014,7 +2014,7 @@ const CountryMusic = {
         /* Mobile Standard */
         @media (max-width: 480px) {
             .music-controller {
-                bottom: 12px;
+                bottom: 80px;
                 right: 12px;
                 left: 12px;
                 padding: 10px;
