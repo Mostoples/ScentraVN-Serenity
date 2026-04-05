@@ -1,0 +1,308 @@
+/**
+ * SYNAWATCH - Header Menu (Mobile Hamburger)
+ * Responsive hamburger menu for mobile devices
+ */
+
+/* ===== Hamburger Button ===== */
+.hamburger-btn {
+    display: none; /* Hidden by default, shown on mobile */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hamburger-btn:hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.hamburger-btn:active {
+    transform: scale(0.95);
+}
+
+.hamburger-icon {
+    width: 24px;
+    height: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.hamburger-icon span {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background: var(--primary-600);
+    border-radius: 3px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hamburger Active (X) */
+.hamburger-btn.active .hamburger-icon span:nth-child(1) {
+    transform: translateY(8.5px) rotate(45deg);
+}
+
+.hamburger-btn.active .hamburger-icon span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.hamburger-btn.active .hamburger-icon span:nth-child(3) {
+    transform: translateY(-8.5px) rotate(-45deg);
+}
+
+/* ===== Header Dropdown Menu ===== */
+.header-dropdown {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: var(--z-dropdown);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+}
+
+.header-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.dropdown-content {
+    background: white;
+    margin: 0;
+    padding: 0;
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* ===== Dropdown Item ===== */
+.dropdown-item {
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+/* ===== Dropdown Buttons ===== */
+.dropdown-music-btn,
+.dropdown-lang-btn,
+.dropdown-ble-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.dropdown-music-btn:hover,
+.dropdown-lang-btn:hover,
+.dropdown-ble-btn:hover {
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.dropdown-music-btn:active,
+.dropdown-lang-btn:active,
+.dropdown-ble-btn:active {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+/* Music Button in Dropdown */
+.dropdown-music-btn {
+    justify-content: flex-start;
+}
+
+.dropdown-music-btn .music-icon-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dropdown-music-btn .music-flag-mini {
+    font-size: 1.5rem;
+}
+
+.dropdown-music-btn .music-wave-mini {
+    height: 16px;
+}
+
+.dropdown-music-btn .music-wave-mini span {
+    width: 3px;
+}
+
+/* Language Button in Dropdown */
+.dropdown-lang-btn {
+    justify-content: space-between;
+}
+
+.dropdown-lang-btn i {
+    font-size: 1.2rem;
+    color: var(--primary-600);
+}
+
+.dropdown-lang-btn span {
+    margin-left: auto;
+    font-weight: 700;
+    color: var(--primary-600);
+}
+
+/* BLE Button in Dropdown */
+.dropdown-ble-btn {
+    justify-content: flex-start;
+}
+
+.dropdown-ble-btn i {
+    font-size: 1.2rem;
+    color: var(--primary-600);
+}
+
+.dropdown-ble-btn .ble-status {
+    font-weight: 500;
+}
+
+/* BLE Indicator in Dropdown */
+.dropdown-ble-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+}
+
+.dropdown-ble-indicator .indicator-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--success-500);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.dropdown-ble-indicator.disconnected .indicator-dot {
+    background: var(--text-tertiary);
+    box-shadow: none;
+    animation: none;
+}
+
+/* ===== Animations ===== */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.1);
+    }
+}
+
+/* ===== Responsive ===== */
+/* Hide regular header buttons on mobile, show hamburger */
+@media (max-width: 768px) {
+    /* Show hamburger button */
+    .hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Hide original header buttons on mobile */
+    .header-right > #headerMusicBtn,
+    .header-right > #langToggleBtn,
+    .header-right > #bleConnectBtn,
+    .header-right > #bleIndicator {
+        display: none !important;
+    }
+
+    /* Adjust dropdown for mobile */
+    .dropdown-content {
+        max-height: calc(100vh - var(--header-height) - 20px);
+        overflow-y: auto;
+    }
+
+    .dropdown-music-btn,
+    .dropdown-lang-btn,
+    .dropdown-ble-btn {
+        padding: 14px 18px;
+        font-size: 0.9rem;
+    }
+
+    .dropdown-music-btn .music-flag-mini {
+        font-size: 1.4rem;
+    }
+}
+
+/* Small mobile adjustments */
+@media (max-width: 480px) {
+    .hamburger-btn {
+        padding: 6px;
+        margin-right: 4px;
+    }
+
+    .hamburger-icon {
+        width: 22px;
+        height: 18px;
+    }
+
+    .hamburger-icon span {
+        height: 2.5px;
+    }
+
+    .dropdown-music-btn,
+    .dropdown-lang-btn,
+    .dropdown-ble-btn {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+    }
+
+    .dropdown-music-btn .music-flag-mini {
+        font-size: 1.3rem;
+    }
+
+    .dropdown-lang-btn i,
+    .dropdown-ble-btn i {
+        font-size: 1.1rem;
+    }
+}
+
+/* Desktop - hide hamburger and dropdown */
+@media (min-width: 769px) {
+    .hamburger-btn {
+        display: none !important;
+    }
+
+    .header-dropdown {
+        display: none !important;
+    }
+}

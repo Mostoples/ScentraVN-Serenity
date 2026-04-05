@@ -1090,6 +1090,33 @@ const Views = {
                     </div>
                 </div>
 
+                <!-- Sleep Tracking -->
+                <h3 class="section-title">🌙 Sleep Tracking</h3>
+                <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: -8px 0 12px;">Track tidur Anda sepanjang malam dengan data IMU</p>
+                <div class="card" style="padding: 20px;">
+                    <div id="sleepTrackingStatus" style="text-align: center; margin-bottom: 16px; font-weight: 600; color: var(--text-tertiary);"></div>
+
+                    <button id="startSleepTrackingBtn" onclick="SleepTracker.startTracking()"
+                            style="width: 100%; padding: 14px; background: linear-gradient(135deg, #1e1b4b, #312e81);
+                                   color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;
+                                   display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                        <i class="fas fa-play"></i>
+                        <span>Mulai Sleep Tracking</span>
+                    </button>
+
+                    <button id="stopSleepTrackingBtn" onclick="SleepTracker.stopTracking()"
+                            style="width: 100%; padding: 14px; background: linear-gradient(135deg, #dc2626, #ef4444);
+                                   color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;
+                                   display: none; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="fas fa-stop"></i>
+                        <span>Stop Tracking & Lihat Hasil</span>
+                    </button>
+
+                    <p style="font-size: 0.75rem; color: var(--text-tertiary); margin: 12px 0 0; text-align: center;">
+                        <i class="fas fa-info-circle"></i> Pastikan perangkat BLE terhubung sebelum memulai tracking
+                    </p>
+                </div>
+
                 <!-- Bedtime Checklist -->
                 <h3 class="section-title">${t('sleep.routine_title')}</h3>
                 <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: -8px 0 12px;">${t('sleep.routine_hint')}</p>

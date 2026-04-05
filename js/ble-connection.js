@@ -243,6 +243,11 @@ function handleDataNotification(event) {
             Analytics.onBLEDataReceived(sensorData);
         }
 
+        // Send IMU data to Sleep Tracker if tracking is active
+        if (typeof SleepTracker !== 'undefined' && SleepTracker.isTracking) {
+            SleepTracker.processIMUData(data);
+        }
+
     } catch (error) {
         console.error('Error parsing BLE data:', error, jsonStr);
     }

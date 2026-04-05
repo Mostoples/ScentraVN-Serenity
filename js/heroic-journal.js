@@ -44,10 +44,10 @@ const HEROIC_JOURNAL_TEMPLATES = {
         {
             id: 'JT_R_stress',
             dim: 'R',
-            title: '🤲 Tawakal & Ikhtiar',
-            prompt: 'Kekhawatiranku: ...\nIkhtiar yang sudah atau bisa kulakukan: ...\nSetelah berusaha, aku menyerahkan: ...\nDoa yang ingin kusampaikan: ...',
-            xaiReason: 'Tawakal (kepasrahan setelah ikhtiar) terbukti mengurangi aktivasi HPA-axis dan kecemasan (Koenig, 2009; Bozzini et al., 2023).',
-            icon: 'fa-hands-praying',
+            title: '🛡️ Terima & Bertindak',
+            prompt: 'Kekhawatiranku saat ini: ...\nHal-hal yang bisa kukendalikan dan kulakukan: ...\nHal-hal yang di luar kontrolku dan perlu kuterima: ...\nKekuatan yang kubawa untuk menghadapi ini: ...',
+            xaiReason: 'Acceptance and Action (ACT) terbukti mengurangi kecemasan dan meningkatkan resilience dengan memfokuskan energi pada hal yang dapat dikendalikan (Hayes et al., 2006; Waugh & Koster, 2015).',
+            icon: 'fa-shield-heart',
             tagColor: '#10B981'
         }
     ],
@@ -97,10 +97,10 @@ const HEROIC_JOURNAL_TEMPLATES = {
         {
             id: 'JT_R_relax',
             dim: 'R',
-            title: '🙏 Syukur Mendalam',
-            prompt: '3 nikmat yang sering terlupakan tapi ada hari ini:\n1. ...\n2. ...\n3. ...\nSiapa atau apa yang memungkinkan nikmat ini ada?: ...\nDoa syukurku hari ini: ...',
-            xaiReason: 'Latihan syukur spiritual mengintegrasikan manfaat gratitude (d=0.31, Davis et al., 2016) dengan dimensi religiusitas (Bozzini et al., 2023) secara sinergis.',
-            icon: 'fa-book-heart',
+            title: '🌱 Kekuatan dalam Diriku',
+            prompt: '3 tantangan yang berhasil kulewati minggu ini:\n1. ...\n2. ...\n3. ...\nKekuatan pribadi apa yang membantuku melewatinya?: ...\nApa yang kupelajari tentang ketahananku?: ...',
+            xaiReason: 'Refleksi pada pengalaman mengatasi kesulitan (mastery experience) meningkatkan self-efficacy dan resilience secara signifikan (Bandura, 1997; Southwick et al., 2014).',
+            icon: 'fa-seedling',
             tagColor: '#10B981'
         },
         {

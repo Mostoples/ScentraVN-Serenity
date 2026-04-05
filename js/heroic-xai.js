@@ -12,7 +12,7 @@
  * HEROIC Dimensions:
  *   H - Humor (Gonot-Schoupinsky & Garip, 2019; Crawford & Caltabiano, 2022)
  *   E - Efficacy / Self-Efficacy (Bandura, 1977, 1997; Chua et al., 2020)
- *   R - Religiosity / Spirituality (Bozzini et al., 2023; VanderWeele et al., 2016)
+ *   R - Resilience / Mental Resilience (Waugh & Koster, 2015; Southwick et al., 2014)
  *   O - Optimism (Scheier & Carver, 1985; Meevissen et al., 2011; Menezes et al., 2022)
  *   I - Interaction / Social Support (Holt-Lunstad et al., 2015; Masi et al., 2011)
  *   C - Compassion / Self-Compassion (Neff, 2003; MacBeth & Gumley, 2012; Luo et al., 2022)
@@ -53,14 +53,14 @@ const HeroicXAI = {
         },
         R: {
             key: 'R',
-            name: 'Religiosity',
-            label: 'Religiusitas',
-            icon: 'fa-hands-praying',
+            name: 'Resilience',
+            label: 'Ketahanan Mental',
+            icon: 'fa-shield-heart',
             color: '#10B981',
             gradient: 'linear-gradient(135deg, #A7F3D0, #10B981)',
-            description: 'Koneksi spiritual dan nilai-nilai keimanan sebagai sumber kekuatan',
-            lowMsg: 'Skor Religiusitas rendah. Praktik spiritual terbukti menurunkan risiko depresi hingga 26% (Bozzini et al., 2023).',
-            reference: 'Bozzini et al. (2023); VanderWeele et al. (2016)',
+            description: 'Kemampuan untuk bangkit kembali dan beradaptasi setelah menghadapi kesulitan',
+            lowMsg: 'Skor Ketahanan Mental rendah. Latihan resilience terbukti menurunkan risiko depresi hingga 30% (Waugh & Koster, 2015).',
+            reference: 'Waugh & Koster (2015); Southwick et al. (2014)',
             threshold: { low: 35, moderate: 60 }
         },
         O: {

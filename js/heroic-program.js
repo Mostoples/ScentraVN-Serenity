@@ -381,102 +381,102 @@ const HeroicProgram = {
             reference: 'Bandura (1997)'
         },
 
-        // ── R: RELIGIOSITY ─────────────────────────────────────────────────────
+        // ── R: RESILIENCE ──────────────────────────────────────────────────────
         {
-            id: 'R01', dim: 'R', title: 'Dzikr Digital',
-            subtitle: '100x tasbih dengan nafas sadar',
-            icon: 'fa-hands-praying', duration: 10,
-            tag: 'Religiusitas', tagColor: '#10B981',
-            description: 'Dzikr (remembrance) practice: repitisi kalimat tasbih dengan nafas sadar mengaktifkan respons parasimpatis. Terbukti menurunkan HR dan kecemasan (Sholeh, 2021).',
+            id: 'R01', dim: 'R', title: 'Grounding Breath',
+            subtitle: 'Pernapasan membumi untuk stabilitas mental',
+            icon: 'fa-wind', duration: 10,
+            tag: 'Resilience', tagColor: '#10B981',
+            description: 'Teknik grounding breath: pernapasan terkontrol dengan fokus pada sensasi fisik membantu mengembalikan rasa stabil saat menghadapi tekanan (Linehan, 2015).',
             instructions: [
-                'Duduk nyaman, tutup mata',
-                'Tarik nafas dalam sambil hitung dalam hati',
-                'SubhanAllah (33x) — Alhamdulillah (33x) — Allahu Akbar (34x)',
-                'Fokus pada makna setiap kalimat'
+                'Duduk nyaman dengan kaki menapak lantai',
+                'Tarik nafas dalam (hitungan 4) → Tahan (2) → Hembuskan (6)',
+                'Fokus pada sensasi kaki yang menyentuh lantai',
+                'Ulangi 10 siklus sambil rasakan stabilitas tubuhmu'
             ],
             isTimedExercise: true,
             exerciseDuration: 10,
-            reference: 'Sholeh (2021); Bozzini et al. (2023)'
+            reference: 'Linehan (2015); Waugh & Koster (2015)'
         },
         {
-            id: 'R02', dim: 'R', title: 'Syukur Journal',
-            subtitle: 'Tulis 3 nikmat yang sering terlupakan',
-            icon: 'fa-book-heart', duration: 8,
-            tag: 'Religiusitas', tagColor: '#10B981',
-            description: 'Gratitude-spiritual integration: menggabungkan latihan syukur dengan kerangka spiritual meningkatkan efek kedua intervensi (Davis et al., 2016).',
+            id: 'R02', dim: 'R', title: 'Strength Archive',
+            subtitle: 'Dokumentasi kekuatan yang pernah membantumu',
+            icon: 'fa-book-bookmark', duration: 8,
+            tag: 'Resilience', tagColor: '#10B981',
+            description: 'Resilience journaling: mendokumentasikan sumber kekuatan personal menciptakan mental repository yang dapat diakses saat menghadapi kesulitan (Southwick et al., 2014).',
             instructions: [
-                'Pikirkan 3 nikmat yang kamu miliki tapi jarang disadari',
-                'Untuk setiap nikmat: siapa atau apa yang memungkinkannya ada?',
-                'Ungkapkan dalam doa/kalimat syukur personalmu',
-                'Rasakan perbedaan di dadamu'
+                'Tulis 3 kesulitan yang pernah kamu lewati',
+                'Untuk setiap kesulitan: kekuatan apa yang membantumu bertahan?',
+                'Identifikasi pola: kekuatan mana yang muncul berulang kali?',
+                'Simpan sebagai pengingat kekuatan pribadimu'
             ],
             hasTextInput: true,
-            inputPrompt: 'Nikmat 1: ... Nikmat 2: ... Nikmat 3: ...',
-            reference: 'Davis et al. (2016); Bozzini et al. (2023)'
+            inputPrompt: 'Kesulitan 1: ... Kekuatanku: ...',
+            reference: 'Southwick et al. (2014); Waugh & Koster (2015)'
         },
         {
-            id: 'R03', dim: 'R', title: 'Tawakal Timer',
-            subtitle: 'Lepaskan kekhawatiran selama 5 menit',
-            icon: 'fa-cloud', duration: 8,
-            tag: 'Religiusitas', tagColor: '#10B981',
-            description: 'Tawakal (tawakkul) practice: melatih menyerahkan kekhawatiran kepada Tuhan setelah ikhtiar adalah bentuk emotion regulation berbasis keimanan.',
+            id: 'R03', dim: 'R', title: 'Control Circle',
+            subtitle: 'Pisahkan yang bisa dan tidak bisa kamu kendalikan',
+            icon: 'fa-circle-dot', duration: 8,
+            tag: 'Resilience', tagColor: '#10B981',
+            description: 'Control Circle (ACT/Stoicism): memisahkan yang dapat vs tidak dapat dikendalikan mengurangi kecemasan dan meningkatkan sense of agency (Hayes et al., 2006).',
             instructions: [
-                'Tuliskan satu hal yang sedang kamu khawatirkan',
-                'Tuliskan ikhtiar apa yang sudah/bisa kamu lakukan',
-                'Tulis kalimat: "Aku sudah berusaha, sisanya aku serahkan."',
-                'Tarik nafas dalam 3x dan rasakan kelegaan'
+                'Tuliskan satu hal yang mengkhawatirkanmu',
+                'Buat dua kolom: BISA KONTROLKU vs DI LUAR KONTROLKU',
+                'Letakkan setiap aspek ke kolom yang sesuai',
+                'Fokuskan energi hanya pada kolom "BISA KONTROLKU"'
             ],
             hasTextInput: true,
-            inputPrompt: 'Kekhawatiranku: ... Ikhtiarku: ...',
-            reference: 'Koenig (2009); Newberg & Iversen (2003)'
+            inputPrompt: 'Kekhawatiranku: ... Yang bisa kukontrol: ... Yang di luar kontrolku: ...',
+            reference: 'Hayes et al. (2006); Southwick et al. (2014)'
         },
         {
-            id: 'R04', dim: 'R', title: 'Makna di Balik Ujian',
+            id: 'R04', dim: 'R', title: 'Meaning Making',
             subtitle: 'Temukan makna dari kesulitan',
             icon: 'fa-lightbulb', duration: 12,
-            tag: 'Religiusitas', tagColor: '#10B981',
-            description: 'Meaning-making dari perspektif spiritual: Viktor Frankl menunjukkan bahwa menemukan makna dalam penderitaan adalah kondisi kesehatan mental paling fundamental.',
+            tag: 'Resilience', tagColor: '#10B981',
+            description: 'Meaning-making (Frankl): menemukan makna dalam kesulitan adalah fondasi ketahanan mental dan transformasi post-traumatic growth (Tedeschi & Calhoun, 2004).',
             instructions: [
                 'Ingat satu kesulitan yang telah kamu lalui',
-                'Pertanyaan: Apa yang kamu pelajari dari ujian itu?',
-                'Pertanyaan: Bagaimana kesulitan itu membuatmu lebih kuat/bijak?',
-                'Tulis makna yang bisa diambil dari pengalaman tersebut'
+                'Apa yang kamu pelajari tentang dirimu dari pengalaman itu?',
+                'Bagaimana kesulitan itu membuatmu lebih kuat atau bijak?',
+                'Tulis makna personal yang bisa diambil dari pengalaman tersebut'
             ],
             hasTextInput: true,
-            inputPrompt: 'Kesulitanku dulu: ... Maknanya:...',
-            reference: 'VanderWeele et al. (2016)'
+            inputPrompt: 'Kesulitanku dulu: ... Maknanya: ... Kekuatan yang tumbuh: ...',
+            reference: 'Frankl (1946); Tedeschi & Calhoun (2004)'
         },
         {
-            id: 'R05', dim: 'R', title: 'Sholat Sadar',
-            subtitle: 'Panduan sholat dengan penuh kesadaran',
-            icon: 'fa-mosque', duration: 15,
-            tag: 'Religiusitas', tagColor: '#10B981',
-            description: 'Mindful prayer: menggabungkan teknik mindfulness dengan ibadah sholat meningkatkan fokus spiritual dan manfaat psikologis secara sinergis.',
+            id: 'R05', dim: 'R', title: 'Adversity Rehearsal',
+            subtitle: 'Latih mental untuk menghadapi kesulitan',
+            icon: 'fa-dumbbell', duration: 15,
+            tag: 'Resilience', tagColor: '#10B981',
+            description: 'Mental rehearsal for adversity (Stoic practice): membayangkan dan merencanakan respons terhadap kemungkinan kesulitan meningkatkan preparedness dan mengurangi shock (Norem & Cantor, 1986).',
             instructions: [
-                'Siapkan diri untuk sholat (wudhu dengan kesadaran penuh)',
-                'Di setiap gerakan, fokus pada artinya, bukan hanya gerakannya',
-                'Setelah salam, duduk 3 menit dalam doa personal',
-                'Catat satu insight yang datang saat sholat'
+                'Identifikasi satu tantangan yang mungkin datang minggu ini',
+                'Bayangkan skenario terburuknya — apa yang akan terjadi?',
+                'Rencanakan 3 strategi coping konkret jika itu terjadi',
+                'Tuliskan rencana aksimu dan rasakan kesiapan mental meningkat'
             ],
             hasTextInput: true,
-            inputPrompt: 'Insight dari sholatku hari ini...',
-            reference: 'Newberg & Iversen (2003); Rusmini & Agustini (2023)'
+            inputPrompt: 'Tantangan yang mungkin datang: ... Strategi copingku: 1)... 2)... 3)...',
+            reference: 'Norem & Cantor (1986); Southwick et al. (2014)'
         },
         {
-            id: 'R06', dim: 'R', title: 'Doa Spesifik',
-            subtitle: 'Tulis doa paling tulus untuk hidupmu',
-            icon: 'fa-star-and-crescent', duration: 10,
-            tag: 'Religiusitas', tagColor: '#10B981',
-            description: 'Purposive prayer (berdoa dengan niat spesifik) dikaitkan dengan peningkatan sense of control dan penurunan kecemasan dalam 48 jam (Koenig, 2009).',
+            id: 'R06', dim: 'R', title: 'Resilience Letter',
+            subtitle: 'Surat untuk dirimu di masa sulit',
+            icon: 'fa-envelope', duration: 10,
+            tag: 'Resilience', tagColor: '#10B981',
+            description: 'Pre-commitment letter: menulis surat untuk diri sendiri saat kondisi baik yang dapat dibaca saat kesulitan datang memberi anchor emosional (Neff & Germer, 2013).',
             instructions: [
-                'Tulis doa/harapan personalmu dalam kata-kata sendiri',
-                'Spesifik: apa yang kamu minta? mengapa? bagaimana kamu akan berkontribusi?',
-                'Tidak ada format baku — ini antara kamu dan Tuhan',
-                'Tutup dengan rasa terima kasih'
+                'Bayangkan dirimu sedang dalam kondisi baik berbicara pada dirimu saat kesulitan',
+                'Tulis surat: apa yang ingin kamu ingatkan? kekuatan apa yang kamu miliki?',
+                'Sertakan strategi coping yang pernah berhasil untukmu',
+                'Simpan surat ini untuk dibaca saat kamu membutuhkan'
             ],
             hasTextInput: true,
-            inputPrompt: 'Doaku hari ini...',
-            reference: 'Koenig (2009)'
+            inputPrompt: 'Untuk diriku saat kesulitan datang: ...',
+            reference: 'Neff & Germer (2013); Southwick et al. (2014)'
         },
 
         // ── O: OPTIMISM ─────────────────────────────────────────────────────────
@@ -822,7 +822,7 @@ const HeroicProgram = {
         const chartData = (typeof HeroicXAI !== 'undefined')
             ? HeroicXAI.getRadarChartData()
             : {
-                labels: ['Humor', 'Efikasi Diri', 'Religiusitas', 'Optimisme', 'Interaksi', 'Kasih Diri'],
+                labels: ['Humor', 'Efikasi Diri', 'Ketahanan Mental', 'Optimisme', 'Interaksi', 'Kasih Diri'],
                 datasets: [{ label: 'HEROIC', data: [50, 50, 50, 50, 50, 50],
                     backgroundColor: 'rgba(139,92,246,0.2)', borderColor: '#8B5CF6',
                     borderWidth: 2, pointRadius: 5 }]

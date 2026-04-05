@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error checking admin role:', e);
                 }
 
-                // Normal user redirect
+                // Normal user redirect - country selection will happen in app.html
                 showAlert('Login berhasil! Mengalihkan...', 'success');
                 setTimeout(() => {
                     window.location.href = 'app.html';
@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error checking admin role:', e);
                 }
 
-                // Normal user redirect
+                // Normal user redirect - country selection will happen in app.html
                 showAlert('Registrasi berhasil! Mengalihkan...', 'success');
                 setTimeout(() => {
                     window.location.href = 'app.html';
@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error checking admin role:', e);
                 }
 
-                // Normal user redirect
+                // Normal user redirect - country selection will happen in app.html
                 showAlert('Login berhasil! Mengalihkan...', 'success');
                 setTimeout(() => {
                     window.location.href = 'app.html';

@@ -49,7 +49,7 @@ const HeroicGames = {
         {
             id: 'game_gratitude',
             title: 'Gratitude Harvest',
-            subtitle: 'Panen rasa syukur setiap hari',
+            subtitle: 'Panen apresiasi positif setiap hari',
             icon: 'fa-seedling',
             dims: ['O', 'R'],
             dimColors: ['#8B5CF6', '#10B981'],
@@ -59,7 +59,7 @@ const HeroicGames = {
             difficulty: 'Mudah',
             reference: 'Seligman et al. (2005); Davis et al. (2016)',
             xaiReason: '"Three Good Things" adalah intervensi paling terdokumentasi dalam psikologi positif (d=0.62). Gamified delivery meningkatkan konsistensi 34% (Hardeman et al., 2019).',
-            description: 'Tanam benih syukur setiap hari. Koleksi 3 hal baik, dapatkan pupuk, dan tonton tanamanmu tumbuh. Streak harian = bonus XP!'
+            description: 'Tanam benih apresiasi setiap hari. Koleksi 3 hal baik, dapatkan pupuk, dan tonton tanamanmu tumbuh. Streak harian = bonus XP!'
         },
         {
             id: 'game_compassion',
@@ -379,11 +379,11 @@ const HeroicGames = {
                              padding: 20px; text-align: center; margin-bottom: 16px; min-height: 120px;
                              position: relative; overflow: hidden;">
                     <div style="font-size: 0.8rem; color: #14532D; font-weight: 600; margin-bottom: 8px;">
-                        Kebun Syukurmu
+                        Kebun Apresiasimu
                     </div>
                     <div id="harvestGarden" style="display: flex; justify-content: center; gap: 12px;
                          flex-wrap: wrap; min-height: 60px; align-items: center;">
-                        <span style="color: #166534; font-size: 0.85rem;">Tanam benih syukur pertamamu...</span>
+                        <span style="color: #166534; font-size: 0.85rem;">Tanam benih apresiasi pertamamu...</span>
                     </div>
                 </div>
 
@@ -395,7 +395,7 @@ const HeroicGames = {
 
                 <!-- Input -->
                 <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-                    <input id="harvestInput" type="text" placeholder="Satu hal yang kusyukuri hari ini..."
+                    <input id="harvestInput" type="text" placeholder="Satu hal baik yang kuapresiasi hari ini..."
                            style="flex: 1; padding: 12px; border: 1.5px solid #10B981; border-radius: 12px;
                                   font-size: 0.88rem; font-family: inherit; outline: none;"
                            onkeypress="if(event.key==='Enter') HeroicGames._harvestPlant()">
@@ -490,7 +490,7 @@ const HeroicGames = {
         }
 
         await this._logGameToFirestore('game_gratitude', { harvested: state.harvested }, state.points, state.sensorPre, sensorPost);
-        Utils.showToast(`🌾 Panen ${state.harvested.length} buah syukur! +${state.points} pts!`, 'success', 4000);
+        Utils.showToast(`🌾 Panen ${state.harvested.length} buah apresiasi! +${state.points} pts!`, 'success', 4000);
     },
 
     // ─── GAME 3: Compassion Chain ─────────────────────────────────────────────

@@ -42,6 +42,7 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header-menu.css">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -131,6 +132,7 @@
     <script src="js/assessment.js"></script>
     <script src="js/intervention-engine.js"></script>
     <script src="js/sleep.js"></script>
+    <script src="js/sleep-tracker.js"></script>
     <script src="js/moodbooster.js"></script>
     <script src="js/mindful.js"></script>
     <script src="js/journal.js"></script>
@@ -149,6 +151,12 @@
     <script src="js/heroic-program.js"></script>
     <script src="js/heroic-journal.js"></script>
     <script src="js/heroic-games.js"></script>
+
+    <!-- Country Music Player -->
+    <script src="js/country-music.js"></script>
+
+    <!-- Header Menu (Mobile Hamburger) -->
+    <script src="js/header-menu.js"></script>
 
     <script src="js/app.js"></script>
 
@@ -179,6 +187,36 @@
                         loadingScreen.style.display = 'none';
                         app.style.display = 'block';
                         app.style.animation = 'fadeIn 0.5s ease-out';
+
+                        // Initialize Country Music System
+                        if (typeof CountryMusic !== 'undefined' && auth?.currentUser) {
+                            // Wait a bit for app to render
+                            setTimeout(() => {
+                                db.collection('users').doc(auth.currentUser.uid).get()
+                                    .then(userDoc => {
+                                        const userData = userDoc.data();
+                                        console.log('[App] User country data:', userData?.country);
+
+                                        if (userData && userData.country) {
+                                            // Country already selected - auto-play music
+                                            console.log('[App] Country already selected:', userData.country);
+                                            const country = CountryMusic.ASEAN_COUNTRIES.find(c => c.code === userData.country);
+                                            if (country) {
+                                                CountryMusic.currentCountry = country;
+                                                // Use HTML5 Audio directly - no YouTube API needed
+                                                setTimeout(() => {
+                                                    CountryMusic.playAudioFile();
+                                                }, 500);
+                                            }
+                                        } else {
+                                            // Country not selected yet - show selection modal
+                                            console.log('[App] No country selected, showing modal');
+                                            CountryMusic.showCountrySelection();
+                                        }
+                                    })
+                                    .catch(err => console.error('Error loading country preference:', err));
+                            }, 800);
+                        }
                     }, 300);
                 }
             }, 1000);
