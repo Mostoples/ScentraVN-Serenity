@@ -10,6 +10,7 @@ const InterventionEngine = {
         breathing: 0,
         synachat: 0,
         music: 0,
+        yoga: 0,
         crisis: 0
     },
     COOLDOWN_PERIOD: 5 * 60 * 1000, // 5 minutes between automatic interventions
@@ -126,6 +127,9 @@ const InterventionEngine = {
         // [GAP 2] Update personal baseline learning
         this.updatePersonalBaseline(data);
 
+        // Store latest data for use in triggerIntervention messages
+        this._lastData = data;
+
         const now = Date.now();
         const stress = data.stress || 0;
         const hr = data.hr || 0;
@@ -156,6 +160,22 @@ const InterventionEngine = {
             }
         }
 
+        // [GAP 4] Yoga intervention: stres sedang + tidak bergerak → cocok untuk yoga menenangkan
+        if (stress > threshold - 20 && stress <= threshold && gsr > 40 && data.act === 'DIAM') {
+            if (now - this.cooldowns.yoga > this.COOLDOWN_PERIOD * 1.5) {
+                this.triggerIntervention('yoga_calm');
+                this.cooldowns.yoga = now;
+            }
+        }
+
+        // [GAP 4] Yoga recovery: setelah aktivitas tinggi + stress mulai naik → cool-down yoga
+        if ((data.act === 'LARI' || data.act === 'AKTIF') && stress > threshold - 25 && hr > 90) {
+            if (now - this.cooldowns.yoga > this.COOLDOWN_PERIOD * 2) {
+                this.triggerIntervention('yoga_recovery');
+                this.cooldowns.yoga = now;
+            }
+        }
+
         // [GAP 7] Crisis detection: sustained extreme readings + high PHQ-9 + high UCLA
         if (this.baseline.phq9Score >= 15 && stress > 85 && gsr > 80 && hr > 100) {
             if (now - this.cooldowns.crisis > this.COOLDOWN_PERIOD * 3) {
@@ -170,9 +190,11 @@ const InterventionEngine = {
      */
     triggerIntervention(type) {
         console.log("TRIGGERING CLOSED-LOOP INTERVENTION:", type);
-        
+
         // Save intervention event to database
         this.logInterventionToDB(type);
+
+        const data = this._lastData || {};
 
         switch(type) {
             case 'breathing':
@@ -191,6 +213,28 @@ const InterventionEngine = {
                 this.showAlert("Mood Booster yang menenangkan disiapkan untuk Anda berdasarkan metrik vital Anda.", () => {
                     Router.navigate('moodbooster');
                 });
+                break;
+            case 'yoga_calm':
+                this.showAlert(
+                    `Stres terdeteksi (${Math.round(data?.stress || 0)}%). Yoga menenangkan dapat membantu menurunkan tegangan. Mau mencoba beberapa pose relaksasi?`,
+                    () => {
+                        if (typeof Router !== 'undefined') Router.navigate('yoga');
+                        if (typeof YogaModule !== 'undefined') {
+                            setTimeout(() => YogaModule.applyBiometricFilter('calm'), 400);
+                        }
+                    }
+                );
+                break;
+            case 'yoga_recovery':
+                this.showAlert(
+                    `Aktivitas tinggi terdeteksi. Cool-down dengan yoga ringan membantu detak jantung kembali normal lebih cepat.`,
+                    () => {
+                        if (typeof Router !== 'undefined') Router.navigate('yoga');
+                        if (typeof YogaModule !== 'undefined') {
+                            setTimeout(() => YogaModule.applyBiometricFilter('recovery'), 400);
+                        }
+                    }
+                );
                 break;
             case 'crisis':
                 // [GAP 7] Auto-activated crisis protocol

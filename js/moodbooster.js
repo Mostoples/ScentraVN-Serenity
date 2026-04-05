@@ -34,11 +34,12 @@ const MoodBooster = {
         'upbeat:3': 'audio/upbeat4.mp3',
         'upbeat:4': 'audio/upbeat5.mp3',
         // Traditional / Local ASEAN tracks
-        'local:0': 'music/indonesia-gamelan.mp3',
-        'local:1': 'music/malaysia-traditional.mp3',
-        'local:2': 'music/vietnam-dan-tranh.mp3',
-        'local:3': 'music/thailand-ranat.mp3',
-        'local:4': 'music/singapore-traditional.mp3'
+        'local:0': 'music/bali-gamelan.mp3',
+        'local:1': 'music/indonesia-gamelan.mp3',
+        'local:2': 'music/malaysia-traditional.mp3',
+        'local:3': 'music/vietnam-dan-tranh.mp3',
+        'local:4': 'music/thailand-ranat.mp3',
+        'local:5': 'music/singapore-traditional.mp3'
     },
 
     musicLibrary: {
@@ -91,6 +92,7 @@ const MoodBooster = {
             bpmRange: '60-100 BPM',
             description: 'Musik tradisional lokal dari negara-negara ASEAN',
             tracks: [
+                { name: 'Gamelan Bali Sakral', genre: 'Gamelan Bali', bpm: 80, duration: '6:00', mood: 'Sakral', flag: '🌺' },
                 { name: 'Gamelan Jawa Tradisional', genre: 'Gamelan', bpm: 70, duration: '8:34', mood: 'Meditatif', flag: '🇮🇩' },
                 { name: 'Muzik Tradisional Malaysia', genre: 'Traditional', bpm: 80, duration: '5:21', mood: 'Harmonis', flag: '🇲🇾' },
                 { name: 'Vietnamese Dan Tranh', genre: 'Traditional', bpm: 75, duration: '4:41', mood: 'Damai', flag: '🇻🇳' },
@@ -332,22 +334,26 @@ const MoodBooster = {
         const cat = this.musicLibrary[categoryKey];
 
         // For local category, reorder tracks to put user's country first
+        // Bali (index 0) & Jawa (index 1) are both Indonesia — keep Bali first for ID users
         if (categoryKey === 'local' && typeof CountryMusic !== 'undefined' && CountryMusic.currentCountry) {
-            const countryOrder = ['ID', 'MY', 'VN', 'TH', 'SG'];
-            const userIdx = countryOrder.indexOf(CountryMusic.currentCountry.code);
-            if (userIdx > 0) {
-                // Move user's country track to front
-                const tracks = [...cat.tracks];
-                const [userTrack] = tracks.splice(userIdx, 1);
-                tracks.unshift(userTrack);
-                const urls = Object.keys(this.audioUrls)
-                    .filter(k => k.startsWith('local:'))
-                    .map(k => this.audioUrls[k]);
-                const [userUrl] = urls.splice(userIdx, 1);
-                urls.unshift(userUrl);
-                // Rebuild audioUrls for local category
-                tracks.forEach((t, i) => { this.audioUrls[`local:${i}`] = urls[i]; });
-                cat.tracks = tracks;
+            const countryOrder = ['ID', 'ID', 'MY', 'VN', 'TH', 'SG']; // index 0=Bali, 1=Jawa (both ID)
+            const code = CountryMusic.currentCountry.code;
+            // For non-ID countries, move their track to front (after Bali & Jawa stay top for ID)
+            if (code !== 'ID') {
+                const userIdx = countryOrder.indexOf(code);
+                if (userIdx > 1) {
+                    const tracks = [...cat.tracks];
+                    const [userTrack] = tracks.splice(userIdx, 1);
+                    tracks.unshift(userTrack);
+                    const urls = Object.keys(this.audioUrls)
+                        .filter(k => k.startsWith('local:'))
+                        .sort()
+                        .map(k => this.audioUrls[k]);
+                    const [userUrl] = urls.splice(userIdx, 1);
+                    urls.unshift(userUrl);
+                    tracks.forEach((t, i) => { this.audioUrls[`local:${i}`] = urls[i]; });
+                    cat.tracks = tracks;
+                }
             }
         }
         const trackList = document.getElementById('trackList');
