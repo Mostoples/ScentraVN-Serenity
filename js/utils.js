@@ -172,6 +172,28 @@ const Utils = {
     },
 
     /**
+     * Hitung RMSSD (Root Mean Square of Successive Differences) dari array RR intervals
+     * RMSSD adalah metrik HRV paling valid untuk monitoring stres & ANS (autonomic nervous system)
+     * Referensi: Shaffer & Ginsberg (2017), Task Force of ESC/NASPE (1996)
+     *
+     * @param {number[]} rrIntervals - Array interval R-R dalam ms, min 2 elemen
+     * @returns {number} RMSSD dalam ms (0 jika tidak cukup data)
+     */
+    calculateRMSSD(rrIntervals) {
+        if (!rrIntervals || rrIntervals.length < 2) return 0;
+        // Filter outlier: buang RR < 300ms atau > 2000ms (bukan detak jantung normal)
+        const valid = rrIntervals.filter(rr => rr >= 300 && rr <= 2000);
+        if (valid.length < 2) return 0;
+
+        let sumSqDiff = 0;
+        for (let i = 1; i < valid.length; i++) {
+            const diff = valid[i] - valid[i - 1];
+            sumSqDiff += diff * diff;
+        }
+        return Math.sqrt(sumSqDiff / (valid.length - 1));
+    },
+
+    /**
      * ============================================
      * STRESS ANALYSIS FUNCTION
      * ============================================
@@ -192,6 +214,8 @@ const Utils = {
      * @param {number} data.suhu - Body Temperature (Celsius)
      * @param {number} data.spo2 - SpO2 percentage
      * @param {number} data.imu - IMU acceleration magnitude
+     * @param {number[]} [data.rrIntervals] - Array RR intervals dalam ms (opsional, dari ESP32)
+     * @param {number} [data.rmssd] - RMSSD yang sudah dihitung ESP32 (opsional)
      * @returns {Object} { score, level, label, color, valid }
      */
     analyzeStress(data) {
@@ -268,14 +292,26 @@ const Utils = {
         const spo2 = data.spo2 || 0;
         const spo2Norm = clamp(1 - ((spo2 - 85) / (100 - 85)));
 
-        // HRV Normalization (ESTIMATED & INVERTED): 1 - ((60000/hr - 300) / (1000 - 300))
-        // HRV diestimasi dari interval RR (60000/HR dalam ms)
-        // Range: 300ms (stress tinggi) hingga 1000ms (relax)
-        // Dibalik karena HRV rendah = stress tinggi
+        // HRV Normalization menggunakan RMSSD (P_HRV dari SynaScore formula)
+        // Prioritas 1: RMSSD nyata dari array rrIntervals (dikirim ESP32)
+        // Prioritas 2: RMSSD estimasi dari rata-rata RR interval
+        // Range RMSSD: 10ms (stres berat) - 100ms (sangat rileks)
+        // Dibalik karena RMSSD rendah = stres tinggi
         let hrvNorm = 0;
-        if (hr > 0) {
-            const rrInterval = 60000 / hr; // Estimasi RR interval dalam ms
-            hrvNorm = clamp(1 - ((rrInterval - 300) / (1000 - 300)));
+        if (data.rrIntervals && data.rrIntervals.length >= 2) {
+            // Gunakan RMSSD nyata dari RR intervals
+            const rmssd = Utils.calculateRMSSD(data.rrIntervals);
+            hrvNorm = clamp((rmssd - 10) / (100 - 10));
+        } else if (data.rmssd && data.rmssd > 0) {
+            // Gunakan RMSSD yang sudah dihitung di ESP32
+            hrvNorm = clamp((data.rmssd - 10) / (100 - 10));
+        } else if (hr > 0) {
+            // Fallback: estimasi dari rata-rata RR interval (kurang akurat)
+            const rrInterval = 60000 / hr;
+            // Estimasi RMSSD kasar: HRV tinggi ↔ RR interval bervariasi lebih banyak
+            // Asumsi RMSSD ≈ 5% dari RR interval (populasi umum)
+            const estimatedRMSSD = rrInterval * 0.05;
+            hrvNorm = clamp((estimatedRMSSD - 10) / (100 - 10));
         }
 
         // ============================================

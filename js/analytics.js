@@ -149,6 +149,10 @@ const Analytics = {
                 gsr: sensorData.gsr || 0,
                 gsrRaw: sensorData.gsrRaw || 0,
                 gsrR: sensorData.gsrR || 0,
+                // P_HRV: simpan RMSSD & rrIntervals untuk analisis HRV longitudinal
+                rmssd: sensorData.rmssd || 0,
+                rrIntervalsCount: (sensorData.rrIntervals || []).length,
+                hrvSource: sensorData.rmssd > 0 ? 'measured' : 'estimated',
                 activity: sensorData.act || 'DIAM',
                 imuMagnitude: sensorData.imuMagnitude || 0,
                 imuState: stressAnalysis.imuState || 'unknown',

@@ -204,6 +204,7 @@
     <script src="js/synachat.js"></script>
 
     <!-- App Modules -->
+    <script src="js/ground-truth.js"></script>
     <script src="js/assessment.js"></script>
     <script src="js/intervention-engine.js"></script>
     <script src="js/sleep.js"></script>
@@ -266,29 +267,18 @@
                         app.style.display = 'block';
                         app.style.animation = 'fadeIn 0.5s ease-out';
 
-                        // Initialize Country Music System
+                        // Initialize Country Music System (personalization only - first time)
                         if (typeof CountryMusic !== 'undefined' && auth?.currentUser) {
-                            // Wait a bit for app to render
                             setTimeout(() => {
                                 db.collection('users').doc(auth.currentUser.uid).get()
                                     .then(userDoc => {
                                         const userData = userDoc.data();
-                                        console.log('[App] User country data:', userData?.country);
-
                                         if (userData && userData.country) {
-                                            // Country already selected - auto-play music
-                                            console.log('[App] Country already selected:', userData.country);
+                                            // Country already set - just store it for reference
                                             const country = CountryMusic.ASEAN_COUNTRIES.find(c => c.code === userData.country);
-                                            if (country) {
-                                                CountryMusic.currentCountry = country;
-                                                // Use HTML5 Audio directly - no YouTube API needed
-                                                setTimeout(() => {
-                                                    CountryMusic.playAudioFile();
-                                                }, 500);
-                                            }
+                                            if (country) CountryMusic.currentCountry = country;
                                         } else {
-                                            // Country not selected yet - show selection modal
-                                            console.log('[App] No country selected, showing modal');
+                                            // First time - show country selection for personalization
                                             CountryMusic.showCountrySelection();
                                         }
                                     })

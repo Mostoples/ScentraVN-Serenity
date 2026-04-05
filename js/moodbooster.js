@@ -32,7 +32,13 @@ const MoodBooster = {
         'upbeat:1': 'audio/upbeat2.mp3',
         'upbeat:2': 'audio/uobeat3.mp3', // Note: typo in filename
         'upbeat:3': 'audio/upbeat4.mp3',
-        'upbeat:4': 'audio/upbeat5.mp3'
+        'upbeat:4': 'audio/upbeat5.mp3',
+        // Traditional / Local ASEAN tracks
+        'local:0': 'music/indonesia-gamelan.mp3',
+        'local:1': 'music/malaysia-traditional.mp3',
+        'local:2': 'music/vietnam-dan-tranh.mp3',
+        'local:3': 'music/thailand-ranat.mp3',
+        'local:4': 'music/singapore-traditional.mp3'
     },
 
     musicLibrary: {
@@ -76,6 +82,20 @@ const MoodBooster = {
                 { name: 'Happy Dance Mix', genre: 'EDM', bpm: 128, duration: '5:00', mood: 'Semangat' },
                 { name: 'African Drum Circle', genre: 'World', bpm: 120, duration: '4:30', mood: 'Vitalitas' },
                 { name: 'Island Groove', genre: 'Reggae', bpm: 110, duration: '3:45', mood: 'Bahagia' }
+            ]
+        },
+        local: {
+            label: 'Musik Tradisional ASEAN',
+            icon: 'fa-globe-asia',
+            color: '#8b5cf6',
+            bpmRange: '60-100 BPM',
+            description: 'Musik tradisional lokal dari negara-negara ASEAN',
+            tracks: [
+                { name: 'Gamelan Jawa Tradisional', genre: 'Gamelan', bpm: 70, duration: '8:34', mood: 'Meditatif', flag: '🇮🇩' },
+                { name: 'Muzik Tradisional Malaysia', genre: 'Traditional', bpm: 80, duration: '5:21', mood: 'Harmonis', flag: '🇲🇾' },
+                { name: 'Vietnamese Dan Tranh', genre: 'Traditional', bpm: 75, duration: '4:41', mood: 'Damai', flag: '🇻🇳' },
+                { name: 'Thai Ranat Melody', genre: 'Traditional', bpm: 85, duration: '4:39', mood: 'Tenang', flag: '🇹🇭' },
+                { name: 'Singapore Traditional Melody', genre: 'Traditional', bpm: 78, duration: '3:14', mood: 'Seimbang', flag: '🇸🇬' }
             ]
         }
     },
@@ -146,6 +166,11 @@ const MoodBooster = {
 
         // Different track → stop old, play new
         this.stopAudio();
+
+        // Stop CountryMusic background audio if playing
+        if (typeof CountryMusic !== 'undefined' && CountryMusic.audioPlayer) {
+            CountryMusic.audioPlayer.pause();
+        }
 
         const url = this.audioUrls[trackKey];
         if (!url) {
@@ -305,6 +330,26 @@ const MoodBooster = {
     selectCategory(categoryKey) {
         this.currentCategory = categoryKey;
         const cat = this.musicLibrary[categoryKey];
+
+        // For local category, reorder tracks to put user's country first
+        if (categoryKey === 'local' && typeof CountryMusic !== 'undefined' && CountryMusic.currentCountry) {
+            const countryOrder = ['ID', 'MY', 'VN', 'TH', 'SG'];
+            const userIdx = countryOrder.indexOf(CountryMusic.currentCountry.code);
+            if (userIdx > 0) {
+                // Move user's country track to front
+                const tracks = [...cat.tracks];
+                const [userTrack] = tracks.splice(userIdx, 1);
+                tracks.unshift(userTrack);
+                const urls = Object.keys(this.audioUrls)
+                    .filter(k => k.startsWith('local:'))
+                    .map(k => this.audioUrls[k]);
+                const [userUrl] = urls.splice(userIdx, 1);
+                urls.unshift(userUrl);
+                // Rebuild audioUrls for local category
+                tracks.forEach((t, i) => { this.audioUrls[`local:${i}`] = urls[i]; });
+                cat.tracks = tracks;
+            }
+        }
         const trackList = document.getElementById('trackList');
         if (!trackList) return;
 
@@ -324,14 +369,18 @@ const MoodBooster = {
             const trackKey = `${categoryKey}:${i}`;
             const isActive = this.currentTrackKey === trackKey;
             const iconClass = isActive && this.isPlaying ? 'fa-pause' : 'fa-play';
+            const trackIcon = track.flag
+                ? `<span style="font-size:1.4rem;line-height:1;">${track.flag}</span>`
+                : `<i class="fas ${iconClass} mb-track-icon" style="color:${cat.color};font-size:0.9rem;"></i>`;
 
             return `
             <div class="mb-track-btn card ${isActive ? 'mb-playing' : ''}" data-track-key="${trackKey}"
                  onclick="MoodBooster.playTrack('${categoryKey}', ${i})"
                  style="cursor:pointer;padding:14px;margin-bottom:8px;">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:42px;height:42px;background:${cat.color}15;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="fas ${iconClass} mb-track-icon" style="color:${cat.color};font-size:0.9rem;"></i>
+                    <div style="width:42px;height:42px;background:${cat.color}15;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;">
+                        ${trackIcon}
+                        ${track.flag ? `<i class="fas ${iconClass} mb-track-icon" style="position:absolute;bottom:-4px;right:-4px;background:${cat.color};color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;"></i>` : ''}
                     </div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;color:var(--text-primary);font-size:0.9rem;">${track.name}</div>

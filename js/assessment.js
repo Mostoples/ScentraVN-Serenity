@@ -673,54 +673,101 @@ const Assessment = {
 
     /**
      * [GAP 1] Multimodal Bio-Psycho Fusion Score
-     * Combines physiological sensor data (GSR, HRV, SpO2) with psychometric scores (PHQ-9, UCLA)
+     *
+     * Formula: SynaScore = w1(P_psych) + w2(P_EDA) + w3(P_HRV) + w4(P_Sleep)
+     *   w1=0.50  P_psych  = PHQ-9 (60%) + UCLA (40%) — validitas diagnostik tertinggi (Levis et al. 2020)
+     *   w2=0.15  P_EDA    = GSR / Electrodermal Activity — penanda arousal otonom (Boucsein 2012)
+     *   w3=0.20  P_HRV    = RMSSD — indikator regulasi ANS & resiliensi (Shaffer & Ginsberg 2017)
+     *   w4=0.15  P_Sleep  = Sleep readiness score — hubungan tidur-kesehatan mental (Walker 2017)
+     *
+     * Tanpa sensor: fallback ke P_psych saja
      * Based on: Hickey et al. 2021, Quisel et al. 2025, Can et al. 2021
-     * Produces a unified "SynaScore" (0-100) reflecting overall mental wellness
      */
     calculateFusionScore(phq9Score, uclaScore) {
-        // Get current sensor data from App state
+        // Ambil state sensor dari App
         const state = (typeof App !== 'undefined' && App.getInterventionState) ? App.getInterventionState() : {};
 
-        // Normalize PHQ-9 (0-27) to 0-100 inverted (higher = better)
+        // Ambil sensorData langsung untuk rrIntervals & rmssd
+        const rawSensor = (typeof BLEConnection !== 'undefined' && BLEConnection.getSensorData)
+            ? BLEConnection.getSensorData() : {};
+
+        // ── P_psych: Komponen Psikometrik (w1 = 0.50) ──────────────────────────
+        // PHQ-9 (0-27) → 0-100 inverted; UCLA (20-80) → 0-100 inverted
         const phq9Normalized = Math.max(0, 100 - (phq9Score / 27) * 100);
-
-        // Normalize UCLA (20-80) to 0-100 inverted (higher = better)
         const uclaNormalized = Math.max(0, 100 - ((uclaScore - 20) / 60) * 100);
+        const pPsych = (phq9Normalized * 0.60) + (uclaNormalized * 0.40); // 0-100
 
-        // Normalize sensor data (if available)
-        const stressNormalized = Math.max(0, 100 - (state.stress || 0)); // Lower stress = higher score
-        const gsrNormalized = Math.max(0, 100 - (state.gsr || 0)); // Lower GSR = calmer
-        const hrScore = state.hr > 0 ? Math.max(0, 100 - Math.abs(state.hr - 72) * 2) : 50; // Optimal ~72 BPM
-        const spo2Score = state.spo2 > 0 ? Math.min(100, (state.spo2 / 100) * 100) : 50; // Higher SpO2 = better
+        // ── Deteksi ketersediaan sensor ────────────────────────────────────────
+        const hasSensorData = (state.hr > 0 || state.stress > 0 || state.gsr > 0);
 
-        // Weighted fusion: Psychometric (60%) + Physiological (40%)
-        // Literature suggests psychometric has higher diagnostic validity (Levis et al. 2020)
-        const hasSensorData = state.hr > 0 || state.stress > 0;
+        let fusionScore, pEda, pHrv, pSleep, componentScores;
 
-        let fusionScore;
         if (hasSensorData) {
-            const psychoScore = (phq9Normalized * 0.35) + (uclaNormalized * 0.25);
-            const bioScore = (stressNormalized * 0.15) + (gsrNormalized * 0.10) + (hrScore * 0.10) + (spo2Score * 0.05);
-            fusionScore = Math.round(psychoScore + bioScore);
+            // ── P_EDA: Electrodermal Activity / GSR (w2 = 0.15) ────────────────
+            // GSR rendah = lebih tenang; nilai 0-100 diinvert
+            pEda = Math.max(0, 100 - (state.gsr || 0));
+
+            // ── P_HRV: Heart Rate Variability via RMSSD (w3 = 0.20) ────────────
+            // Gunakan RMSSD nyata jika tersedia, fallback ke estimasi dari HR
+            let rmssd = rawSensor.rmssd || 0;
+            if (!rmssd && rawSensor.rrIntervals && rawSensor.rrIntervals.length >= 2) {
+                rmssd = Utils.calculateRMSSD(rawSensor.rrIntervals);
+            }
+            if (rmssd > 0) {
+                // Normalisasi RMSSD (10ms stres berat — 100ms sangat rileks) → 0-100
+                pHrv = Math.max(0, Math.min(100, ((rmssd - 10) / (100 - 10)) * 100));
+            } else {
+                // Estimasi: gunakan skor stres yang sudah dihitung (inverted)
+                pHrv = Math.max(0, 100 - (state.stress || 50));
+            }
+
+            // ── P_Sleep: Sleep Readiness Score (w4 = 0.15) ─────────────────────
+            // Coba ambil skor tidur malam sebelumnya dari history localStorage
+            let sleepScore = 50; // default jika tidak ada data
+            try {
+                const sleepHistory = JSON.parse(localStorage.getItem('synawatch_sleep_history') || '[]');
+                if (sleepHistory.length > 0) {
+                    // Gunakan skor tidur terbaru (malam kemarin atau sesi terakhir)
+                    sleepScore = sleepHistory[sleepHistory.length - 1].score || 50;
+                } else if (typeof SleepLab !== 'undefined' && SleepLab.calculateScore) {
+                    // Fallback: hitung readiness saat ini
+                    sleepScore = SleepLab.calculateScore();
+                }
+            } catch (_) { /* localStorage tidak tersedia */ }
+            pSleep = Math.max(0, Math.min(100, sleepScore));
+
+            // ── Formula SynaScore ───────────────────────────────────────────────
+            fusionScore = Math.round(
+                (pPsych  * 0.50) +
+                (pEda    * 0.15) +
+                (pHrv    * 0.20) +
+                (pSleep  * 0.15)
+            );
+
+            componentScores = { pPsych, pEda, pHrv, pSleep };
+
         } else {
-            // Without sensor data, use psychometric only
-            fusionScore = Math.round((phq9Normalized * 0.6) + (uclaNormalized * 0.4));
+            // Tanpa sensor: gunakan P_psych saja
+            fusionScore = Math.round(pPsych);
+            componentScores = { pPsych, pEda: null, pHrv: null, pSleep: null };
         }
 
-        // Discordance detection: flag when self-report and bio-signals disagree
+        fusionScore = Math.max(0, Math.min(100, fusionScore));
+
+        // ── Discordance detection ───────────────────────────────────────────────
+        // Flagging ketika self-report dan bio-signal tidak selaras (selisih > 30)
         let discordance = null;
-        if (hasSensorData) {
-            const psychoAvg = (phq9Normalized + uclaNormalized) / 2;
-            const bioAvg = (stressNormalized + gsrNormalized + hrScore + spo2Score) / 4;
-            const diff = Math.abs(psychoAvg - bioAvg);
+        if (hasSensorData && componentScores.pHrv !== null) {
+            const bioAvg = (pEda + pHrv + pSleep) / 3;
+            const diff = Math.abs(pPsych - bioAvg);
             if (diff > 30) {
-                discordance = psychoAvg > bioAvg
+                discordance = pPsych > bioAvg
                     ? 'Laporan diri Anda menunjukkan kondisi baik, namun sinyal tubuh menunjukkan tekanan. Perhatikan sinyal fisik Anda.'
                     : 'Tubuh Anda dalam kondisi rileks, namun skor psikometrik menunjukkan beban emosional. Pertimbangkan untuk berbicara dengan seseorang.';
             }
         }
 
-        // Categorize fusion score
+        // ── Kategorisasi SynaScore ──────────────────────────────────────────────
         let fusionCategory, fusionColor;
         if (fusionScore >= 80) { fusionCategory = 'Sangat Baik'; fusionColor = '#10b981'; }
         else if (fusionScore >= 60) { fusionCategory = 'Baik'; fusionColor = '#3b82f6'; }
@@ -728,7 +775,7 @@ const Assessment = {
         else if (fusionScore >= 20) { fusionCategory = 'Perlu Perhatian'; fusionColor = '#f97316'; }
         else { fusionCategory = 'Kritis'; fusionColor = '#ef4444'; }
 
-        return { fusionScore, fusionCategory, fusionColor, discordance, hasSensorData };
+        return { fusionScore, fusionCategory, fusionColor, discordance, hasSensorData, componentScores };
     },
 
     /**
@@ -922,6 +969,27 @@ const Assessment = {
         if (longitudinalContainer) {
             this.renderLongitudinalChart(longitudinalContainer);
         }
+
+        // Ground Truth: minta validasi dari pengguna setelah 3 detik
+        // agar hasil tampil lebih dulu sebelum prompt muncul
+        setTimeout(() => {
+            if (typeof GroundTruth !== 'undefined') {
+                const state = (typeof App !== 'undefined' && App.getInterventionState)
+                    ? App.getInterventionState() : {};
+                GroundTruth.promptAfterAssessment(
+                    fusion.fusionScore,
+                    state.stress || 0,
+                    {
+                        snapshotHr:     state.hr     || 0,
+                        snapshotGsr:    state.gsr    || 0,
+                        snapshotSpo2:   state.spo2   || 0,
+                        snapshotStress: state.stress || 0,
+                        phq9Score,
+                        uclaScore
+                    }
+                );
+            }
+        }, 3000);
     }
 };
 
