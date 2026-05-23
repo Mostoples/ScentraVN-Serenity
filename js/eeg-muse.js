@@ -1,0 +1,365 @@
+/**
+ * ScentraVN Serenity — EEG Muse Sleep Module
+ *
+ * Connects to Muse Sleep headband via Web Bluetooth API.
+ * Decodes 12-byte EEG packets → 5 samples per channel (256 Hz).
+ * Computes FFT band powers: delta, theta, alpha, beta, gamma.
+ * Classifies stress (theta/beta ratio) and focus (SMR/alpha ratio).
+ * Falls back to simulation mode when no device is present.
+ */
+
+/* ── Muse BLE UUIDs ─────────────────────────────────────────────────── */
+const MUSE_SERVICE  = '0000fe8d-0000-1000-8000-00805f9b34fb';
+const MUSE_CHAR = {
+    control:    '273e0001-4c4d-454d-96be-f03bac821358',
+    tp9:        '273e0003-4c4d-454d-96be-f03bac821358',
+    af7:        '273e0004-4c4d-454d-96be-f03bac821358',
+    af8:        '273e0005-4c4d-454d-96be-f03bac821358',
+    tp10:       '273e0006-4c4d-454d-96be-f03bac821358',
+    battery:    '273e000b-4c4d-454d-96be-f03bac821358',
+    gyroscope:  '273e0009-4c4d-454d-96be-f03bac821358',
+    accelero:   '273e000a-4c4d-454d-96be-f03bac821358',
+};
+
+/* Muse streams at 256 Hz; each packet = 5 samples */
+const MUSE_SAMPLE_RATE  = 256;
+const MUSE_SAMPLES_PER_PACKET = 5;
+
+/* Band definitions [lowHz, highHz] */
+const BANDS = {
+    delta: [0.5, 4],
+    theta: [4,   8],
+    alpha: [8,  13],
+    smr:   [13, 15],
+    beta:  [13, 30],
+    gamma: [30, 100],
+};
+
+/* Stress classification thresholds (theta/beta ratio) */
+const STRESS_HIGH   = 9.50;
+const STRESS_MEDIUM = 6.37;
+
+/* Focus: SMR/alpha ratio > 1.5 = good focus */
+const FOCUS_GOOD = 1.5;
+
+/* FFT window size — power-of-2, ~1 s at 256 Hz */
+const FFT_SIZE = 256;
+
+/* ── Module state ──────────────────────────────────────────────────── */
+const MuseEEG = {
+    device:         null,
+    server:         null,
+    service:        null,
+    controlChar:    null,
+    isConnected:    false,
+    isConnecting:   false,
+    simulationMode: false,
+    _simInterval:   null,
+
+    /* Rolling sample buffers per channel (last FFT_SIZE samples) */
+    buffers: { tp9: [], af7: [], af8: [], tp10: [] },
+
+    /* Computed metrics (updated every analysis tick) */
+    metrics: {
+        powers:         { delta: 0, theta: 0, alpha: 0, smr: 0, beta: 0, gamma: 0 },
+        thetaBetaRatio: 0,
+        smrAlphaRatio:  0,
+        alphaPeak:      0,
+        stressLevel:    'low',   // 'low' | 'medium' | 'high'
+        focusState:     'low',   // 'low' | 'moderate' | 'good'
+        battery:        null,
+        packetCount:    0,
+    },
+
+    /* Callbacks */
+    _onMetrics:     null,
+    _onConnection:  null,
+    _onError:       null,
+
+    /* ── Event binding ─────────────────────────────────────────────── */
+    onMetrics(cb)    { this._onMetrics    = cb; },
+    onConnection(cb) { this._onConnection = cb; },
+    onError(cb)      { this._onError      = cb; },
+
+    /* ── BLE connect ────────────────────────────────────────────────── */
+    async connect() {
+        if (!('bluetooth' in navigator)) {
+            this._emit('error', 'Web Bluetooth tidak didukung. Gunakan Chrome/Edge.');
+            return false;
+        }
+        if (this.isConnected || this.isConnecting) return false;
+
+        this.isConnecting = true;
+        this._emit('connection', { status: 'connecting' });
+
+        try {
+            this.device = await navigator.bluetooth.requestDevice({
+                filters: [
+                    { namePrefix: 'Muse' },
+                    { services: [MUSE_SERVICE] }
+                ],
+                optionalServices: [MUSE_SERVICE],
+            });
+
+            this.device.addEventListener('gattserverdisconnected', () => this._onDisconnected());
+
+            this.server  = await this.device.gatt.connect();
+            this.service = await this.server.getPrimaryService(MUSE_SERVICE);
+
+            /* Subscribe to 4 EEG channels */
+            for (const ch of ['tp9', 'af7', 'af8', 'tp10']) {
+                const char = await this.service.getCharacteristic(MUSE_CHAR[ch]);
+                await char.startNotifications();
+                char.addEventListener('characteristicvaluechanged', (e) => this._onEEGPacket(ch, e.target.value));
+            }
+
+            /* Start streaming */
+            this.controlChar = await this.service.getCharacteristic(MUSE_CHAR.control);
+            await this._sendCommand('p50');
+            await this._sendCommand('s');
+            await this._sendCommand('d');
+
+            /* Battery characteristic (optional) */
+            try {
+                const bat = await this.service.getCharacteristic(MUSE_CHAR.battery);
+                await bat.startNotifications();
+                bat.addEventListener('characteristicvaluechanged', (e) => {
+                    this.metrics.battery = e.target.getUint16(0, false) / 512;
+                });
+            } catch(_) { /* battery not always available */ }
+
+            this.isConnected  = true;
+            this.isConnecting = false;
+            this.simulationMode = false;
+            this._emit('connection', { status: 'connected', deviceName: this.device.name });
+            return true;
+
+        } catch (err) {
+            this.isConnecting = false;
+            if (err.name === 'NotFoundError') {
+                this._emit('error', 'Tidak ada perangkat Muse yang dipilih.');
+            } else {
+                this._emit('error', `Koneksi gagal: ${err.message}`);
+            }
+            return false;
+        }
+    },
+
+    async disconnect() {
+        this._stopSimulation();
+        if (this.device?.gatt?.connected) {
+            try { await this._sendCommand('h'); } catch(_) {}
+            this.device.gatt.disconnect();
+        }
+        this._reset();
+        this._emit('connection', { status: 'disconnected' });
+    },
+
+    /* ── Simulation mode (demo without device) ──────────────────────── */
+    startSimulation(stressLevel = 'medium') {
+        if (this.isConnected) return;
+        this.simulationMode = true;
+        this._emit('connection', { status: 'simulation' });
+
+        const stressMap = { low: 0.3, medium: 0.6, high: 0.9 };
+        const stressFactor = stressMap[stressLevel] ?? 0.5;
+
+        this._simInterval = setInterval(() => {
+            const t = Date.now() / 1000;
+
+            /* Synthesise realistic EEG-like power values */
+            const delta = 18 + 4 * Math.sin(t * 0.3);
+            const theta = (4 + stressFactor * 12) + 2 * Math.sin(t * 0.7);
+            const alpha = (12 - stressFactor * 6) + 1.5 * Math.sin(t * 1.1);
+            const smr   = (4  - stressFactor * 2) + 0.8 * Math.sin(t * 1.3);
+            const beta  = (3  + stressFactor * 8) + 1 * Math.sin(t * 1.8);
+            const gamma = (1  + stressFactor * 3) + 0.5 * Math.sin(t * 2.5);
+
+            const powers = { delta, theta, alpha, smr, beta, gamma };
+            this._updateMetrics(powers);
+        }, 500);
+    },
+
+    stopSimulation() { this._stopSimulation(); },
+
+    /* ── EEG packet decoder ─────────────────────────────────────────── */
+    _onEEGPacket(channel, dataView) {
+        /* 12-byte Muse packet:
+           [0-1] = 16-bit sequence number
+           [2-11] = 5 × 10-bit samples packed big-endian */
+        const buf = this.buffers[channel];
+
+        for (let i = 0; i < MUSE_SAMPLES_PER_PACKET; i++) {
+            const byteOffset = 2 + Math.floor(i * 10 / 8);
+            const bitOffset  = (i * 10) % 8;
+            let val = (dataView.getUint8(byteOffset) << 8 | dataView.getUint8(byteOffset + 1));
+            val = (val >> (6 - bitOffset)) & 0x3FF;
+            /* Convert to microvolts: Muse ADC ref 1.2V, 10-bit → ±0.7 mV range */
+            const uv = (val - 512) * 0.48828125;
+            buf.push(uv);
+        }
+
+        /* Keep rolling window */
+        if (buf.length > FFT_SIZE * 2) buf.splice(0, buf.length - FFT_SIZE * 2);
+
+        /* Run analysis when we have a full window from AF7 (frontal lead) */
+        if (channel === 'af7' && buf.length >= FFT_SIZE) {
+            this.metrics.packetCount++;
+            if (this.metrics.packetCount % 8 === 0) {   /* ~every 200ms */
+                const window = buf.slice(-FFT_SIZE);
+                const powers = this._bandPowers(window);
+                this._updateMetrics(powers);
+            }
+        }
+    },
+
+    /* ── FFT & band power ───────────────────────────────────────────── */
+    _bandPowers(samples) {
+        /* Apply Hanning window */
+        const windowed = samples.map((s, i) => s * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (samples.length - 1))));
+
+        /* Cooley-Tukey in-place FFT */
+        const N = windowed.length;
+        const re = Float64Array.from(windowed);
+        const im = new Float64Array(N);
+        this._fft(re, im, N);
+
+        /* Compute power spectral density per bin */
+        const freqRes = MUSE_SAMPLE_RATE / N;   /* Hz per bin */
+        const psd = new Float64Array(N / 2);
+        for (let k = 1; k < N / 2; k++) {
+            psd[k] = (re[k] * re[k] + im[k] * im[k]) / (N * N);
+        }
+
+        /* Integrate power in each band */
+        const powers = {};
+        for (const [band, [lo, hi]] of Object.entries(BANDS)) {
+            let p = 0;
+            for (let k = Math.round(lo / freqRes); k <= Math.round(hi / freqRes) && k < psd.length; k++) {
+                p += psd[k];
+            }
+            powers[band] = p * 1e6;  /* scale to readable units */
+        }
+
+        /* Alpha peak frequency */
+        let peakPow = 0, peakFreq = 10;
+        const loK = Math.round(BANDS.alpha[0] / freqRes);
+        const hiK = Math.round(BANDS.alpha[1] / freqRes);
+        for (let k = loK; k <= hiK && k < psd.length; k++) {
+            if (psd[k] > peakPow) { peakPow = psd[k]; peakFreq = k * freqRes; }
+        }
+        powers._alphaPeak = peakFreq;
+
+        return powers;
+    },
+
+    _fft(re, im, N) {
+        /* Bit-reversal permutation */
+        let j = 0;
+        for (let i = 1; i < N; i++) {
+            let bit = N >> 1;
+            for (; j & bit; bit >>= 1) j ^= bit;
+            j ^= bit;
+            if (i < j) {
+                [re[i], re[j]] = [re[j], re[i]];
+                [im[i], im[j]] = [im[j], im[i]];
+            }
+        }
+        /* Butterfly passes */
+        for (let len = 2; len <= N; len <<= 1) {
+            const ang = -2 * Math.PI / len;
+            const wRe = Math.cos(ang), wIm = Math.sin(ang);
+            for (let i = 0; i < N; i += len) {
+                let curRe = 1, curIm = 0;
+                for (let k = 0; k < len / 2; k++) {
+                    const uRe = re[i + k], uIm = im[i + k];
+                    const vRe = re[i + k + len / 2] * curRe - im[i + k + len / 2] * curIm;
+                    const vIm = re[i + k + len / 2] * curIm + im[i + k + len / 2] * curRe;
+                    re[i + k]           = uRe + vRe;
+                    im[i + k]           = uIm + vIm;
+                    re[i + k + len / 2] = uRe - vRe;
+                    im[i + k + len / 2] = uIm - vIm;
+                    const tmp = curRe * wRe - curIm * wIm;
+                    curIm = curRe * wIm + curIm * wRe;
+                    curRe = tmp;
+                }
+            }
+        }
+    },
+
+    /* ── Metrics update & classification ───────────────────────────── */
+    _updateMetrics(powers) {
+        const { theta, alpha, smr, beta } = powers;
+
+        const thetaBeta = beta > 0.0001 ? theta / beta : 0;
+        const smrAlpha  = alpha > 0.0001 ? smr  / alpha : 0;
+        const alphaPeak = powers._alphaPeak ?? 10;
+
+        let stressLevel;
+        if (thetaBeta > STRESS_HIGH)   stressLevel = 'high';
+        else if (thetaBeta > STRESS_MEDIUM) stressLevel = 'medium';
+        else                            stressLevel = 'low';
+
+        let focusState;
+        if (smrAlpha > FOCUS_GOOD * 1.5) focusState = 'good';
+        else if (smrAlpha > FOCUS_GOOD * 0.8) focusState = 'moderate';
+        else focusState = 'low';
+
+        Object.assign(this.metrics, {
+            powers:         { ...powers },
+            thetaBetaRatio: thetaBeta,
+            smrAlphaRatio:  smrAlpha,
+            alphaPeak,
+            stressLevel,
+            focusState,
+        });
+
+        if (this._onMetrics) this._onMetrics({ ...this.metrics });
+    },
+
+    /* ── Helpers ────────────────────────────────────────────────────── */
+    async _sendCommand(cmd) {
+        if (!this.controlChar) return;
+        const encoded = new TextEncoder().encode(`X${cmd}\n`);
+        const packet  = new Uint8Array(encoded.length + 1);
+        packet[0] = encoded.length;
+        packet.set(encoded, 1);
+        await this.controlChar.writeValue(packet);
+    },
+
+    _onDisconnected() {
+        this._reset();
+        this._emit('connection', { status: 'disconnected' });
+    },
+
+    _reset() {
+        this.isConnected  = false;
+        this.isConnecting = false;
+        this.device = this.server = this.service = this.controlChar = null;
+        for (const ch of Object.keys(this.buffers)) this.buffers[ch] = [];
+    },
+
+    _stopSimulation() {
+        if (this._simInterval) { clearInterval(this._simInterval); this._simInterval = null; }
+        this.simulationMode = false;
+    },
+
+    _emit(type, data) {
+        if (type === 'connection' && this._onConnection) this._onConnection(data);
+        if (type === 'error'      && this._onError)      this._onError(data);
+    },
+
+    /* ── Public helpers ─────────────────────────────────────────────── */
+    getMetrics()    { return { ...this.metrics }; },
+    getStatus()     { return { isConnected: this.isConnected, simulationMode: this.simulationMode }; },
+    isSupported()   { return 'bluetooth' in navigator; },
+
+    stressLabel(level) {
+        return { high: 'Stres Tinggi', medium: 'Stres Sedang', low: 'Stres Rendah' }[level] ?? level;
+    },
+    focusLabel(state) {
+        return { good: 'Fokus Baik', moderate: 'Fokus Sedang', low: 'Fokus Rendah' }[state] ?? state;
+    },
+};
+
+window.MuseEEG = MuseEEG;

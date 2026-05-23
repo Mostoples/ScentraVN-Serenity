@@ -1,7 +1,7 @@
 {
-  "name": "SYNAWATCH - Smart Health Monitoring",
-  "short_name": "SYNAWATCH",
-  "description": "Monitor your health with AI-powered smartwatch companion. Track heart rate, SpO2, stress levels, and chat with Dr. Synachat AI assistant.",
+  "name": "ScentraVN Serenity - Smart Health Monitoring",
+  "short_name": "ScentraVN",
+  "description": "Monitor kesehatan dengan AI smartwatch companion. Pantau detak jantung, SpO2, stres, EEG (Muse Sleep), EDA, HRV, dan chat dengan AI assistant.",
   "start_url": "/app.html",
   "scope": "/",
   "display": "standalone",

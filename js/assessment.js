@@ -1,6 +1,6 @@
 /**
- * SYNAWATCH - Assessment Module
- * Handles PHQ-9 (Depression) and UCLA Loneliness Scale questionnaires
+ * ScentraVN Serenity - Assessment Module
+ * Handles PHQ-9 (Depression), UCLA Loneliness Scale, PSP-5 (Stress), SEES-10 (Eating Response)
  * With progress persistence and Firestore storage
  */
 
@@ -42,11 +42,52 @@ const Assessment = {
     ],
     uclaReversedIndices: [0, 4, 5, 8, 9, 14, 15, 18, 19],
 
-    currentStage: 'intro', // intro, phq9, ucla, result
+    // PSP-5 — Perceived Stress Scale (5-item, skala 1–6)
+    psp5: [
+        "Seberapa sering Anda merasa terganggu secara tiba-tiba oleh sesuatu yang tidak terduga?",
+        "Seberapa sering Anda merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda?",
+        "Seberapa sering Anda merasa gugup dan penuh tekanan?",
+        "Seberapa sering Anda berhasil mengatasi berbagai kesulitan yang Anda hadapi?",  // reversed
+        "Seberapa sering Anda merasa percaya diri dalam menghadapi masalah pribadi Anda?" // reversed
+    ],
+    psp5ReversedIndices: [3, 4], // item 4 & 5 di-reverse (7 - nilai)
+    psp5Labels: [
+        '1 — Tidak Pernah',
+        '2 — Hampir Tidak Pernah',
+        '3 — Kadang-kadang',
+        '4 — Cukup Sering',
+        '5 — Sering',
+        '6 — Hampir Selalu',
+    ],
+
+    // SEES-10 — Salzburg Emotional Eating Scale (10-item, skala 1–5)
+    sees10: [
+        "Saat saya sedang cemas, saya makan lebih banyak dari biasanya",
+        "Saat saya merasa marah, saya cenderung langsung makan",
+        "Saat saya sedang merasa depresi, saya makan lebih banyak",
+        "Saat saya merasa kecewa, saya makan berlebihan",
+        "Saat saya merasa takut, saya makan lebih banyak",
+        "Saat saya sedang merasa senang, saya juga makan lebih banyak",
+        "Saat saya merasa bosan, saya cenderung ngemil berlebihan",
+        "Saat saya merasa tertekan oleh tekanan hidup, saya makan lebih banyak",
+        "Makanan adalah cara utama saya mengatasi emosi negatif",
+        "Saya makan sebagai respons terhadap suasana hati, bukan karena benar-benar lapar",
+    ],
+    sees10Labels: [
+        '1 — Tidak Pernah',
+        '2 — Jarang',
+        '3 — Kadang-kadang',
+        '4 — Sering',
+        '5 — Selalu',
+    ],
+
+    currentStage: 'intro', // intro, phq9, ucla, psp5, sees10, result
     currentIndex: 0,
     answers: {
-        phq9: [],
-        ucla: []
+        phq9:  [],
+        ucla:  [],
+        psp5:  [],
+        sees10: [],
     },
 
     // Storage key for localStorage
@@ -238,11 +279,10 @@ const Assessment = {
      */
     retakeAssessment() {
         this.clearProgress();
-        // Also clear cached assessment results
         try { localStorage.removeItem('synawatch_assessment'); } catch (e) {}
         this.currentStage = 'intro';
         this.currentIndex = 0;
-        this.answers = { phq9: [], ucla: [] };
+        this.answers = { phq9: [], ucla: [], psp5: [], sees10: [] };
         this.start();
     },
 
@@ -252,7 +292,7 @@ const Assessment = {
     start() {
         this.currentStage = 'phq9';
         this.currentIndex = 0;
-        this.answers = { phq9: [], ucla: [] };
+        this.answers = { phq9: [], ucla: [], psp5: [], sees10: [] };
         this.saveProgress();
         this.renderQuestion();
     },
@@ -309,13 +349,10 @@ const Assessment = {
      * Handle Answer Selection
      */
     selectAnswer(value) {
-        if (this.currentStage === 'phq9') {
-            this.answers.phq9[this.currentIndex] = value;
-            this.saveProgress(); // Save after each answer
-            this.next();
-        } else if (this.currentStage === 'ucla') {
-            this.answers.ucla[this.currentIndex] = value;
-            this.saveProgress(); // Save after each answer
+        const stage = this.currentStage;
+        if (['phq9', 'ucla', 'psp5', 'sees10'].includes(stage)) {
+            this.answers[stage][this.currentIndex] = value;
+            this.saveProgress();
             this.next();
         }
     },
@@ -324,20 +361,25 @@ const Assessment = {
      * Go to next question
      */
     next() {
-        if (this.currentStage === 'phq9') {
-            if (this.currentIndex < this.phq9.length - 1) {
-                this.currentIndex++;
-                this.saveProgress();
-                this.renderQuestion();
-            } else {
-                this.currentStage = 'ucla';
+        const stageOrder  = ['phq9', 'ucla', 'psp5', 'sees10'];
+        const stageLengths = {
+            phq9:   this.phq9.length,
+            ucla:   this.ucla.length,
+            psp5:   this.psp5.length,
+            sees10: this.sees10.length,
+        };
+        const stage = this.currentStage;
+        const maxIdx = stageLengths[stage] - 1;
+
+        if (this.currentIndex < maxIdx) {
+            this.currentIndex++;
+            this.saveProgress();
+            this.renderQuestion();
+        } else {
+            const nextStageIdx = stageOrder.indexOf(stage) + 1;
+            if (nextStageIdx < stageOrder.length) {
+                this.currentStage = stageOrder[nextStageIdx];
                 this.currentIndex = 0;
-                this.saveProgress();
-                this.renderQuestion();
-            }
-        } else if (this.currentStage === 'ucla') {
-            if (this.currentIndex < this.ucla.length - 1) {
-                this.currentIndex++;
                 this.saveProgress();
                 this.renderQuestion();
             } else {
@@ -350,12 +392,22 @@ const Assessment = {
      * Go to previous question
      */
     prev() {
-        if (this.currentStage === 'ucla' && this.currentIndex === 0) {
-            // Go back to last PHQ-9 question
-            this.currentStage = 'phq9';
-            this.currentIndex = this.phq9.length - 1;
-        } else if (this.currentIndex > 0) {
+        const stageOrder = ['phq9', 'ucla', 'psp5', 'sees10'];
+        const stageLengths = {
+            phq9:   this.phq9.length,
+            ucla:   this.ucla.length,
+            psp5:   this.psp5.length,
+            sees10: this.sees10.length,
+        };
+
+        if (this.currentIndex > 0) {
             this.currentIndex--;
+        } else {
+            const prevStageIdx = stageOrder.indexOf(this.currentStage) - 1;
+            if (prevStageIdx >= 0) {
+                this.currentStage = stageOrder[prevStageIdx];
+                this.currentIndex = stageLengths[this.currentStage] - 1;
+            }
         }
         this.saveProgress();
         this.renderQuestion();
@@ -372,18 +424,22 @@ const Assessment = {
         const progressWrapper = document.getElementById('assessmentProgressWrapper');
         if (progressWrapper) progressWrapper.style.display = 'block';
 
-        let totalQuestions = this.phq9.length + this.ucla.length;
-        let currentOverallIndex = this.currentStage === 'phq9' ? this.currentIndex : this.phq9.length + this.currentIndex;
-        let progress = Math.round((currentOverallIndex / totalQuestions) * 100);
+        const stageLengths  = { phq9: this.phq9.length, ucla: this.ucla.length, psp5: this.psp5.length, sees10: this.sees10.length };
+        const stageOrder    = ['phq9', 'ucla', 'psp5', 'sees10'];
+        const totalQuestions = Object.values(stageLengths).reduce((s, v) => s + v, 0);
+        let done = 0;
+        for (const s of stageOrder) {
+            if (s === this.currentStage) { done += this.currentIndex; break; }
+            done += stageLengths[s];
+        }
+        let progress = Math.round((done / totalQuestions) * 100);
 
         // Update progress bar
         const progressBar = document.getElementById('assessmentProgress');
         if (progressBar) progressBar.style.width = progress + '%';
 
         // Check if there's a previously selected answer for this question
-        const previousAnswer = this.currentStage === 'phq9'
-            ? this.answers.phq9[this.currentIndex]
-            : this.answers.ucla[this.currentIndex];
+        const previousAnswer = this.answers[this.currentStage]?.[this.currentIndex];
 
         // Can go back?
         const canGoBack = !(this.currentStage === 'phq9' && this.currentIndex === 0);
@@ -445,6 +501,56 @@ const Assessment = {
                     <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
                 </button>
             `;
+        } else if (this.currentStage === 'psp5') {
+            const psp5Labels = this.psp5Labels;
+            html = `
+                <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
+                    <span class="badge" style="background: rgba(239,68,68,0.12); color: #dc2626; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">
+                        Bagian 3: Tingkat Stres — PSP-5 (${this.currentIndex + 1}/${this.psp5.length})
+                    </span>
+                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Dalam sebulan terakhir, pilih yang paling sesuai kondisi Anda.</p>
+                </div>
+                <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
+                    <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.psp5[this.currentIndex]}</h3>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                        ${psp5Labels.map((lbl, i) => {
+                            const val = i + 1;
+                            const sel = previousAnswer === val;
+                            return `<button class="btn ${sel ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 14px;" onclick="Assessment.selectAnswer(${val})">
+                                ${sel ? '<i class="fas fa-check-circle" style="margin-right:8px;"></i>' : ''}${lbl}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                </div>
+                <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
+                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                </button>
+            `;
+        } else if (this.currentStage === 'sees10') {
+            const sees10Labels = this.sees10Labels;
+            html = `
+                <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
+                    <span class="badge" style="background: rgba(234,88,12,0.12); color: #ea580c; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">
+                        Bagian 4: Eating Response — SEES-10 (${this.currentIndex + 1}/${this.sees10.length})
+                    </span>
+                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Seberapa sering Anda merasakan hal berikut secara umum?</p>
+                </div>
+                <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
+                    <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.sees10[this.currentIndex]}</h3>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                        ${sees10Labels.map((lbl, i) => {
+                            const val = i + 1;
+                            const sel = previousAnswer === val;
+                            return `<button class="btn ${sel ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 14px;" onclick="Assessment.selectAnswer(${val})">
+                                ${sel ? '<i class="fas fa-check-circle" style="margin-right:8px;"></i>' : ''}${lbl}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                </div>
+                <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
+                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                </button>
+            `;
         }
 
         container.innerHTML = html;
@@ -455,52 +561,58 @@ const Assessment = {
      * Finish Assessment, calculate scores and save to Firestore
      */
     async finish() {
-        // Validate all answers are present (guard against corrupted data)
-        const phq9Valid = this.answers.phq9.length === this.phq9.length &&
-            this.answers.phq9.every(a => typeof a === 'number' && a >= 0 && a <= 3);
-        const uclaValid = this.answers.ucla.length === this.ucla.length &&
-            this.answers.ucla.every(a => typeof a === 'number' && a >= 1 && a <= 4);
+        // Validate all answers
+        const phq9Valid  = this.answers.phq9.length  === this.phq9.length  && this.answers.phq9.every(a  => typeof a === 'number' && a >= 0 && a <= 3);
+        const uclaValid  = this.answers.ucla.length  === this.ucla.length  && this.answers.ucla.every(a  => typeof a === 'number' && a >= 1 && a <= 4);
+        const psp5Valid  = this.answers.psp5.length  === this.psp5.length  && this.answers.psp5.every(a  => typeof a === 'number' && a >= 1 && a <= 6);
+        const sees10Valid= this.answers.sees10.length=== this.sees10.length&& this.answers.sees10.every(a => typeof a === 'number' && a >= 1 && a <= 5);
 
-        if (!phq9Valid || !uclaValid) {
-            console.error('Invalid answers detected, restarting assessment');
+        if (!phq9Valid || !uclaValid || !psp5Valid || !sees10Valid) {
+            console.error('Invalid answers, restarting assessment');
             this.clearProgress();
             this.currentStage = 'intro';
             this.currentIndex = 0;
-            this.answers = { phq9: [], ucla: [] };
+            this.answers = { phq9: [], ucla: [], psp5: [], sees10: [] };
             this.renderIntro();
             return;
         }
 
-        // Calculate PHQ-9 (Sum of all answers: 0-27)
+        // ── PHQ-9 (0–27) ─────────────────────────────────────────
         const phq9Score = this.answers.phq9.reduce((a, b) => a + b, 0);
+        let phq9Category;
+        if      (phq9Score <= 4)  phq9Category = "Minimal";
+        else if (phq9Score <= 9)  phq9Category = "Ringan";
+        else if (phq9Score <= 14) phq9Category = "Sedang";
+        else if (phq9Score <= 19) phq9Category = "Sedang-Berat";
+        else                      phq9Category = "Berat";
 
-        // Calculate UCLA
-        // Items 1, 5, 6, 9, 10, 15, 16, 19, 20 are reversed scored
+        // ── UCLA (20–80) ──────────────────────────────────────────
         let uclaScore = 0;
-        this.answers.ucla.forEach((ans, index) => {
-            if (this.uclaReversedIndices.includes(index)) {
-                // Reverse: 1->4, 2->3, 3->2, 4->1
-                uclaScore += (5 - ans);
-            } else {
-                uclaScore += ans;
-            }
+        this.answers.ucla.forEach((ans, idx) => {
+            uclaScore += this.uclaReversedIndices.includes(idx) ? (5 - ans) : ans;
         });
-
-        // Determine Categories
-        // PHQ-9 Categories
-        let phq9Category = "";
-        if (phq9Score <= 4) phq9Category = "Minimal";        // Minimal -> mode pemantauan pasif
-        else if (phq9Score <= 9) phq9Category = "Ringan";    // Ringan -> intervensi mandiri (Sleep Lab, Mood Booster)
-        else if (phq9Score <= 14) phq9Category = "Sedang";   // Sedang -> SynaBuddy proaktif + Support Hub disarankan
-        else if (phq9Score <= 19) phq9Category = "Sedang-Berat"; // Sedang-Berat -> Alert + Referral System
-        else phq9Category = "Berat";                         // Berat -> Crisis Support otomatis tampil
-
-        // UCLA Categories (20-80)
-        let uclaCategory = "";
-        if (uclaScore <= 34) uclaCategory = "Low";
+        let uclaCategory;
+        if      (uclaScore <= 34) uclaCategory = "Low";
         else if (uclaScore <= 49) uclaCategory = "Moderate";
         else if (uclaScore <= 64) uclaCategory = "Moderately High";
-        else uclaCategory = "High";
+        else                      uclaCategory = "High";
+
+        // ── PSP-5 (5–30, reversed items 3 & 4 scored as 7-val) ───
+        let psp5Score = 0;
+        this.answers.psp5.forEach((ans, idx) => {
+            psp5Score += this.psp5ReversedIndices.includes(idx) ? (7 - ans) : ans;
+        });
+        let psp5Category;
+        if      (psp5Score < 15) psp5Category = "Stres Rendah";
+        else if (psp5Score < 22) psp5Category = "Stres Sedang";
+        else                     psp5Category = "Stres Tinggi";
+
+        // ── SEES-10 (rata-rata 1–5) ───────────────────────────────
+        const sees10Avg = +(this.answers.sees10.reduce((a, b) => a + b, 0) / this.sees10.length).toFixed(2);
+        let sees10Category;
+        if      (sees10Avg < 2.5) sees10Category = "Under Eating";
+        else if (sees10Avg <= 3.5) sees10Category = "Normal";
+        else                       sees10Category = "Over Eating / Emotional Eating";
 
         const container = document.getElementById('assessmentContent');
         if (container) {
@@ -512,66 +624,53 @@ const Assessment = {
             `;
         }
 
-        // Cache assessment results for intervention engine (always, even if Firestore fails)
-        this.cacheAssessmentResults(phq9Score, phq9Category, uclaScore, uclaCategory);
+        this.cacheAssessmentResults(phq9Score, phq9Category, uclaScore, uclaCategory, psp5Score, psp5Category, sees10Avg, sees10Category);
 
         const user = auth?.currentUser;
         const firestoreAvailable = user && typeof db !== 'undefined' && typeof FirebaseService !== 'undefined';
 
         if (!firestoreAvailable) {
-            // No Firestore available - cache locally and show results
-            console.warn('Firestore not available, assessment cached locally only');
             this.clearProgress();
-            this.showResults(phq9Score, phq9Category, uclaScore, uclaCategory);
+            this.showResults(phq9Score, phq9Category, uclaScore, uclaCategory, psp5Score, psp5Category, sees10Avg, sees10Category);
             return;
         }
 
         try {
-            // Save to Firestore
             await FirebaseService.userCol(user.uid, 'assessments').add({
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 date: new Date().toISOString(),
-                phq9: {
-                    score: phq9Score,
-                    category: phq9Category,
-                    answers: this.answers.phq9
-                },
-                ucla: {
-                    score: uclaScore,
-                    category: uclaCategory,
-                    answers: this.answers.ucla
-                }
+                phq9:  { score: phq9Score,  category: phq9Category,  answers: this.answers.phq9  },
+                ucla:  { score: uclaScore,  category: uclaCategory,  answers: this.answers.ucla  },
+                psp5:  { score: psp5Score,  category: psp5Category,  answers: this.answers.psp5  },
+                sees10:{ average: sees10Avg, category: sees10Category, answers: this.answers.sees10 },
             });
 
-            // Update User document to mark onboarding complete
             await db.collection('users').doc(user.uid).set({
                 onboardingCompleted: true,
                 lastAssessmentDate: firebase.firestore.FieldValue.serverTimestamp(),
-                initialPhq9Score: phq9Score,
-                initialUclaScore: uclaScore
+                initialPhq9Score:   phq9Score,
+                initialUclaScore:   uclaScore,
+                initialPsp5Score:   psp5Score,
+                initialSees10Avg:   sees10Avg,
             }, { merge: true });
 
-            // Clear localStorage progress since we're done
             this.clearProgress();
-
-            // Show results
-            this.showResults(phq9Score, phq9Category, uclaScore, uclaCategory);
+            this.showResults(phq9Score, phq9Category, uclaScore, uclaCategory, psp5Score, psp5Category, sees10Avg, sees10Category);
         } catch (error) {
             console.error("Error saving assessment:", error);
-            // Store scores temporarily so retry can use them
-            this._pendingResults = { phq9Score, phq9Category, uclaScore, uclaCategory };
+            this._pendingResults = { phq9Score, phq9Category, uclaScore, uclaCategory, psp5Score, psp5Category, sees10Avg, sees10Category };
             const cont = document.getElementById('assessmentContent');
             if (cont) {
                 cont.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-500); margin-bottom: 20px;"></i>
                         <h3>Gagal Menyimpan</h3>
-                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Terjadi kesalahan saat menyimpan data ke server. Data Anda tetap tersimpan secara lokal.</p>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Data tersimpan lokal. Coba simpan ulang atau lihat hasil.</p>
                         <div style="display: flex; flex-direction: column; gap: 12px;">
                             <button class="btn btn-primary" onclick="Assessment.retryFinish()" style="width: 100%; justify-content: center;">
                                 <i class="fas fa-redo"></i> Coba Simpan Ulang
                             </button>
-                            <button class="btn btn-outline" onclick="Assessment.showResults(${phq9Score}, '${phq9Category}', ${uclaScore}, '${uclaCategory}')" style="width: 100%; justify-content: center;">
+                            <button class="btn btn-outline" onclick="Assessment.showResults(${phq9Score},'${phq9Category}',${uclaScore},'${uclaCategory}',${psp5Score},'${psp5Category}',${sees10Avg},'${sees10Category}')" style="width: 100%; justify-content: center;">
                                 <i class="fas fa-chart-pie"></i> Lihat Hasil Saja
                             </button>
                         </div>
