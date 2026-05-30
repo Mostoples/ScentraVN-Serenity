@@ -71,7 +71,9 @@ const AdminUI = {
             'users': 'Users Management',
             'patients': 'Patient Data',
             'questionnaires': 'Questionnaires',
-            'competition': 'Kesiapan Kompetisi'
+            'competition': 'Kesiapan Kompetisi',
+            'notulen': 'Notulen Diskusi',
+            'alat-dataset': 'Ketersediaan Alat Dataset'
         };
         const pageName = pageNames[tabName] || tabName;
         if (breadcrumbEl) breadcrumbEl.textContent = pageName;
@@ -88,6 +90,10 @@ const AdminUI = {
             this.renderQuestionnairesTab();
         } else if (tabName === 'competition') {
             this.renderCompetitionTab();
+        } else if (tabName === 'notulen') {
+            this.renderNotulenTab();
+        } else if (tabName === 'alat-dataset') {
+            this.renderAlatDatasetTab();
         }
     },
 
@@ -3318,6 +3324,175 @@ const AdminUI = {
                 </div>
             </div>`;
         document.body.insertAdjacentHTML('beforeend', html);
+    },
+
+    async renderNotulenTab() {
+        const content = document.getElementById('notulenContent') || document.getElementById('adminDashboardContent');
+        if (!content) return;
+        content.innerHTML = '<div style="text-align:center;padding:40px;"><div class="loading-spinner" style="margin:0 auto 16px;"></div><p style="color:#64748b;">Memuat notulen...</p></div>';
+        try {
+            const snapshot = await db.collection('meetingNotes').orderBy('createdAt', 'desc').limit(50).get();
+            if (snapshot.empty) {
+                content.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#64748b;"><i class="fas fa-notes-medical" style="font-size:3rem;color:#cbd5e1;margin-bottom:16px;display:block;"></i><h4 style="color:#475569;margin-bottom:8px;">Belum ada notulen</h4><p>Klik "Tambah Notulen" untuk mencatat diskusi.</p></div>';
+                return;
+            }
+            let html = '<div style="display:flex;flex-direction:column;gap:16px;padding:16px;">';
+            const topikColors = { riset:'#6366f1', alat:'#0ea5e9', aplikasi:'#10b981', kuesioner:'#f59e0b', umum:'#64748b' };
+            snapshot.forEach(doc => {
+                const n = doc.data();
+                const dt = n.tanggal ? new Date(n.tanggal).toLocaleString('id-ID',{dateStyle:'full',timeStyle:'short'}) : '—';
+                const tc = topikColors[n.topik] || '#64748b';
+                html += `<div style="background:white;border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border-left:4px solid ${tc};">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                        <div>
+                            <span style="display:inline-block;background:${tc}20;color:${tc};padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;margin-bottom:6px;">${(n.topik||'umum').toUpperCase()}</span>
+                            <div style="font-size:13px;color:#64748b;"><i class="fas fa-calendar-alt" style="margin-right:5px;"></i>${dt}</div>
+                        </div>
+                        <button onclick="AdminUI.deleteNotulen('${doc.id}')" style="background:#fee2e2;color:#ef4444;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;"><i class="fas fa-trash"></i></button>
+                    </div>
+                    ${n.peserta ? `<div style="margin-bottom:10px;font-size:13px;color:#475569;"><strong style="color:#1e293b;">Peserta:</strong> ${n.peserta}</div>` : ''}
+                    <div style="margin-bottom:10px;">
+                        <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">Poin Diskusi:</div>
+                        <div style="font-size:13px;color:#475569;white-space:pre-wrap;background:#f8fafc;padding:10px 14px;border-radius:8px;line-height:1.6;">${n.poin||'—'}</div>
+                    </div>
+                    ${n.actionItems ? `<div><div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">Tindak Lanjut:</div><div style="font-size:13px;color:#475569;white-space:pre-wrap;background:#f0fdf4;padding:10px 14px;border-radius:8px;line-height:1.6;">${n.actionItems}</div></div>` : ''}
+                </div>`;
+            });
+            html += '</div>';
+            content.innerHTML = html;
+        } catch(err) {
+            content.innerHTML = `<div style="padding:40px;text-align:center;color:#ef4444;">Error: ${err.message}<br><button onclick="AdminUI.renderNotulenTab()" style="margin-top:12px;padding:8px 16px;background:#6366f1;color:white;border:none;border-radius:8px;cursor:pointer;">Coba Lagi</button></div>`;
+        }
+    },
+
+    showAddNotulenModal() {
+        const modal = document.getElementById('notulenModal');
+        if (modal) {
+            const now = new Date();
+            const localDT = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+            const dtInput = document.getElementById('notulen-datetime');
+            if (dtInput) dtInput.value = localDT;
+            modal.classList.add('active');
+        }
+    },
+
+    async saveNotulen() {
+        const datetime = document.getElementById('notulen-datetime')?.value;
+        const peserta = document.getElementById('notulen-peserta')?.value.trim();
+        const poin = document.getElementById('notulen-poin')?.value.trim();
+        const action = document.getElementById('notulen-action')?.value.trim();
+        const topik = document.getElementById('notulen-topik')?.value;
+        if (!datetime || !peserta || !poin) {
+            alert('Mohon isi Tanggal, Peserta, dan Poin Diskusi.');
+            return;
+        }
+        try {
+            await db.collection('meetingNotes').add({
+                tanggal: datetime,
+                peserta,
+                poin,
+                actionItems: action || '',
+                topik: topik || 'umum',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdBy: auth.currentUser?.email || 'admin'
+            });
+            document.getElementById('notulenModal')?.classList.remove('active');
+            ['notulen-peserta','notulen-poin','notulen-action'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+            this.renderNotulenTab();
+        } catch(err) {
+            alert('Gagal menyimpan: ' + err.message);
+        }
+    },
+
+    async deleteNotulen(docId) {
+        if (!confirm('Hapus notulen ini?')) return;
+        try {
+            await db.collection('meetingNotes').doc(docId).delete();
+            this.renderNotulenTab();
+        } catch(err) {
+            alert('Gagal hapus: ' + err.message);
+        }
+    },
+
+    loadNotulen() { this.renderNotulenTab(); },
+
+    async renderAlatDatasetTab() {
+        const content = document.getElementById('alatDatasetContent') || document.getElementById('adminDashboardContent');
+        if (!content) return;
+        try {
+            let devices = [];
+            try {
+                const snap = await db.collection('deviceInventory').get();
+                if (!snap.empty) snap.forEach(doc => devices.push({id:doc.id,...doc.data()}));
+            } catch(e) {}
+            if (devices.length === 0) {
+                devices = [
+                    {id:'eeg1',kategori:'EEG',nama:'Muse-S Headband #1',brand:'InteraXon',status:'tersedia',catatan:'BT, 4ch EEG + PPG'},
+                    {id:'eeg2',kategori:'EEG',nama:'Muse-S Headband #2',brand:'InteraXon',status:'tersedia',catatan:'Backup unit'},
+                    {id:'eeg3',kategori:'EEG',nama:'Muse-S Headband #3',brand:'InteraXon',status:'maintenance',catatan:'Perlu kalibrasi'},
+                    {id:'eda1',kategori:'EDA',nama:'SynaWatch Prototype #1',brand:'ScentraVN',status:'tersedia',catatan:'EDA + PPG + IMU'},
+                    {id:'eda2',kategori:'EDA',nama:'SynaWatch Prototype #2',brand:'ScentraVN',status:'tersedia',catatan:'EDA + PPG + IMU'},
+                    {id:'eda3',kategori:'EDA',nama:'SynaWatch Prototype #3',brand:'ScentraVN',status:'digunakan',catatan:'Dalam pengujian'},
+                    {id:'ppg1',kategori:'PPG',nama:'Samsung Galaxy Watch #1',brand:'Samsung',status:'tersedia',catatan:'Ref: HR, HRV, SpO2'},
+                    {id:'ppg2',kategori:'PPG',nama:'Samsung Galaxy Watch #2',brand:'Samsung',status:'tersedia',catatan:'Ref: HR, HRV'},
+                ];
+            }
+            const statusColors = {tersedia:'#10b981',digunakan:'#f59e0b',maintenance:'#ef4444'};
+            const katIcons = {EEG:'fa-brain',EDA:'fa-microchip',PPG:'fa-heart-pulse'};
+            const katColors = {EEG:'#6366f1',EDA:'#0ea5e9',PPG:'#ec4899'};
+            const grouped = devices.reduce((g,d)=>{ (g[d.kategori]=g[d.kategori]||[]).push(d); return g; },{});
+            let html = `<div style="padding:20px;">
+                <div style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:20px;padding:24px;margin-bottom:24px;color:white;">
+                    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px;"><i class="fas fa-microscope" style="margin-right:10px;color:#60a5fa;"></i>Rencana Pengambilan Dataset</h2>
+                    <p style="color:rgba(255,255,255,0.7);font-size:0.88rem;margin-bottom:16px;">Protokol riset — EEG, EDA, PPG ground truth</p>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+                        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.8rem;font-weight:800;color:#60a5fa;">50</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Target Partisipan</div></div>
+                        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.8rem;font-weight:800;color:#a78bfa;">3</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Alat EDA</div></div>
+                        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.8rem;font-weight:800;color:#67e8f9;">2–3</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Alat EEG</div></div>
+                        <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.8rem;font-weight:800;color:#86efac;">25–30</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Menit/Sesi</div></div>
+                    </div>
+                    <div style="margin-top:14px;background:rgba(255,255,255,0.06);border-radius:10px;padding:12px 16px;font-size:12px;color:rgba(255,255,255,0.75);">
+                        <strong style="color:white;">Protokol Sesi:</strong> Baseline/noise (2–5 mnt) → Relaksasi musik (15 mnt) → Recovery/noise (2–5 mnt)
+                    </div>
+                </div>`;
+            ['EEG','EDA','PPG'].forEach(kat => {
+                const items = grouped[kat] || [];
+                const avail = items.filter(d=>d.status==='tersedia').length;
+                html += `<div style="margin-bottom:20px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                        <div style="width:40px;height:40px;background:${katColors[kat]}20;border-radius:12px;display:flex;align-items:center;justify-content:center;color:${katColors[kat]};font-size:1.1rem;"><i class="fas ${katIcons[kat]}"></i></div>
+                        <div><h3 style="font-size:1rem;font-weight:700;color:#1e293b;margin:0;">${kat}</h3><p style="font-size:12px;color:#64748b;margin:0;">${avail}/${items.length} tersedia</p></div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">`;
+                items.forEach(d => {
+                    const sc = statusColors[d.status]||'#64748b';
+                    html += `<div style="background:white;border-radius:12px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:180px;">
+                            <div style="font-size:14px;font-weight:700;color:#1e293b;">${d.nama}</div>
+                            <div style="font-size:12px;color:#64748b;">${d.brand}${d.catatan?' — '+d.catatan:''}</div>
+                        </div>
+                        <select onchange="AdminUI.updateDeviceStatus('${d.id}',this.value)" style="padding:6px 10px;border:1.5px solid ${sc};border-radius:8px;font-size:12px;font-weight:700;color:${sc};background:${sc}15;cursor:pointer;outline:none;">
+                            <option value="tersedia" ${d.status==='tersedia'?'selected':''}>✓ Tersedia</option>
+                            <option value="digunakan" ${d.status==='digunakan'?'selected':''}>⚡ Digunakan</option>
+                            <option value="maintenance" ${d.status==='maintenance'?'selected':''}>⚠ Maintenance</option>
+                        </select>
+                    </div>`;
+                });
+                html += '</div></div>';
+            });
+            html += '</div>';
+            content.innerHTML = html;
+        } catch(err) {
+            content.innerHTML = `<div style="padding:40px;text-align:center;color:#ef4444;">Error: ${err.message}</div>`;
+        }
+    },
+
+    async updateDeviceStatus(deviceId, newStatus) {
+        try {
+            await db.collection('deviceInventory').doc(deviceId).set({status:newStatus},{merge:true});
+        } catch(err) {
+            console.error('updateDeviceStatus error:', err);
+        }
     }
 };
 

@@ -4,13 +4,14 @@
  */
 
 const CONFIG = {
-    // Firebase Configuration - SYNAWACTH-ID
-    FIREBASE_API_KEY: (typeof API_KEYS !== 'undefined' && API_KEYS.FIREBASE_API_KEY) || '',
-    FIREBASE_AUTH_DOMAIN: 'synawacth-id.firebaseapp.com',
-    FIREBASE_PROJECT_ID: 'synawacth-id',
-    FIREBASE_STORAGE_BUCKET: 'synawacth-id.firebasestorage.app',
-    FIREBASE_MESSAGING_SENDER_ID: '362856081724',
-    FIREBASE_APP_ID: '1:362856081724:web:56e6dd619d391adedc9639',
+    // Firebase Configuration - ScentraVN
+    FIREBASE_API_KEY: 'AIzaSyCvYBVasZNLghuQhRhLwoYOPkdR3noVXrA',
+    FIREBASE_AUTH_DOMAIN: 'scentravn.firebaseapp.com',
+    FIREBASE_DATABASE_URL: 'https://scentravn-default-rtdb.asia-southeast1.firebasedatabase.app',
+    FIREBASE_PROJECT_ID: 'scentravn',
+    FIREBASE_STORAGE_BUCKET: 'scentravn.firebasestorage.app',
+    FIREBASE_MESSAGING_SENDER_ID: '479113972827',
+    FIREBASE_APP_ID: '1:479113972827:web:399f5543c7624e75b1037e',
 
     // Gemini AI Configuration (multiple keys for auto-fallback)
     GEMINI_API_KEY: (typeof API_KEYS !== 'undefined' && API_KEYS.GEMINI_API_KEY) || '',
@@ -20,10 +21,15 @@ const CONFIG = {
     ELEVENLABS_API_KEY: (typeof API_KEYS !== 'undefined' && API_KEYS.ELEVENLABS_API_KEY) || '',
     ELEVENLABS_VOICE_ID: (typeof API_KEYS !== 'undefined' && API_KEYS.ELEVENLABS_VOICE_ID) || '',
 
-    // BLE Configuration for ESP32 SYNAWATCH
+    // BLE Configuration for ESP32 SYNAWATCH (Watch Vitals - HR & SpO2)
     BLE_DEVICE_NAME: 'SYNAWATCH',
     BLE_SERVICE_UUID: '12345678-1234-1234-1234-123456789abc',
     BLE_CHARACTERISTIC_UUID: 'abcd1234-ab12-cd34-ef56-123456789abc',
+
+    // BLE Configuration for ESP32 SYNAWATCH-BP (Watch Blood Pressure)
+    BLE_BP_DEVICE_NAME: 'SYNAWATCH-BP',
+    BLE_BP_SERVICE_UUID: '12345678-1234-1234-1234-123456789abc',
+    BLE_BP_CHAR_UUID: 'abcd1234-ab12-cd34-ef56-123456789abc',
 
     // App Configuration
     APP_NAME: 'SYNAWATCH',

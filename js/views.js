@@ -450,53 +450,178 @@ const Views = {
     health() {
         return `
             <div class="health-page">
-                <!-- Header with Connection Status -->
+                <!-- Page Header -->
                 <div class="health-header">
                     <div class="health-header-content">
                         <div class="health-header-left">
                             <h1 class="health-title">${t('health.title')}</h1>
                             <p class="health-subtitle">${t('health.subtitle')}</p>
                         </div>
-                        <button id="bleConnectBtn" class="ble-connect-btn" onclick="BLEConnection.toggle()">
-                            <span class="ble-btn-content">
-                                <span class="ble-status-dot" id="bleIndicator"></span>
+                    </div>
+                </div>
+
+                <!-- Device Connection Panel -->
+                <div style="margin-bottom: var(--space-5, 20px);">
+                    <div class="section-header" style="margin-bottom: var(--space-4, 16px);">
+                        <h2 style="display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;color:var(--text-primary);">
+                            <i class="fas fa-bluetooth-b" style="color:var(--primary-400);"></i>
+                            Perangkat BLE
+                        </h2>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4, 16px);">
+
+                        <!-- Muse S Gen 2 Card -->
+                        <div id="deviceCard-muse" style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-xl,16px);padding:var(--space-5,20px);display:flex;flex-direction:column;align-items:center;gap:var(--space-3,12px);border:1px solid rgba(139,92,246,0.2);position:relative;overflow:hidden;">
+                            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:var(--radius-xl,16px) var(--radius-xl,16px) 0 0;"></div>
+                            <div style="width:56px;height:56px;border-radius:var(--radius-lg,12px);background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,58,237,0.4);">
+                                <i class="fas fa-brain" style="font-size:1.4rem;color:#fff;"></i>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:2px;">Muse S Gen 2</div>
+                                <div style="font-size:0.75rem;color:var(--text-tertiary);">EEG Headband</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                                <span id="museDot" style="width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;transition:background 0.3s;"></span>
+                                <span id="museStatus" style="font-size:0.75rem;color:var(--text-secondary);">Tidak Terhubung</span>
+                            </div>
+                            <button id="museConnectBtn" onclick="MultiDevice.toggle('muse')" style="width:100%;margin-top:auto;padding:8px 12px;border-radius:var(--radius-lg,12px);border:1px solid rgba(139,92,246,0.4);background:rgba(124,58,237,0.15);color:#a78bfa;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='rgba(124,58,237,0.3)'" onmouseout="this.style.background='rgba(124,58,237,0.15)'">
                                 <i class="fas fa-bluetooth-b"></i>
-                                <span id="bleStatusText">${t('health.connect')}</span>
-                            </span>
-                        </button>
+                                Hubungkan
+                            </button>
+                        </div>
+
+                        <!-- Watch BP Card -->
+                        <div id="deviceCard-bp" style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-xl,16px);padding:var(--space-5,20px);display:flex;flex-direction:column;align-items:center;gap:var(--space-3,12px);border:1px solid rgba(239,68,68,0.2);position:relative;overflow:hidden;">
+                            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#dc2626,#f87171);border-radius:var(--radius-xl,16px) var(--radius-xl,16px) 0 0;"></div>
+                            <div style="width:56px;height:56px;border-radius:var(--radius-lg,12px);background:linear-gradient(135deg,#dc2626,#f87171);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(220,38,38,0.4);">
+                                <i class="fas fa-heart-pulse" style="font-size:1.4rem;color:#fff;"></i>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:2px;">Watch BP</div>
+                                <div style="font-size:0.75rem;color:var(--text-tertiary);">Blood Pressure Monitor</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                                <span id="bpDot" style="width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;transition:background 0.3s;"></span>
+                                <span id="bpStatus" style="font-size:0.75rem;color:var(--text-secondary);">Tidak Terhubung</span>
+                            </div>
+                            <button id="bpConnectBtn" onclick="MultiDevice.toggle('bp')" style="width:100%;margin-top:auto;padding:8px 12px;border-radius:var(--radius-lg,12px);border:1px solid rgba(239,68,68,0.4);background:rgba(220,38,38,0.15);color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='rgba(220,38,38,0.3)'" onmouseout="this.style.background='rgba(220,38,38,0.15)'">
+                                <i class="fas fa-bluetooth-b"></i>
+                                Hubungkan
+                            </button>
+                        </div>
+
+                        <!-- Watch Vitals Card -->
+                        <div id="deviceCard-vitals" style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-xl,16px);padding:var(--space-5,20px);display:flex;flex-direction:column;align-items:center;gap:var(--space-3,12px);border:1px solid rgba(6,182,212,0.2);position:relative;overflow:hidden;">
+                            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#0891b2,#22d3ee);border-radius:var(--radius-xl,16px) var(--radius-xl,16px) 0 0;"></div>
+                            <div style="width:56px;height:56px;border-radius:var(--radius-lg,12px);background:linear-gradient(135deg,#0891b2,#22d3ee);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(8,145,178,0.4);">
+                                <i class="fas fa-watch" style="font-size:1.4rem;color:#fff;"></i>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:2px;">Watch Vitals</div>
+                                <div style="font-size:0.75rem;color:var(--text-tertiary);">HR &amp; SpO2 Monitor</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                                <span id="vitalsDot" style="width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;transition:background 0.3s;"></span>
+                                <span id="vitalsStatus" style="font-size:0.75rem;color:var(--text-secondary);">Tidak Terhubung</span>
+                            </div>
+                            <button id="vitalsConnectBtn" onclick="MultiDevice.toggle('vitals')" style="width:100%;margin-top:auto;padding:8px 12px;border-radius:var(--radius-lg,12px);border:1px solid rgba(6,182,212,0.4);background:rgba(8,145,178,0.15);color:#22d3ee;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='rgba(8,145,178,0.3)'" onmouseout="this.style.background='rgba(8,145,178,0.15)'">
+                                <i class="fas fa-bluetooth-b"></i>
+                                Hubungkan
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Main Heart Rate Display -->
-                <div class="hr-showcase">
-                    <div class="hr-ring-container">
-                        <svg class="hr-ring" viewBox="0 0 200 200">
-                            <circle class="hr-ring-bg" cx="100" cy="100" r="90" />
-                            <circle class="hr-ring-progress" id="hrRingProgress" cx="100" cy="100" r="90" />
-                        </svg>
-                        <div class="hr-center">
-                            <div class="hr-icon-pulse">
-                                <i class="fas fa-heartbeat"></i>
-                            </div>
-                            <div class="hr-value-display">
-                                <span class="hr-number" id="hrValue">--</span>
-                                <span class="hr-unit">BPM</span>
-                            </div>
-                            <div class="hr-status" id="hrStatus">
-                                <span class="status-dot"></span>
-                                <span>${t('health.waiting')}</span>
+                <!-- EEG Brainwave Section -->
+                <div style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-2xl,20px);padding:var(--space-5,20px);margin-bottom:var(--space-5,20px);border:1px solid rgba(139,92,246,0.15);">
+                    <div class="section-header" style="margin-bottom:var(--space-4,16px);">
+                        <h2 style="display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;color:var(--text-primary);">
+                            <i class="fas fa-brain" style="color:#a78bfa;"></i>
+                            Gelombang Otak EEG
+                        </h2>
+                        <span id="eegLiveIndicator" class="live-badge" style="display:none;">
+                            <span class="live-dot"></span> LIVE
+                        </span>
+                    </div>
+
+                    <!-- EEG Chart -->
+                    <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);margin-bottom:var(--space-4,16px);border:1px solid rgba(255,255,255,0.05);">
+                        <canvas id="eegChart" style="width:100%;height:180px;display:block;"></canvas>
+                    </div>
+
+                    <!-- EEG Band Cards -->
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-3,12px);margin-bottom:var(--space-4,16px);">
+
+                        <!-- Delta -->
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(59,130,246,0.2);">
+                            <div id="eegDelta" style="font-size:1.4rem;font-weight:700;color:#60a5fa;line-height:1;">--</div>
+                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Delta</div>
+                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">0.5-4Hz</div>
+                            <div style="font-size:0.65rem;color:#60a5fa;margin-top:4px;font-weight:500;">Tidur Dalam</div>
+                        </div>
+
+                        <!-- Theta -->
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(139,92,246,0.2);">
+                            <div id="eegTheta" style="font-size:1.4rem;font-weight:700;color:#a78bfa;line-height:1;">--</div>
+                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Theta</div>
+                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">4-8Hz</div>
+                            <div style="font-size:0.65rem;color:#a78bfa;margin-top:4px;font-weight:500;">Relaksasi</div>
+                        </div>
+
+                        <!-- Alpha -->
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(34,197,94,0.2);">
+                            <div id="eegAlpha" style="font-size:1.4rem;font-weight:700;color:#4ade80;line-height:1;">--</div>
+                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Alpha</div>
+                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">8-13Hz</div>
+                            <div style="font-size:0.65rem;color:#4ade80;margin-top:4px;font-weight:500;">Tenang</div>
+                        </div>
+
+                        <!-- Beta -->
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(251,146,60,0.2);">
+                            <div id="eegBeta" style="font-size:1.4rem;font-weight:700;color:#fb923c;line-height:1;">--</div>
+                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Beta</div>
+                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">13-30Hz</div>
+                            <div style="font-size:0.65rem;color:#fb923c;margin-top:4px;font-weight:500;">Fokus</div>
+                        </div>
+
+                        <!-- Gamma -->
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(239,68,68,0.2);">
+                            <div id="eegGamma" style="font-size:1.4rem;font-weight:700;color:#f87171;line-height:1;">--</div>
+                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Gamma</div>
+                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">30-100Hz</div>
+                            <div style="font-size:0.65rem;color:#f87171;margin-top:4px;font-weight:500;">Aktif</div>
+                        </div>
+
+                    </div>
+
+                    <!-- EEG Status Row -->
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3,12px);">
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.05);">
+                            <i class="fas fa-brain" style="color:#a78bfa;font-size:1.1rem;flex-shrink:0;"></i>
+                            <div>
+                                <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:2px;">Status Mental</div>
+                                <div id="eegStressLevel" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">--</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="hr-meta">
-                        <div class="hr-meta-item">
-                            <i class="fas fa-fingerprint"></i>
-                            <span id="fingerStatus">${t('health.place_finger')}</span>
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.05);">
+                            <i class="fas fa-bullseye" style="color:#4ade80;font-size:1.1rem;flex-shrink:0;"></i>
+                            <div>
+                                <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:2px;">Fokus</div>
+                                <div id="eegFocusState" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">--</div>
+                            </div>
+                        </div>
+                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.05);">
+                            <i class="fas fa-battery-half" style="color:#60a5fa;font-size:1.1rem;flex-shrink:0;"></i>
+                            <div>
+                                <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:2px;">Baterai Muse</div>
+                                <div id="eegBattery" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">--</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Vital Signs Grid -->
+                <!-- Vital Signs Section -->
                 <div class="vitals-section">
                     <div class="section-header">
                         <h2><i class="fas fa-wave-square"></i> ${t('health.vital_signs')}</h2>
@@ -505,9 +630,76 @@ const Views = {
                         </span>
                     </div>
 
-                    <div class="vitals-grid">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4,16px);">
+
+                        <!-- Blood Pressure Card -->
+                        <div class="vital-card" style="border:1px solid rgba(239,68,68,0.15);">
+                            <div class="vital-card-header">
+                                <div class="vital-icon" style="background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(248,113,113,0.1));color:#f87171;">
+                                    <i class="fas fa-heart-pulse"></i>
+                                </div>
+                                <span class="vital-badge" id="bpStatusBadge">--</span>
+                            </div>
+                            <div class="vital-card-body">
+                                <div class="vital-value">
+                                    <span class="vital-number" id="bpSys" style="color:#f87171;">--</span>
+                                    <span class="vital-unit">/</span>
+                                    <span class="vital-number" id="bpDia" style="font-size:1.5rem;color:#f87171;">--</span>
+                                    <span class="vital-unit">mmHg</span>
+                                </div>
+                                <div class="vital-label">Tekanan Darah</div>
+                            </div>
+                            <div class="vital-card-footer">
+                                <div class="vital-range">
+                                    <span>${t('metric.normal')}: &lt;120/80 mmHg</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Heart Rate Card -->
+                        <div class="vital-card" style="border:1px solid rgba(239,68,68,0.15);">
+                            <div class="vital-card-header">
+                                <div class="vital-icon" style="background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(248,113,113,0.1));color:var(--danger-400);">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <span class="vital-badge" id="hrStatus">--</span>
+                            </div>
+                            <div class="vital-card-body">
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <div style="position:relative;width:64px;height:64px;flex-shrink:0;">
+                                        <svg viewBox="0 0 64 64" style="width:64px;height:64px;transform:rotate(-90deg);">
+                                            <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(239,68,68,0.15)" stroke-width="5"/>
+                                            <circle id="hrRingProgress" cx="32" cy="32" r="28" fill="none" stroke="var(--danger-400,#f87171)" stroke-width="5" stroke-linecap="round" stroke-dasharray="176" stroke-dashoffset="176" style="transition:stroke-dashoffset 0.5s ease;"/>
+                                        </svg>
+                                        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                                            <i class="fas fa-heartbeat" style="color:var(--danger-400,#f87171);font-size:1rem;"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="vital-value">
+                                            <span class="vital-number" id="hrValue">--</span>
+                                            <span class="vital-unit">BPM</span>
+                                        </div>
+                                        <div class="vital-label">${t('health.heart_rate', 'Detak Jantung')}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="vital-card-footer">
+                                <div style="display:flex;align-items:center;justify-content:space-between;">
+                                    <div class="vital-range"><span>${t('metric.normal')}: 60-100 BPM</span></div>
+                                    <div style="display:flex;align-items:center;gap:4px;font-size:0.7rem;color:var(--text-tertiary);">
+                                        <i class="fas fa-fingerprint" style="font-size:0.75rem;"></i>
+                                        <span id="fingerStatus">${t('health.place_finger')}</span>
+                                    </div>
+                                </div>
+                                <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:4px;">
+                                    <i class="fas fa-watch" style="margin-right:3px;"></i>Watch Vitals
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- SpO2 Card -->
-                        <div class="vital-card spo2-card">
+                        <div class="vital-card spo2-card" style="border:1px solid rgba(6,182,212,0.15);">
                             <div class="vital-card-header">
                                 <div class="vital-icon spo2">
                                     <i class="fas fa-lungs"></i>
@@ -525,112 +717,12 @@ const Views = {
                                 <div class="vital-range">
                                     <span>${t('metric.normal')}: 95-100%</span>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Body Temperature Card -->
-                        <div class="vital-card temp-card">
-                            <div class="vital-card-header">
-                                <div class="vital-icon temp">
-                                    <i class="fas fa-temperature-half"></i>
-                                </div>
-                                <span class="vital-badge" id="tempStatus">--</span>
-                            </div>
-                            <div class="vital-card-body">
-                                <div class="vital-value">
-                                    <span class="vital-number" id="btValue">--</span>
-                                    <span class="vital-unit">°C</span>
-                                </div>
-                                <div class="vital-label">${t('health.body_temp')}</div>
-                            </div>
-                            <div class="vital-card-footer">
-                                <div class="vital-range">
-                                    <span>${t('metric.normal')}: 36.1-37.2°C</span>
+                                <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:4px;">
+                                    <i class="fas fa-watch" style="margin-right:3px;"></i>Watch Vitals
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Ambient Temperature Card -->
-                        <div class="vital-card ambient-card">
-                            <div class="vital-card-header">
-                                <div class="vital-icon ambient">
-                                    <i class="fas fa-sun"></i>
-                                </div>
-                            </div>
-                            <div class="vital-card-body">
-                                <div class="vital-value">
-                                    <span class="vital-number" id="atValue">--</span>
-                                    <span class="vital-unit">°C</span>
-                                </div>
-                                <div class="vital-label">${t('health.room_temp')}</div>
-                            </div>
-                        </div>
-
-                        <!-- Activity Card -->
-                        <div class="vital-card activity-card">
-                            <div class="vital-card-header">
-                                <div class="vital-icon activity">
-                                    <i id="actIcon" class="fas fa-person"></i>
-                                </div>
-                            </div>
-                            <div class="vital-card-body">
-                                <div class="vital-value">
-                                    <span class="vital-text" id="actValue">${t('health.resting')}</span>
-                                </div>
-                                <div class="vital-label">${t('health.activity')}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stress & Wellness Section -->
-                <div class="wellness-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-brain"></i> ${t('health.mental_wellness')}</h2>
-                    </div>
-
-                    <div class="wellness-grid">
-                        <!-- Stress Level Card -->
-                        <div class="wellness-card stress-card">
-                            <div class="wellness-card-inner">
-                                <div class="wellness-gauge">
-                                    <svg class="gauge-svg" viewBox="0 0 120 120">
-                                        <circle class="gauge-bg" cx="60" cy="60" r="54" />
-                                        <circle class="gauge-fill stress-gauge" id="stressGauge" cx="60" cy="60" r="54" />
-                                    </svg>
-                                    <div class="gauge-center">
-                                        <span class="gauge-value" id="stressValue">0</span>
-                                        <span class="gauge-unit">%</span>
-                                    </div>
-                                </div>
-                                <div class="wellness-info">
-                                    <h3>${t('health.stress_level')}</h3>
-                                    <span class="wellness-status" id="stressStatus">${t('metric.low')}</span>
-                                    <p class="wellness-tip" id="stressTip">${t('health.doing_great')}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- GSR Card -->
-                        <div class="wellness-card gsr-card">
-                            <div class="wellness-card-inner">
-                                <div class="wellness-gauge">
-                                    <svg class="gauge-svg" viewBox="0 0 120 120">
-                                        <circle class="gauge-bg" cx="60" cy="60" r="54" />
-                                        <circle class="gauge-fill gsr-gauge" id="gsrGauge" cx="60" cy="60" r="54" />
-                                    </svg>
-                                    <div class="gauge-center">
-                                        <span class="gauge-value" id="gsrValue">0</span>
-                                        <span class="gauge-unit">%</span>
-                                    </div>
-                                </div>
-                                <div class="wellness-info">
-                                    <h3>${t('health.gsr_activity')}</h3>
-                                    <span class="wellness-status" id="gsrStatusBadge">${t('health.relaxed')}</span>
-                                    <p class="wellness-tip" id="gsrTip">${t('health.skin_normal')}</p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -868,6 +960,16 @@ const Views = {
                         <div class="list-item-content">
                             <div class="list-item-title">${t('questionnaire.title')}</div>
                             <div class="list-item-subtitle">${t('questionnaire.subtitle')}</div>
+                        </div>
+                        <i class="fas fa-chevron-right list-item-action"></i>
+                    </div>
+                    <div class="list-item" data-route="research-questionnaire">
+                        <div class="list-item-icon" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9;">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">Kuesioner Penelitian</div>
+                            <div class="list-item-subtitle">PSP-5 · Hunger Scale · SEES-10</div>
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
@@ -1725,6 +1827,127 @@ const Views = {
         `;
     },
 
+    researchQuestionnaire() {
+        return `
+            <div class="view-container">
+                <div class="rq-container">
+                    <div class="rq-header">
+                        <div class="rq-header-logo">SYNAWATCH RESEARCH</div>
+                        <div class="rq-header-title">Kuesioner Penelitian Ground Truth</div>
+                        <div class="rq-header-sub">PSP-5 · Hunger Scale · SEES-10 — Data untuk pengembangan model AI</div>
+                    </div>
+
+                    <div class="rq-progress" id="rq-progress-section">
+                        <div class="rq-progress-info">
+                            <span class="rq-progress-label" id="rq-progress-label">Data Responden</span>
+                            <span class="rq-progress-count" id="rq-progress-count">1 / 3</span>
+                        </div>
+                        <div class="rq-progress-track">
+                            <div class="rq-progress-fill" id="rq-progress-fill"></div>
+                        </div>
+                        <div class="rq-step-dots" id="rq-step-dots"></div>
+                    </div>
+
+                    <!-- PAGE 0: Data Responden -->
+                    <div class="rq-page active" id="rq-page-0">
+                        <div class="rq-badge"><i class="fas fa-user"></i> HALAMAN 1 DARI 3</div>
+                        <div class="rq-page-title">Data Responden</div>
+                        <div class="rq-page-desc">Data ini bersifat rahasia dan hanya digunakan untuk keperluan penelitian.</div>
+                        <div class="rq-error" id="rq-error-0"><i class="fas fa-exclamation-circle"></i><span></span></div>
+
+                        <div class="rq-form-group">
+                            <label class="rq-form-label">Nama Responden <span class="rq-required">*</span></label>
+                            <input type="text" class="rq-input" id="rq-nama" maxlength="80" placeholder="Nama lengkap atau inisial">
+                        </div>
+                        <div class="rq-form-group">
+                            <label class="rq-form-label">Kode Responden <span class="rq-required">*</span></label>
+                            <input type="text" class="rq-input" id="rq-kode" maxlength="20" placeholder="Kode yang diberikan peneliti">
+                        </div>
+                        <div class="rq-form-group">
+                            <label class="rq-form-label">Riwayat Penyakit</label>
+                            <textarea class="rq-textarea" id="rq-penyakit" placeholder="Contoh: Hipertensi, Diabetes (kosongkan jika tidak ada)"></textarea>
+                        </div>
+                        <div class="rq-form-group">
+                            <label class="rq-form-label">Riwayat Obat</label>
+                            <input type="text" class="rq-input" id="rq-obat" maxlength="200" placeholder="Obat yang sedang dikonsumsi (kosongkan jika tidak ada)">
+                        </div>
+                        <div class="rq-form-group">
+                            <label class="rq-form-label">Riwayat Alergi</label>
+                            <input type="text" class="rq-input" id="rq-alergi" maxlength="200" placeholder="Riwayat alergi (kosongkan jika tidak ada)">
+                        </div>
+
+                        <div class="rq-btn-row">
+                            <button class="rq-btn rq-btn-next" onclick="ResearchQuestionnaire.nextPage()">
+                                <i class="fas fa-arrow-right"></i> Lanjut ke PSP-5
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 1: PSP-5 -->
+                    <div class="rq-page" id="rq-page-1">
+                        <div class="rq-badge"><i class="fas fa-smile"></i> HALAMAN 2 DARI 3</div>
+                        <div class="rq-page-title">PSP-5 — Kondisi Emosi Saat Ini</div>
+                        <div class="rq-page-desc">Silakan pilih angka yang paling menggambarkan kondisi emosi Anda saat ini.<br>Skala: 1 = Sangat Rendah &nbsp;&nbsp; 6 = Sangat Tinggi</div>
+                        <div class="rq-error" id="rq-error-1"><i class="fas fa-exclamation-circle"></i><span></span></div>
+                        <div id="rq-psp5"></div>
+                        <div class="rq-btn-row">
+                            <button class="rq-btn rq-btn-back" onclick="ResearchQuestionnaire.prevPage()">
+                                <i class="fas fa-arrow-left"></i> Kembali
+                            </button>
+                            <button class="rq-btn rq-btn-next" onclick="ResearchQuestionnaire.nextPage()">
+                                Lanjut <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 2: Hunger + SEES-10 -->
+                    <div class="rq-page" id="rq-page-2">
+                        <div class="rq-badge"><i class="fas fa-utensils"></i> HALAMAN 3 DARI 3</div>
+                        <div class="rq-page-title">Hunger Scale & SEES-10</div>
+                        <div class="rq-page-desc">Isi skala rasa lapar dan pola makan saat stress Anda saat ini.</div>
+                        <div class="rq-error" id="rq-error-2"><i class="fas fa-exclamation-circle"></i><span></span></div>
+
+                        <div class="rq-item" id="rq-hunger-item">
+                            <div class="rq-item-num">HUNGER SCALE</div>
+                            <div class="rq-item-text">Bagaimana rasa lapar anda saat ini? (1 = Lapar sekali, 10 = Sangat kenyang)</div>
+                            <div class="rq-hunger" id="rq-hunger"></div>
+                            <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:#94a3b8;">
+                                <span>1 — Lapar sekali / lemas</span>
+                                <span>10 — Sangat kenyang / mual</span>
+                            </div>
+                        </div>
+
+                        <div class="rq-divider"><i class="fas fa-chart-bar"></i> SEES-10 — Pola Makan Saat Stress</div>
+                        <p style="font-size:13px;color:#64748b;margin-bottom:16px;line-height:1.5;">Ketika saya menghadapi situasi berikut, bagaimana perubahan pola makan saya?<br>1 = Makan sangat lebih sedikit &nbsp; · &nbsp; 5 = Makan sangat lebih banyak</p>
+                        <div id="rq-sees10"></div>
+
+                        <div class="rq-btn-row">
+                            <button class="rq-btn rq-btn-back" onclick="ResearchQuestionnaire.prevPage()">
+                                <i class="fas fa-arrow-left"></i> Kembali
+                            </button>
+                            <button class="rq-btn rq-btn-submit" id="rq-submit-btn" onclick="ResearchQuestionnaire.submit()">
+                                <div class="rq-spinner"></div>
+                                <span class="rq-btn-text"><i class="fas fa-check"></i> Simpan Data</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Success Screen -->
+                    <div class="rq-success" id="rq-success">
+                        <div class="rq-success-icon"><i class="fas fa-check"></i></div>
+                        <div class="rq-success-title">Data Berhasil Disimpan!</div>
+                        <div class="rq-success-desc">Terima kasih telah berpartisipasi dalam penelitian ini.<br>Data Anda telah tersimpan dengan aman.</div>
+                        <div class="rq-success-id" id="rq-success-id">ID Rekam: —</div>
+                        <br>
+                        <button class="rq-btn rq-btn-next" onclick="ResearchQuestionnaire.reset()" style="max-width:260px;margin:0 auto;">
+                            <i class="fas fa-redo"></i> Isi Formulir Baru
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
     /**
      * Admin Dashboard View - Embedded in SPA
      */
@@ -2028,6 +2251,14 @@ const Views = {
                             <div class="admin-nav-item" data-tab="questionnaires" onclick="AdminUI.switchTab('questionnaires')">
                                 <i class="fas fa-clipboard-list"></i>
                                 <span>Questionnaires</span>
+                            </div>
+                            <div class="admin-nav-item" data-tab="notulen" onclick="AdminUI.switchTab('notulen')">
+                                <i class="fas fa-notes-medical"></i>
+                                <span>Notulen</span>
+                            </div>
+                            <div class="admin-nav-item" data-tab="alat-dataset" onclick="AdminUI.switchTab('alat-dataset')">
+                                <i class="fas fa-microscope"></i>
+                                <span>Alat Dataset</span>
                             </div>
                         </div>
 

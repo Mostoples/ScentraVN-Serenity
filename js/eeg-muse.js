@@ -115,7 +115,7 @@ const MuseEEG = {
 
             /* Start streaming */
             this.controlChar = await this.service.getCharacteristic(MUSE_CHAR.control);
-            await this._sendCommand('p50');
+            await this._sendCommand('p21');
             await this._sendCommand('s');
             await this._sendCommand('d');
 
@@ -136,6 +136,7 @@ const MuseEEG = {
 
         } catch (err) {
             this.isConnecting = false;
+            this._emit('connection', { status: 'error' });
             if (err.name === 'NotFoundError') {
                 this._emit('error', 'Tidak ada perangkat Muse yang dipilih.');
             } else {

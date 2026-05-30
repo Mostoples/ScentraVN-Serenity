@@ -734,6 +734,12 @@
             <button class="admin-tab-btn" onclick="AdminUI.switchTab('competition')" data-tab="competition" style="background:linear-gradient(135deg,#f59e0b15,#ef444415);border:1px solid #f59e0b40;">
                 <i class="fas fa-trophy" style="color:#f59e0b;"></i> Kompetisi
             </button>
+            <button class="admin-tab-btn" onclick="AdminUI.switchTab('notulen')" data-tab="notulen">
+                <i class="fas fa-notes-medical"></i> Notulen
+            </button>
+            <button class="admin-tab-btn" onclick="AdminUI.switchTab('alat-dataset')" data-tab="alat-dataset">
+                <i class="fas fa-microscope"></i> Alat Dataset
+            </button>
         </div>
 
         <!-- Dashboard Tab -->
@@ -887,6 +893,33 @@
             </div>
         </div>
 
+        <!-- Notulen Tab -->
+        <div id="notulen-tab" class="admin-content">
+            <div class="card">
+                <div class="table-header">
+                    <h3><i class="fas fa-notes-medical"></i> Notulen Diskusi</h3>
+                    <div class="table-actions">
+                        <button class="btn btn-primary" onclick="AdminUI.showAddNotulenModal()">
+                            <i class="fas fa-plus"></i> Tambah Notulen
+                        </button>
+                        <button class="btn btn-secondary" onclick="AdminUI.loadNotulen()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <div id="notulenContent">
+                    <div class="loading"><div class="loading-spinner"></div><p>Memuat notulen...</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alat Dataset Tab -->
+        <div id="alat-dataset-tab" class="admin-content">
+            <div id="alatDatasetContent">
+                <div class="loading"><div class="loading-spinner"></div><p>Memuat data alat...</p></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Detail Modal -->
@@ -917,6 +950,52 @@
     <script src="js/firebase-config.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/admin-ui.js"></script>
+
+    <!-- Add Notulen Modal -->
+    <div id="notulenModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah Notulen Diskusi</h3>
+                <button class="modal-close" onclick="document.getElementById('notulenModal').classList.remove('active')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Tanggal &amp; Waktu <span style="color:red">*</span></label>
+                    <input type="datetime-local" id="notulen-datetime" style="width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:0.95rem;outline:none;">
+                </div>
+                <div class="form-group">
+                    <label>Peserta Diskusi <span style="color:red">*</span></label>
+                    <input type="text" id="notulen-peserta" placeholder="Nama peserta, pisah dengan koma" style="width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:0.95rem;outline:none;">
+                </div>
+                <div class="form-group">
+                    <label>Poin Diskusi <span style="color:red">*</span></label>
+                    <textarea id="notulen-poin" rows="6" placeholder="Tuliskan poin-poin penting diskusi..." style="width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:0.95rem;resize:vertical;outline:none;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tindak Lanjut / Action Items</label>
+                    <textarea id="notulen-action" rows="3" placeholder="Apa yang perlu dilakukan setelah diskusi?" style="width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:0.95rem;resize:vertical;outline:none;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Topik</label>
+                    <select id="notulen-topik" style="width:100%;padding:12px 16px;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;font-size:0.95rem;outline:none;">
+                        <option value="umum">Umum</option>
+                        <option value="riset">Riset &amp; Dataset</option>
+                        <option value="alat">Ketersediaan Alat</option>
+                        <option value="aplikasi">Pengembangan Aplikasi</option>
+                        <option value="kuesioner">Kuesioner</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="document.getElementById('notulenModal').classList.remove('active')">Batal</button>
+                <button class="btn btn-primary" onclick="AdminUI.saveNotulen()">
+                    <i class="fas fa-save"></i> Simpan Notulen
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Initialize on page load

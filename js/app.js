@@ -275,6 +275,13 @@ const App = {
             if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('questionnaire');
         });
 
+        Router.register('research-questionnaire', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.researchQuestionnaire());
+            if (typeof ResearchQuestionnaire !== 'undefined') ResearchQuestionnaire.init();
+        });
+
         Router.register('heroic', () => {
             const nav = document.querySelector('.bottom-nav');
             if (nav) nav.style.display = 'flex';

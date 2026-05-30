@@ -32,9 +32,13 @@ const AdminManager = {
      * Check if current user is admin
      */
     async checkAdminAccess() {
-        const currentUser = auth.currentUser; // Use Firebase auth instance
+        const currentUser = auth.currentUser;
         if (!currentUser) {
             throw new Error('User not authenticated');
+        }
+
+        if (currentUser.email !== 'admin@scentravn.com') {
+            throw new Error('Access denied: unauthorized account');
         }
 
         try {

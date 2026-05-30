@@ -7,7 +7,9 @@
     "dev": "npx http-server . -p 3000 -c-1",
     "start": "npx http-server . -p 3000 -c-1",
     "setup-admin": "node setup-admin.js",
-    "setup-admin:help": "node setup-admin.js help"
+    "setup-admin:help": "node setup-admin.js help",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "firebase",
@@ -18,7 +20,13 @@
   "author": "SynaWatch Team",
   "license": "MIT",
   "dependencies": {
-    "firebase-admin": "^12.0.0",
+    "firebase-admin": "^12.7.0",
     "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@vitest/ui": "1.6.0",
+    "fast-check": "3.19.0",
+    "jsdom": "24.1.0",
+    "vitest": "1.6.0"
   }
 }
