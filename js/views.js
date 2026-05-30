@@ -30,64 +30,168 @@ const Views = {
     },
 
     /**
-     * Dashboard View
+     * Dashboard View — Aura Glassmorphism redesign
      */
     dashboard() {
         return `
             <div class="view-container">
-                <!-- Greeting Section -->
-                <div class="greeting-section">
-                    <h2 id="greeting"></h2>
-                    <p id="userName"></p>
-                </div>
 
-                <!-- Health Score Card -->
-                <div class="featured-card">
-                    <div class="content" style="display: flex; align-items: center; justify-content: space-between;">
+                <!-- ═══════════════════════════════════════════════
+                     HERO CARD — Greeting + Health Score (purple)
+                ═══════════════════════════════════════════════ -->
+                <section class="aura-hero">
+                    <div class="hero-row">
                         <div>
-                            <p style="font-size: var(--text-sm); opacity: 0.9; margin-bottom: var(--space-1); color: rgba(255,255,255,0.8);">${t('dashboard.health_score')}</p>
-                            <div style="display: flex; align-items: baseline; gap: var(--space-2);">
-                                <span id="healthScore" style="font-size: var(--text-4xl); font-weight: 800; color: white;">--</span>
-                                <span style="font-size: var(--text-sm); color: rgba(255,255,255,0.7);">/100</span>
+                            <div class="hero-greeting" id="greeting">${t('dashboard.welcome') || 'Welcome'}</div>
+                            <div class="hero-name" id="userName">User</div>
+                            <div class="hero-sub" id="dashboardDate"></div>
+                        </div>
+                        <button class="hero-action" onclick="Router.navigate('profile')" type="button">
+                            <i class="fas fa-pen"></i>
+                            <span>${t('action.edit') || 'Edit'}</span>
+                        </button>
+                    </div>
+
+                    <div class="hero-score">
+                        <div class="hero-score-text">
+                            <span class="hero-score-label">${t('dashboard.health_score')}</span>
+                            <div class="hero-score-value">
+                                <strong id="healthScore">--</strong>
+                                <span>/100</span>
                             </div>
                         </div>
-                        <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.15); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-shield-heart" style="font-size: var(--text-2xl); color: white;"></i>
+                        <div class="hero-score-icon">
+                            <i class="fas fa-shield-heart"></i>
                         </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════════════════════════════
+                     HEALTH INFO PILLS — like "Living room 21°"
+                ═══════════════════════════════════════════════ -->
+                <div class="aura-section">
+                    <span class="aura-section-title">${t('dashboard.current_health') || 'Health info'}</span>
+                    <button class="aura-section-link" onclick="Router.navigate('health')" type="button">${t('action.see_all') || 'See all'}</button>
+                </div>
+
+                <div class="metric-pills">
+                    <!-- Heart Rate -->
+                    <div class="metric-pill" onclick="Router.navigate('health')">
+                        <div class="pill-icon danger"><i class="fas fa-heart-pulse"></i></div>
+                        <div class="pill-value"><span id="hrValue">--</span><sup>${t('metric.bpm') || 'bpm'}</sup></div>
+                        <div class="pill-label">${t('dashboard.heart_rate')}</div>
+                        <div class="pill-sub" id="hrStatus">${t('metric.no_data') || 'No data'}</div>
+                    </div>
+
+                    <!-- SpO2 -->
+                    <div class="metric-pill" onclick="Router.navigate('health')">
+                        <div class="pill-icon info"><i class="fas fa-lungs"></i></div>
+                        <div class="pill-value"><span id="spo2Value">--</span><sup>%</sup></div>
+                        <div class="pill-label">${t('dashboard.spo2')}</div>
+                        <div class="pill-sub" id="spo2Status">${t('metric.no_data') || 'No data'}</div>
+                    </div>
+
+                    <!-- Stress -->
+                    <div class="metric-pill" onclick="Router.navigate('analytics')">
+                        <div class="pill-icon warning"><i class="fas fa-brain"></i></div>
+                        <div class="pill-value"><span id="stressValue">0</span><sup>%</sup></div>
+                        <div class="pill-label">${t('dashboard.stress')}</div>
+                        <div class="pill-sub" id="stressLabel">${t('metric.low') || 'Low'}</div>
+                        <div style="display:none;">
+                            <div id="stressBar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- GSR -->
+                    <div class="metric-pill" onclick="Router.navigate('analytics')">
+                        <div class="pill-icon success"><i class="fas fa-hand-sparkles"></i></div>
+                        <div class="pill-value"><span id="gsrValue">0</span><sup>%</sup></div>
+                        <div class="pill-label">${t('dashboard.gsr')}</div>
+                        <div class="pill-sub">${t('metric.live') || 'live'}</div>
+                        <div style="display:none;">
+                            <div id="gsrBar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- HEROIC Wellness Index -->
+                    <div class="metric-pill" onclick="Router.navigate('heroic')" style="grid-column: span 2;">
+                        <div class="pill-icon"><i class="fas fa-star-of-life"></i></div>
+                        <div class="pill-value"><span id="dashboardHeroicScore">--</span><sup>/100</sup></div>
+                        <div class="pill-label">HEROIC Wellness</div>
+                        <div class="pill-sub">XAI Powered &middot; ${t('action.tap_view') || 'tap to view'}</div>
+                    </div>
+
+                    <!-- Body Temp (extra slot if BLE provides) -->
+                    <div class="metric-pill" onclick="Router.navigate('health')">
+                        <div class="pill-icon"><i class="fas fa-temperature-half"></i></div>
+                        <div class="pill-value"><span id="btValue">--</span><sup>°C</sup></div>
+                        <div class="pill-label">${t('dashboard.body_temp') || 'Body temp'}</div>
+                        <div class="pill-sub">${t('metric.live') || 'live'}</div>
                     </div>
                 </div>
 
-                <!-- HEROIC Wellness Widget -->
-                <div class="card" style="margin-top: 20px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onclick="Router.navigate('heroic')"
-                     onmouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(124, 58, 237, 0.2)';"
-                     onmouseleave="this.style.transform=''; this.style.boxShadow='';">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #7C3AED, #5B21B6);
-                                        border-radius: 16px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-star-of-life" style="color: white; font-size: 1.5rem;"></i>
-                            </div>
-                            <div>
-                                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin: 0;">HEROIC Wellness Index</p>
-                                <div style="display: flex; align-items: baseline; gap: 8px;">
-                                    <span id="dashboardHeroicScore" style="font-size: 2rem; font-weight: 800; color: var(--text-primary);">--</span>
-                                    <span style="font-size: 0.9rem; color: var(--text-secondary);">/100</span>
-                                </div>
-                            </div>
+                <!-- ═══════════════════════════════════════════════
+                     SCRIPTS — Wellness routines (like Morning/Evening scene)
+                ═══════════════════════════════════════════════ -->
+                <div class="aura-section">
+                    <span class="aura-section-title">${t('dashboard.scripts') || 'Scripts'}</span>
+                </div>
+                <div class="script-grid">
+                    <div class="script-card" onclick="Router.navigate('mindful')">
+                        <div class="script-card-head">
+                            <div class="icon"><i class="fas fa-sun"></i></div>
+                            <span class="edit"><i class="fas fa-pen"></i> ${t('action.edit') || 'Edit'}</span>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
-                                        background: rgba(124, 58, 237, 0.1); border-radius: 20px; margin-bottom: 4px;">
-                                <i class="fas fa-brain" style="font-size: 0.75rem; color: #7C3AED;"></i>
-                                <span style="font-size: 0.75rem; font-weight: 600; color: #7C3AED;">XAI Powered</span>
-                            </div>
-                            <p style="font-size: 0.7rem; color: var(--text-tertiary); margin: 0;">
-                                <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
-                            </p>
+                        <div class="script-card-title">${t('dashboard.morning_scene') || 'Morning routine'}</div>
+                        <div class="script-card-desc">${t('dashboard.morning_desc') || 'Breathing, mindfulness, light stretch'}</div>
+                    </div>
+                    <div class="script-card" onclick="Router.navigate('sleepsession')">
+                        <div class="script-card-head">
+                            <div class="icon"><i class="fas fa-moon"></i></div>
+                            <span class="edit"><i class="fas fa-pen"></i> ${t('action.edit') || 'Edit'}</span>
                         </div>
+                        <div class="script-card-title">${t('dashboard.evening_scene') || 'Sleep tracking'}</div>
+                        <div class="script-card-desc">EEG hypnogram, sleep score, history</div>
                     </div>
                 </div>
 
+                <!-- ═══════════════════════════════════════════════
+                     DEVICES / SENSORS
+                ═══════════════════════════════════════════════ -->
+                <div class="aura-section">
+                    <span class="aura-section-title">${t('dashboard.devices') || 'Devices'}</span>
+                    <button class="aura-section-link" onclick="document.getElementById('bleConnectBtn')?.click()" type="button">${t('ble.connect') || 'Connect'}</button>
+                </div>
+                <div class="device-grid">
+                    <div class="device-card">
+                        <div class="device-card-head">
+                            <div class="icon"><i class="fas fa-watch"></i></div>
+                            <span class="device-card-status off" id="watchStatus">OFF</span>
+                        </div>
+                        <div class="device-card-name">SmartWatch</div>
+                        <div class="device-card-room">BLE Sensor</div>
+                    </div>
+                    <div class="device-card" onclick="Router.navigate('biolab')">
+                        <div class="device-card-head">
+                            <div class="icon"><i class="fas fa-brain"></i></div>
+                            <span class="device-card-status off" id="museStatus">OFF</span>
+                        </div>
+                        <div class="device-card-name">Muse EEG</div>
+                        <div class="device-card-room">BioLab</div>
+                    </div>
+                    <div class="device-card" onclick="Router.navigate('synachat')">
+                        <div class="device-card-head">
+                            <div class="icon"><i class="fas fa-robot"></i></div>
+                            <span class="device-card-status on">ON</span>
+                        </div>
+                        <div class="device-card-name">Dr. Synachat</div>
+                        <div class="device-card-room">AI Assistant</div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════
+                     QUESTIONNAIRE BANNER
+                ═══════════════════════════════════════════════ -->
                 <!-- Banner Kuesioner Pengujian Aplikasi -->
                 <div style="margin-top: 24px;">
                     <div onclick="Router.navigate('questionnaire')" style="
@@ -300,72 +404,21 @@ const Views = {
                             </div>
                             <div class="card-hover-bg"></div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Current Health Metrics -->
-                <h3 class="section-title">${t('dashboard.current_health')}</h3>
-                <div class="card-grid">
-                    <!-- Heart Rate -->
-                    <div class="card metric-card">
-                        <div class="metric-icon danger">
-                            <i class="fas fa-heart pulse"></i>
-                        </div>
-                        <div class="metric-value">
-                            <span id="hrValue">--</span>
-                            <span class="metric-unit">${t('metric.bpm')}</span>
-                        </div>
-                        <div class="metric-label">${t('dashboard.heart_rate')}</div>
-                        <span id="hrStatus" class="metric-status gray">${t('metric.no_data')}</span>
-                    </div>
-
-                    <!-- SpO2 -->
-                    <div class="card metric-card">
-                        <div class="metric-icon info">
-                            <i class="fas fa-lungs"></i>
-                        </div>
-                        <div class="metric-value">
-                            <span id="spo2Value">--</span>
-                            <span class="metric-unit">%</span>
-                        </div>
-                        <div class="metric-label">${t('dashboard.spo2')}</div>
-                        <span id="spo2Status" class="metric-status gray">${t('metric.no_data')}</span>
-                    </div>
-
-                    <!-- Stress Level -->
-                    <div class="card metric-card">
-                        <div class="metric-icon warning">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="metric-value">
-                            <span id="stressValue">0%</span>
-                        </div>
-                        <div class="metric-label">${t('dashboard.stress')}</div>
-                        <span id="stressLabel" class="metric-status success" style="margin-bottom: var(--space-2);">${t('metric.low')}</span>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div id="stressBar" class="progress-fill" style="width: 0%;"></div>
+                        <!-- Aroma Advisor -->
+                        <div class="quick-menu-card aroma-card" onclick="Router.navigate('aroma')" data-card="aroma">
+                            <div class="card-decorative-bg"></div>
+                            <div class="card-icon-box" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                                <i class="fas fa-spray-can-sparkles"></i>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- GSR -->
-                    <div class="card metric-card">
-                        <div class="metric-icon primary">
-                            <i class="fas fa-hand"></i>
-                        </div>
-                        <div class="metric-value">
-                            <span id="gsrValue">0%</span>
-                        </div>
-                        <div class="metric-label">${t('dashboard.gsr')}</div>
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div id="gsrBar" class="progress-fill" style="width: 0%;"></div>
+                            <div class="card-content">
+                                <h4 class="card-title">Aroma Advisor</h4>
+                                <p class="card-subtitle">Rekomendasi aromaterapi</p>
                             </div>
+                            <div class="card-hover-bg"></div>
                         </div>
                     </div>
                 </div>
-
 
                 <!-- Real-time Charts -->
                 <h3 class="section-title">
@@ -2107,6 +2160,470 @@ const Views = {
                     }
                 };
             </script>
+        `;
+    },
+
+    /**
+     * BioLab — EEG (Muse) + PPG (MAX30102) integrated dashboard
+     * with research-grade ML estimates (glucose, BP, HRV, sleep stage, FAA).
+     */
+    biolab() {
+        return `
+            <div class="view-container">
+                <!-- HERO ---------------------------------------------------- -->
+                <section class="aura-hero" style="margin-bottom: 24px;">
+                    <div class="hero-row">
+                        <div>
+                            <div class="hero-greeting">BioLab · Research Mode</div>
+                            <div class="hero-name">Brain &amp; Heart Insights</div>
+                            <div class="hero-sub">EEG (Muse) + PPG (MAX30102) live processing</div>
+                        </div>
+                        <button class="hero-action" id="biolabConnectMuseBtn" type="button">
+                            <i class="fab fa-bluetooth-b"></i> <span>Connect Muse</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- DISCLAIMER ---------------------------------------------- -->
+                <div class="glass-card" style="padding:14px 16px; margin-bottom: 20px; border-left: 3px solid #f59e0b;">
+                    <p style="font-size: 0.78rem; color: #92400e; line-height: 1.55; font-weight: 500;">
+                        <i class="fas fa-flask"></i> <strong>Research Grade.</strong>
+                        Estimasi glukosa, tekanan darah, dan stage tidur di sini bersifat eksperimental,
+                        tidak menggantikan alat medis tervalidasi. Jangan dipakai untuk diagnosis atau
+                        keputusan pengobatan.
+                    </p>
+                </div>
+
+                <!-- EEG SECTION --------------------------------------------- -->
+                <div class="aura-section">
+                    <span class="aura-section-title">EEG · Muse Sleep</span>
+                    <span class="aura-section-link" id="museStatusBadge">disconnected</span>
+                </div>
+
+                <div class="metric-pills">
+                    <div class="metric-pill">
+                        <div class="pill-icon"><i class="fas fa-wave-square"></i></div>
+                        <div class="pill-value"><span id="biolabSleepStage">—</span></div>
+                        <div class="pill-label">Sleep stage</div>
+                        <div class="pill-sub" id="biolabSleepDesc">AASM rule-based</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon warning"><i class="fas fa-brain"></i></div>
+                        <div class="pill-value"><span id="biolabFAA">—</span></div>
+                        <div class="pill-label">Frontal α asym.</div>
+                        <div class="pill-sub" id="biolabFAALabel">depression marker</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon info"><i class="fas fa-bullseye"></i></div>
+                        <div class="pill-value"><span id="biolabEngagement">—</span></div>
+                        <div class="pill-label">Engagement</div>
+                        <div class="pill-sub">β / (α + θ)</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon success"><i class="fas fa-spa"></i></div>
+                        <div class="pill-value"><span id="biolabMeditation">—</span></div>
+                        <div class="pill-label">Meditation idx</div>
+                        <div class="pill-sub">(α+θ)/(β+γ)</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon"><i class="fas fa-face-smile"></i></div>
+                        <div class="pill-value" style="font-size:1.1rem;"><span id="biolabMentalState">—</span></div>
+                        <div class="pill-label">Mental state</div>
+                        <div class="pill-sub" id="biolabMentalStateConf">MLP · 97%</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon warning"><i class="fas fa-gauge-high"></i></div>
+                        <div class="pill-value" style="font-size:1.1rem;"><span id="biolabCogLoad">—</span></div>
+                        <div class="pill-label">Cognitive load</div>
+                        <div class="pill-sub" id="biolabCogLoadConf">MLP · 90%</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon success"><i class="fas fa-face-smile-beam"></i></div>
+                        <div class="pill-value" style="font-size:1.1rem;"><span id="biolabEmotion">—</span></div>
+                        <div class="pill-label">Emotion valence</div>
+                        <div class="pill-sub" id="biolabEmotionConf">real-EEG · 93%</div>
+                    </div>
+                </div>
+
+                <!-- BAND BAR CHART ------------------------------------------ -->
+                <div class="glass-card" style="padding: 18px; margin-top: 18px;">
+                    <h4 style="font-size: 0.95rem; color: #4c1d95; margin-bottom: 14px;">EEG Band Powers (frontal mean)</h4>
+                    <div id="biolabBands" style="display:flex; flex-direction:column; gap: 8px;">
+                        ${['delta','theta','alpha','smr','beta','gamma'].map(b => `
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="width:54px; font-size:0.78rem; font-weight:700; color:#6d28d9; text-transform:uppercase;">${b}</span>
+                                <div style="flex:1; height: 10px; background: rgba(124,58,237,0.08); border-radius: 99px; overflow:hidden;">
+                                    <div id="bioBand-${b}" style="height:100%; width: 0%; background: linear-gradient(90deg, #8b5cf6, #c084fc); transition: width 0.4s;"></div>
+                                </div>
+                                <span id="bioBandVal-${b}" style="width:54px; text-align:right; font-size:0.78rem; color:#7c3aed; font-weight:600;">--</span>
+                            </div>`).join('')}
+                    </div>
+                </div>
+
+                <!-- SLEEP SESSION RECORDER ----------------------------------- -->
+                <div class="aura-section">
+                    <span class="aura-section-title">Sleep Session</span>
+                    <span class="aura-section-link" id="sleepSessionStatus">idle</span>
+                </div>
+
+                <div class="glass-card" style="padding: 18px;">
+                    <div style="display:flex; gap: 12px; align-items:center; flex-wrap: wrap;">
+                        <button id="sleepStartBtn" class="hero-action" type="button"
+                            style="background: linear-gradient(135deg,#7c3aed,#a855f7); border:none;">
+                            <i class="fas fa-bed"></i> <span>Start sleep tracking</span>
+                        </button>
+                        <button id="sleepStopBtn" class="hero-action" type="button"
+                            style="background: rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); display:none;">
+                            <i class="fas fa-stop"></i> <span>Stop &amp; save</span>
+                        </button>
+                        <span id="sleepLiveDuration" style="font-size:0.85rem; color:#7c3aed; font-weight:600;"></span>
+                    </div>
+
+                    <div id="sleepLivePanel" style="display:none; margin-top: 18px;">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px;">
+                            <div class="metric-pill" style="padding:12px;">
+                                <div class="pill-label">Current stage</div>
+                                <div class="pill-value" style="font-size: 1.2rem;"><span id="sleepCurStage">—</span></div>
+                            </div>
+                            <div class="metric-pill" style="padding:12px;">
+                                <div class="pill-label">Epochs</div>
+                                <div class="pill-value" style="font-size: 1.2rem;"><span id="sleepEpochCount">0</span></div>
+                            </div>
+                            <div class="metric-pill" style="padding:12px;">
+                                <div class="pill-label">Elapsed</div>
+                                <div class="pill-value" style="font-size: 1.2rem;"><span id="sleepElapsed">0m</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Live hypnogram -->
+                        <div id="sleepLiveTimeline" style="margin-top:14px;"></div>
+
+                        <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 12px; line-height: 1.5;">
+                            <i class="fas fa-info-circle"></i> Sleep stages diklasifikasi tiap 30 detik dari band-power frontal (AASM rule-based).
+                            Hasil disimpan ke Firestore saat Stop ditekan.
+                        </p>
+                    </div>
+
+                    <div id="sleepHistoryPanel" style="margin-top: 18px;">
+                        <h5 style="font-size:0.85rem; color:#4c1d95; margin-bottom: 8px;">Recent sessions</h5>
+                        <div id="sleepHistoryList" style="display:flex; flex-direction:column; gap:8px;">
+                            <div style="color:#94a3b8; font-size:0.78rem;">Loading…</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PPG SECTION --------------------------------------------- -->
+                <div class="aura-section">
+                    <span class="aura-section-title">PPG · MAX30102 Derived</span>
+                    <span class="aura-section-link" id="ppgQualityBadge">no signal</span>
+                </div>
+
+                <div class="metric-pills">
+                    <div class="metric-pill">
+                        <div class="pill-icon danger"><i class="fas fa-heart-pulse"></i></div>
+                        <div class="pill-value"><span id="bioHr">--</span><sup>bpm</sup></div>
+                        <div class="pill-label">Heart rate</div>
+                        <div class="pill-sub">live</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="pill-value"><span id="bioRMSSD">--</span><sup>ms</sup></div>
+                        <div class="pill-label">RMSSD</div>
+                        <div class="pill-sub">parasympathetic</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon"><i class="fas fa-wave-square"></i></div>
+                        <div class="pill-value"><span id="bioSDNN">--</span><sup>ms</sup></div>
+                        <div class="pill-label">SDNN</div>
+                        <div class="pill-sub">overall HRV</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon info"><i class="fas fa-percentage"></i></div>
+                        <div class="pill-value"><span id="bioPNN50">--</span><sup>%</sup></div>
+                        <div class="pill-label">pNN50</div>
+                        <div class="pill-sub">vagal tone</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon warning"><i class="fas fa-balance-scale"></i></div>
+                        <div class="pill-value"><span id="bioLFHF">--</span></div>
+                        <div class="pill-label">LF / HF</div>
+                        <div class="pill-sub">autonomic balance</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon success"><i class="fas fa-lungs"></i></div>
+                        <div class="pill-value"><span id="bioRR">--</span><sup>br/min</sup></div>
+                        <div class="pill-label">Respiratory rate</div>
+                        <div class="pill-sub">amplitude mod.</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon"><i class="fas fa-droplet"></i></div>
+                        <div class="pill-value"><span id="bioPI">--</span><sup>%</sup></div>
+                        <div class="pill-label">Perfusion idx</div>
+                        <div class="pill-sub">AC/DC</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="pill-icon info"><i class="fas fa-signal"></i></div>
+                        <div class="pill-value"><span id="bioSQ">--</span><sup>%</sup></div>
+                        <div class="pill-label">Signal quality</div>
+                        <div class="pill-sub">peak regularity</div>
+                    </div>
+                </div>
+
+                <!-- ML ESTIMATES -------------------------------------------- -->
+                <div class="aura-section">
+                    <span class="aura-section-title">ML Estimates <span style="font-size:0.7rem; color:#f59e0b; font-weight:600;">· research grade</span></span>
+                    <span style="display:flex; gap:10px; align-items:center;">
+                        <span style="font-size:0.7rem; color:#7c3aed; font-weight:600;" id="mlStatusBadge">heuristic</span>
+                        <button class="aura-section-link" id="biolabRefreshML" type="button">Recompute</button>
+                    </span>
+                </div>
+
+                <div class="script-grid">
+                    <div class="script-card" id="cardGlucose">
+                        <div class="script-card-head">
+                            <div class="icon"><i class="fas fa-droplet"></i></div>
+                            <span class="edit" id="biolabGlucoseConf">conf —</span>
+                        </div>
+                        <div class="script-card-title"><span id="biolabGlucose">— mg/dL</span></div>
+                        <div class="script-card-desc" id="biolabGlucoseBand">Heuristic from PPG morphology + HRV</div>
+                    </div>
+                    <div class="script-card" id="cardBP">
+                        <div class="script-card-head">
+                            <div class="icon"><i class="fas fa-stethoscope"></i></div>
+                            <span class="edit" id="biolabBPConf">conf —</span>
+                        </div>
+                        <div class="script-card-title"><span id="biolabBP">— / —</span> mmHg</div>
+                        <div class="script-card-desc" id="biolabBPBand">PPG rise time + AI surrogate</div>
+                    </div>
+                    <div class="script-card" id="cardVAge">
+                        <div class="script-card-head">
+                            <div class="icon"><i class="fas fa-hourglass-half"></i></div>
+                            <span class="edit" id="biolabVAgeConf">conf —</span>
+                        </div>
+                        <div class="script-card-title"><span id="biolabVAge">—</span> yrs</div>
+                        <div class="script-card-desc">Vascular age estimate</div>
+                    </div>
+                    <div class="script-card" id="cardStress">
+                        <div class="script-card-head">
+                            <div class="icon"><i class="fas fa-brain"></i></div>
+                            <span class="edit" id="biolabStressConf">conf —</span>
+                        </div>
+                        <div class="script-card-title"><span id="biolabStress">—</span>%</div>
+                        <div class="script-card-desc" id="biolabStressBand">EEG + HRV + GSR composite</div>
+                    </div>
+                </div>
+
+                <!-- INFO ---------------------------------------------------- -->
+                <div class="glass-card" style="padding: 16px; margin-top: 22px;">
+                    <h4 style="font-size:0.9rem; color:#4c1d95; margin-bottom:8px;"><i class="fas fa-bolt"></i> Closed-loop interventions</h4>
+                    <p style="font-size:0.78rem; color:#64748b; line-height:1.55; margin-bottom:12px;">
+                        Saat EEG mendeteksi <strong>tertekan</strong>, <strong>beban kognitif berlebih</strong>, atau <strong>kantuk</strong> yang menetap (terkonfirmasi beberapa epoch berturut), app otomatis menyarankan intervensi (pernapasan, mindful, atau mood booster). Berbasis model MLP mental-state (97%) + cognitive-load (90%).
+                    </p>
+                    <div id="biolabInterventionLog" style="display:flex; flex-direction:column; gap:6px;">
+                        <div style="color:#94a3b8; font-size:0.75rem;">Belum ada intervensi tercatat.</div>
+                    </div>
+                </div>
+
+                <!-- ABOUT --------------------------------------------------- -->
+                <div class="glass-card" style="padding: 16px; margin-top: 16px;">
+                    <h4 style="font-size:0.9rem; color:#4c1d95; margin-bottom:8px;"><i class="fas fa-info-circle"></i> About this lab</h4>
+                    <p style="font-size:0.8rem; color:#64748b; line-height:1.6;">
+                        EEG bands (delta, theta, alpha, sigma/SMR, beta, gamma) di-FFT realtime dari 4 channel Muse (TP9, AF7, AF8, TP10).
+                        PPG features (HRV time/freq-domain, pulse morphology, perfusion index) dihitung dari raw red+IR samples MAX30102 jika firmware mengirimkannya;
+                        kalau tidak, jatuh ke mode degraded berbasis BPM events. Estimasi glucose/BP/vascular-age memakai heuristik literatur (lihat Salamea-Palacios 2025; Satter 2024)
+                        dan akan otomatis di-upgrade saat model TF.js dimuat lewat <code>ScentraML.loadModel()</code>.
+                    </p>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Sleep Session view — record & review sleep sessions backed by Firestore.
+     */
+    sleepSession() {
+        return `
+            <div class="view-container">
+                <section class="aura-hero" style="margin-bottom: 22px;">
+                    <div class="hero-row">
+                        <div>
+                            <div class="hero-greeting">Sleep Session</div>
+                            <div class="hero-name">Hypnogram &amp; History</div>
+                            <div class="hero-sub">EEG-staged sleep epochs · synced to cloud</div>
+                        </div>
+                        <button class="hero-action" id="sleepSessionBtn" type="button">
+                            <i class="fas fa-play"></i> <span>Start</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Live -->
+                <div class="glass-card" id="sleepLivePanel" style="padding:18px; margin-bottom: 22px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h4 style="font-size:0.95rem; color:#4c1d95;">Live session</h4>
+                        <span id="sleepStatus" style="font-size:0.75rem; color:#64748b; font-weight:600;">idle</span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;">
+                        <div>
+                            <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:600;">Elapsed</div>
+                            <div id="sleepElapsed" style="font-size:1.2rem; font-weight:800; color:#4c1d95;">00:00</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:600;">Epochs</div>
+                            <div id="sleepEpochCount" style="font-size:1.2rem; font-weight:800; color:#4c1d95;">0</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:600;">Current</div>
+                            <div id="sleepCurrentStage" style="font-size:1.2rem; font-weight:800; color:#4c1d95;">—</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:600;">Score</div>
+                            <div id="sleepLiveScore" style="font-size:1.2rem; font-weight:800; color:#4c1d95;">—</div>
+                        </div>
+                    </div>
+
+                    <!-- Hypnogram -->
+                    <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:600; margin-bottom:6px;">Hypnogram</div>
+                    <div id="hypnogramTrack" style="position:relative; height:90px; background: rgba(124,58,237,0.05); border-radius: 14px; overflow: hidden; border: 1px solid var(--glass-border);"></div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:6px;">
+                        <span>WAKE</span><span>REM</span><span>N1</span><span>N2</span><span>N3</span>
+                    </div>
+                </div>
+
+                <!-- Stage distribution -->
+                <div class="glass-card" id="sleepDistPanel" style="padding:18px; margin-bottom:22px; display:none;">
+                    <h4 style="font-size:0.95rem; color:#4c1d95; margin-bottom:14px;">Stage distribution</h4>
+                    <div id="sleepStageBars" style="display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+
+                <!-- History -->
+                <div class="aura-section">
+                    <span class="aura-section-title">Recent sessions</span>
+                    <button class="aura-section-link" id="sleepRefreshBtn" type="button">Refresh</button>
+                </div>
+                <div id="sleepHistoryList" class="script-grid"></div>
+
+                <div class="glass-card" style="padding:16px; margin-top: 22px; border-left: 3px solid #10b981;">
+                    <p style="font-size:0.78rem; color:#065f46; line-height:1.55;">
+                        <i class="fas fa-circle-check"></i> <strong>Tervalidasi data nyata.</strong>
+                        Model sleep-stager dilatih & divalidasi pada Sleep-EDF (197 subjek, split subject-wise): akurasi <strong>~60%</strong>, macro-F1 0.56 untuk 5 stage dari single-channel frontal EEG. Realistis untuk perangkat consumer; bukan pengganti polisomnografi klinis.
+                    </p>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Aromatherapy Advisor — PSP-5 + Hunger + SEES-10 + EEG/PPG fusion
+     * recommends a kemiri-based blend.
+     */
+    aroma() {
+        const psp5Items = [
+            { key: 'cheerfulness', q: 'Keceriaan Anda saat ini?' },
+            { key: 'happiness',    q: 'Kebahagiaan Anda saat ini?' },
+            { key: 'anger',        q: 'Rasa marah / frustrasi saat ini?' },
+            { key: 'anxiety',      q: 'Rasa cemas / stres saat ini?' },
+            { key: 'sadness',      q: 'Rasa sedih saat ini?' }
+        ];
+        const scale6 = ['Sangat rendah','Rendah','Sedikit rendah','Sedikit tinggi','Tinggi','Sangat tinggi'];
+
+        const pspHtml = psp5Items.map(it => `
+            <div class="glass-card" style="padding:14px 16px; margin-bottom:10px;">
+                <div style="font-size:0.88rem; font-weight:600; color:#4c1d95; margin-bottom:10px;">${it.q}</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    ${scale6.map((lbl,i) => `
+                        <button type="button" class="aroma-opt" data-group="psp_${it.key}" data-val="${i+1}"
+                            title="${lbl}"
+                            style="flex:1; min-width:42px; padding:8px 4px; border-radius:10px; border:1px solid rgba(124,58,237,0.2); background:rgba(255,255,255,0.6); cursor:pointer; font-size:0.78rem; font-weight:700; color:#6d28d9;">
+                            ${i+1}
+                        </button>`).join('')}
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.62rem; color:#94a3b8; margin-top:4px;">
+                    <span>Sangat rendah</span><span>Sangat tinggi</span>
+                </div>
+            </div>`).join('');
+
+        const sees10Q = [
+            'Ketika kewalahan/beban tugas banyak, saya makan…',
+            'Pada saat sangat stres, saya makan…',
+            'Ketika merasa keadaan di luar kendali, saya makan…',
+            'Saat semua hal tidak sesuai harapan, saya makan…',
+            'Saat mempersiapkan tugas berat, saya makan…',
+            'Ketika di bawah tekanan, saya makan…',
+            'Ketika cemas dan stres, saya makan…',
+            'Ketika merasa tak berperan atas hal penting, saya makan…',
+            'Ketika merasa tidak menguasai keadaan, saya makan…',
+            'Ketika kesulitan menumpuk tinggi, saya makan…'
+        ];
+        const seesScale = ['Jauh lebih sedikit','Lebih sedikit','Seperti biasa','Lebih banyak','Jauh lebih banyak'];
+        const seesHtml = sees10Q.map((q,idx) => `
+            <div style="padding:10px 0; border-bottom:1px solid rgba(124,58,237,0.08);">
+                <div style="font-size:0.8rem; color:#4c1d95; margin-bottom:8px;">${idx+1}. ${q}</div>
+                <div style="display:flex; gap:5px;">
+                    ${seesScale.map((lbl,i) => `
+                        <button type="button" class="aroma-opt" data-group="sees_${idx}" data-val="${i+1}" title="${lbl}"
+                            style="flex:1; padding:7px 2px; border-radius:8px; border:1px solid rgba(124,58,237,0.2); background:rgba(255,255,255,0.6); cursor:pointer; font-size:0.72rem; font-weight:700; color:#6d28d9;">${i+1}</button>`).join('')}
+                </div>
+            </div>`).join('');
+
+        return `
+            <div class="view-container">
+                <section class="aura-hero" style="margin-bottom:22px;">
+                    <div class="hero-row">
+                        <div>
+                            <div class="hero-greeting">Scentra · Aromaterapi</div>
+                            <div class="hero-name">Aroma Advisor</div>
+                            <div class="hero-sub">Rekomendasi blend berbasis emosi + biosignal</div>
+                        </div>
+                        <div class="hero-score-icon"><i class="fas fa-spray-can-sparkles"></i></div>
+                    </div>
+                </section>
+
+                <div class="glass-card" style="padding:14px 16px; margin-bottom:18px; border-left:3px solid #f59e0b;">
+                    <p style="font-size:0.78rem; color:#92400e; line-height:1.55; font-weight:500;">
+                        <i class="fas fa-leaf"></i> <strong>Wellness komplementer.</strong> Aromaterapi (berbasis <strong>Minyak Kemiri</strong> sebagai carrier) bukan pengganti pengobatan medis. Lakukan patch-test, hindari kontak mata, jangan ditelan, dan konsultasikan bila hamil/asma/epilepsi.
+                    </p>
+                </div>
+
+                <div class="aura-section"><span class="aura-section-title">PSP-5 · Profil Emosi</span></div>
+                ${pspHtml}
+
+                <div class="aura-section"><span class="aura-section-title">Hunger Scale (1–10)</span></div>
+                <div class="glass-card" style="padding:16px;">
+                    <input type="range" id="aromaHunger" min="1" max="10" value="5" step="1"
+                        style="width:100%; accent-color:#7c3aed;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:6px;">
+                        <span>1 · Sangat lapar</span><span id="aromaHungerVal" style="color:#7c3aed; font-weight:700;">5</span><span>10 · Sangat kenyang</span>
+                    </div>
+                </div>
+
+                <div class="aura-section">
+                    <span class="aura-section-title">SEES-10 · Emotional Eating</span>
+                    <button class="aura-section-link" id="aromaToggleSees" type="button">Tampilkan</button>
+                </div>
+                <div class="glass-card" id="aromaSeesPanel" style="padding:16px; display:none;">
+                    ${seesHtml}
+                </div>
+
+                <div class="glass-card" style="padding:14px 16px; margin-top:14px;">
+                    <div style="font-size:0.8rem; color:#4c1d95; font-weight:600;">
+                        <i class="fas fa-wave-square"></i> Biosignal live
+                        <span id="aromaBioState" style="font-weight:500; color:#7c3aed;"> — menunggu EEG/PPG</span>
+                    </div>
+                    <p style="font-size:0.72rem; color:#94a3b8; margin-top:4px;">EEG mental-state &amp; PPG stress otomatis disertakan jika BioLab/Muse aktif.</p>
+                </div>
+
+                <button id="aromaRecommendBtn" class="btn btn-primary" type="button"
+                    style="width:100%; margin-top:18px; padding:16px; border-radius:16px; justify-content:center; font-size:1.05rem;">
+                    <i class="fas fa-flask"></i> Analisis &amp; Rekomendasikan Blend
+                </button>
+
+                <div id="aromaResult" style="margin-top:22px;"></div>
+
+                <div class="aura-section" style="margin-top:28px;"><span class="aura-section-title">Pustaka Aroma</span></div>
+                <div id="aromaLibrary" class="card-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;"></div>
+            </div>
         `;
     }
 };

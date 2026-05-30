@@ -564,6 +564,46 @@ const AdminManager = {
     // ========== QUESTIONNAIRE MANAGEMENT ==========
 
     /**
+     * Load all aromatherapy recommendations across users (collectionGroup).
+     * Requires a collectionGroup index on aromaRecommendations.timestamp.
+     */
+    async loadAromaRecommendations(limit = 200) {
+        try {
+            const cacheKey = 'admin_aroma';
+            const cached = this._cache[cacheKey];
+            if (cached && (Date.now() - cached.timestamp < 5 * 60 * 1000)) {
+                return cached.data;
+            }
+
+            let docs = [];
+            try {
+                const snap = await db.collectionGroup('aromaRecommendations')
+                    .orderBy('timestamp', 'desc')
+                    .limit(limit)
+                    .get();
+                docs = snap.docs;
+            } catch (idxErr) {
+                /* Index not ready — fall back to unordered collectionGroup */
+                console.warn('Aroma ordered query failed, fallback:', idxErr.message);
+                const snap = await db.collectionGroup('aromaRecommendations').limit(limit).get();
+                docs = snap.docs;
+            }
+
+            const recs = docs.map(doc => {
+                const userId = doc.ref.parent.parent ? doc.ref.parent.parent.id : null;
+                return { id: doc.id, userId, ...doc.data() };
+            });
+
+            this._cache[cacheKey] = { data: recs, timestamp: Date.now() };
+            console.log('Aroma recommendations loaded:', recs.length);
+            return recs;
+        } catch (e) {
+            console.error('Failed to load aroma recommendations:', e);
+            return [];
+        }
+    },
+
+    /**
      * Load all questionnaire responses (OPTIMIZED with limit & caching)
      */
     async loadQuestionnaires(limit = 100) {

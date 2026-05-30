@@ -259,6 +259,27 @@ const App = {
             if (typeof OnboardingTour !== 'undefined') OnboardingTour.checkAndStart('games');
         });
 
+        Router.register('biolab', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.biolab());
+            if (typeof BioLab !== 'undefined') BioLab.init();
+        });
+
+        Router.register('aroma', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.aroma());
+            if (typeof AromaModule !== 'undefined') AromaModule.init();
+        });
+
+        Router.register('sleepsession', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.sleepSession());
+            if (typeof SleepSessionUI !== 'undefined') SleepSessionUI.init();
+        });
+
         Router.register('yoga', () => {
             const nav = document.querySelector('.bottom-nav');
             if (nav) nav.style.display = 'flex';
@@ -411,6 +432,18 @@ const App = {
                         <div class="more-icon" style="background: rgba(139, 92, 246, 0.12); color: #8B5CF6;"><i class="fas fa-gamepad"></i></div>
                         <span>${typeof t !== 'undefined' ? t('menu.games') : 'Games'}</span>
                     </a>
+                    <a class="more-menu-item" data-route="biolab" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;"><i class="fas fa-flask"></i></div>
+                        <span>BioLab</span>
+                    </a>
+                    <a class="more-menu-item" data-route="aroma" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed;"><i class="fas fa-spray-can-sparkles"></i></div>
+                        <span>Aroma Advisor</span>
+                    </a>
+                    <a class="more-menu-item" data-route="sleepsession" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;"><i class="fas fa-bed"></i></div>
+                        <span>Sleep Session</span>
+                    </a>
                     <a class="more-menu-item" data-route="research" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning-500);"><i class="fas fa-flask"></i></div>
                         <span>Research</span>
@@ -487,6 +520,13 @@ const App = {
         // Label matches toggle: connect vs disconnect (same as BLE status UI)
         if (bleStatus) {
             bleStatus.textContent = connected ? t('ble.disconnect') : t('ble.connect');
+        }
+
+        // Aura dashboard: device card lamp
+        const watchEl = document.getElementById('watchStatus');
+        if (watchEl) {
+            watchEl.textContent = connected ? 'ON' : 'OFF';
+            watchEl.className = 'device-card-status ' + (connected ? 'on' : 'off');
         }
 
         // Update dashboard chart mode (if on dashboard)
@@ -591,6 +631,31 @@ const App = {
         if (userNameEl && this.currentUser) {
             userNameEl.textContent = this.currentUser.displayName || this.currentUser.email?.split('@')[0] || 'User';
         }
+
+        // Aura dashboard: subtitle date
+        const dashDateEl = document.getElementById('dashboardDate');
+        if (dashDateEl) {
+            const locale = (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID';
+            dashDateEl.textContent = new Date().toLocaleDateString(locale, {
+                weekday: 'long', day: 'numeric', month: 'long'
+            });
+        }
+
+        // Aura dashboard: reflect BLE / Muse connection state on device cards
+        try {
+            const watchEl = document.getElementById('watchStatus');
+            const museEl  = document.getElementById('museStatus');
+            const bleOn   = (typeof BLEConnection !== 'undefined' && BLEConnection.isConnected && BLEConnection.isConnected());
+            const museOn  = (typeof EEGMuse !== 'undefined' && EEGMuse.isConnected && EEGMuse.isConnected());
+            if (watchEl) {
+                watchEl.textContent = bleOn ? 'ON' : 'OFF';
+                watchEl.className = 'device-card-status ' + (bleOn ? 'on' : 'off');
+            }
+            if (museEl) {
+                museEl.textContent = museOn ? 'ON' : 'OFF';
+                museEl.className = 'device-card-status ' + (museOn ? 'on' : 'off');
+            }
+        } catch (e) { /* noop */ }
 
         // Check if user is admin and show admin card
         if (this.currentUser && typeof db !== 'undefined') {

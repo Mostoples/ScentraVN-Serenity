@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * SYNAWATCH - Admin Setup Script
+ * ScentraVN Serenity - Admin Setup Script
  * Setup admin user, initialize Firestore, manage API keys
  *
  * Usage: node setup-admin.js [command] [args]
@@ -30,7 +30,7 @@ const serviceAccount = require(serviceAccountPath);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: 'https://synawacth-id-default-rtdb.firebaseio.com'
+    databaseURL: 'https://scentravn-default-rtdb.asia-southeast1.firebasedatabase.app'
 });
 
 const db = admin.firestore();
@@ -67,7 +67,7 @@ async function setupAdmin(email) {
         console.log(`   Email: ${email}`);
         console.log(`   UID: ${uid}`);
         console.log(`   Role: admin`);
-        console.log(`\n📍 Admin Dashboard: https://synawacth-id.web.app/#/admin\n`);
+        console.log(`\n📍 Admin Dashboard: https://scentravn.web.app/#/admin\n`);
 
     } catch (error) {
         console.error('❌ Error:', error.message);
@@ -199,8 +199,8 @@ async function main() {
 
     if (!command) {
         console.log(`
-SYNAWATCH Admin Setup Script
-=============================
+ScentraVN Serenity Admin Setup Script
+=====================================
 
 Usage: node setup-admin.js [command] [args]
 

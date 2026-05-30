@@ -118,6 +118,9 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/header-menu.css">
     <link rel="stylesheet" href="css/onboarding-tour.css">
+    <link rel="stylesheet" href="css/theme-aura.css">
+    <link rel="stylesheet" href="css/icon-animations.css">
+    <link rel="stylesheet" href="css/theme-toggle.css">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -130,6 +133,15 @@
             <div class="loading-spinner"></div>
             <p class="loading-text">Initializing...</p>
         </div>
+    </div>
+
+    <!-- Animated Aura Background (purple glassmorphism vibe) -->
+    <div class="aura-bg" aria-hidden="true">
+        <span class="orb o1"></span>
+        <span class="orb o2"></span>
+        <span class="orb o3"></span>
+        <span class="orb o4"></span>
+        <span class="orb o5"></span>
     </div>
 
     <!-- App Container -->
@@ -180,6 +192,7 @@
     <script src="https://unpkg.com/fflate@0.7.3/umd/index.js"></script>
 
     <!-- App Scripts -->
+    <script src="js/theme-manager.js"></script>
     <script src="js/config.keys.js"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
@@ -189,6 +202,14 @@
     <!-- Stress Calculator (must load before BLE connection) -->
     <script src="js/stressCalculator.js"></script>
     <script src="js/stressStore.js"></script>
+
+    <!-- Signal Processing & ML (load before BLE so it can intercept frames) -->
+    <script src="js/signal/ppg-processor.js"></script>
+    <script src="js/signal/ppg-features.js"></script>
+    <script src="js/signal/eeg-features.js"></script>
+    <script src="js/ml/nn-runtime.js"></script>
+    <script src="js/ml/ml-inference.js"></script>
+
     <script src="js/ble-connection.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/dashboard.js"></script>
@@ -205,6 +226,24 @@
 
     <!-- EEG Muse Sleep Module -->
     <script src="js/eeg-muse.js"></script>
+
+    <!-- Sleep Session Recorder (uses MuseEEG metrics, persists to Firestore) -->
+    <script src="js/sleep-session.js"></script>
+
+    <!-- Sleep Timeline + Detail Modal (vanilla SVG, no chart libs) -->
+    <script src="js/sleep-timeline.js"></script>
+
+    <!-- BioLab Controller (binds Muse + PPG + ML to DOM) -->
+    <script src="js/biolab.js"></script>
+
+    <!-- Aromatherapy Advisor -->
+    <script src="js/aromatherapy-db.js"></script>
+    <script src="js/aroma-recommender.js"></script>
+    <script src="js/aroma-module.js"></script>
+
+    <!-- Sleep Session Recorder + UI -->
+    <script src="js/sleep-session.js"></script>
+    <script src="js/sleep-session-ui.js"></script>
 
     <!-- App Modules -->
     <script src="js/ground-truth.js"></script>

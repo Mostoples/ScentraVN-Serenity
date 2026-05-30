@@ -62,9 +62,18 @@ const MuseEEG = {
     /* Computed metrics (updated every analysis tick) */
     metrics: {
         powers:         { delta: 0, theta: 0, alpha: 0, smr: 0, beta: 0, gamma: 0 },
+        powersAF7:      { delta: 0, theta: 0, alpha: 0, smr: 0, beta: 0, gamma: 0 },
+        powersAF8:      { delta: 0, theta: 0, alpha: 0, smr: 0, beta: 0, gamma: 0 },
         thetaBetaRatio: 0,
         smrAlphaRatio:  0,
         alphaPeak:      0,
+        alphaAsymmetry: null,    // ln(α_AF8) − ln(α_AF7)
+        sleepStage:     'unknown',
+        engagement:     null,
+        meditation:     null,
+        mentalState:    null,    // { label, prob } from MLP
+        cognitiveLoad:  null,    // { label, prob } from MLP
+        emotion:        null,    // { label, prob } valence from real Muse-trained MLP
         stressLevel:    'low',   // 'low' | 'medium' | 'high'
         focusState:     'low',   // 'low' | 'moderate' | 'good'
         battery:        null,
@@ -73,11 +82,13 @@ const MuseEEG = {
 
     /* Callbacks */
     _onMetrics:     null,
+    _metricsListeners: [],
     _onConnection:  null,
     _onError:       null,
 
     /* ── Event binding ─────────────────────────────────────────────── */
-    onMetrics(cb)    { this._onMetrics    = cb; },
+    onMetrics(cb)    { if (cb && !this._metricsListeners.includes(cb)) this._metricsListeners.push(cb); },
+    offMetrics(cb)   { this._metricsListeners = this._metricsListeners.filter(f => f !== cb); },
     onConnection(cb) { this._onConnection = cb; },
     onError(cb)      { this._onError      = cb; },
 
@@ -176,7 +187,11 @@ const MuseEEG = {
             const gamma = (1  + stressFactor * 3) + 0.5 * Math.sin(t * 2.5);
 
             const powers = { delta, theta, alpha, smr, beta, gamma };
-            this._updateMetrics(powers);
+            /* Simulate slight asymmetry — left more active when stressed */
+            const asym = stressFactor * 0.15;
+            const pAF7 = { ...powers, alpha: alpha * (1 - asym) };
+            const pAF8 = { ...powers, alpha: alpha * (1 + asym) };
+            this._updateMetrics(powers, pAF7, pAF8);
         }, 500);
     },
 
@@ -206,11 +221,109 @@ const MuseEEG = {
         if (channel === 'af7' && buf.length >= FFT_SIZE) {
             this.metrics.packetCount++;
             if (this.metrics.packetCount % 8 === 0) {   /* ~every 200ms */
-                const window = buf.slice(-FFT_SIZE);
-                const powers = this._bandPowers(window);
-                this._updateMetrics(powers);
+                /* AF7 powers */
+                const winAF7 = buf.slice(-FFT_SIZE);
+                const pAF7 = this._bandPowers(winAF7);
+
+                /* AF8 powers (if available) */
+                const af8Buf = this.buffers.af8;
+                const pAF8 = (af8Buf.length >= FFT_SIZE)
+                    ? this._bandPowers(af8Buf.slice(-FFT_SIZE))
+                    : null;
+
+                /* Combined (mean of frontal channels for stress/focus classification) */
+                const combined = pAF8
+                    ? this._meanPowers(pAF7, pAF8)
+                    : pAF7;
+
+                this._updateMetrics(combined, pAF7, pAF8);
             }
         }
+    },
+
+    /* Average two band-power objects */
+    _meanPowers(a, b) {
+        const out = {};
+        for (const k of Object.keys(a)) {
+            if (k.startsWith('_')) continue;
+            const va = a[k] ?? 0, vb = b[k] ?? 0;
+            out[k] = (va + vb) / 2;
+        }
+        if (a._alphaPeak || b._alphaPeak) {
+            out._alphaPeak = ((a._alphaPeak || 0) + (b._alphaPeak || 0)) / 2;
+        }
+        return out;
+    },
+
+    /**
+     * Build the 15-feature vector for the real-trained emotion-valence model.
+     * Computed live from the 4 raw channel buffers + current band powers.
+     * Contract must match python/train_emotion_real.py COMPACT_FEATURES.
+     */
+    emotionFeatureVector() {
+        const p = this.metrics.powers || {};
+        const total = (p.delta||0)+(p.theta||0)+(p.alpha||0)+(p.beta||0)+(p.gamma||0)+(p.smr||0);
+        if (total <= 0) return null;
+        const prop = {
+            delta: (p.delta||0)/total, theta: (p.theta||0)/total, alpha: (p.alpha||0)/total,
+            sigma: (p.smr||0)/total,   beta: (p.beta||0)/total,   gamma: (p.gamma||0)/total
+        };
+
+        /* Alpha asymmetry (AF8 − AF7) from per-channel band powers */
+        const aAF7 = this.metrics.powersAF7?.alpha || 0;
+        const aAF8 = this.metrics.powersAF8?.alpha || 0;
+        const t7 = this._sumPowers(this.metrics.powersAF7);
+        const t8 = this._sumPowers(this.metrics.powersAF8);
+        const alphaAsym = (t8 > 0 && t7 > 0) ? (aAF8/t8 - aAF7/t7) : 0;
+
+        /* Statistical aggregates across the 4 raw channel buffers */
+        const stats = this._channelStats();
+
+        return {
+            delta: prop.delta, theta: prop.theta, alpha: prop.alpha,
+            sigma: prop.sigma, beta: prop.beta, gamma: prop.gamma,
+            thetaAlpha: prop.theta / (prop.alpha + 1e-6),
+            betaAlpha:  prop.beta  / (prop.alpha + 1e-6),
+            engagement: prop.beta  / (prop.alpha + prop.theta + 1e-6),
+            alphaAsym:  alphaAsym,
+            statMean: stats.meanOfMeans,
+            statStd:  stats.stdOfMeans,
+            stdMean:  stats.meanOfStds,
+            stdStd:   stats.stdOfStds,
+            absMean:  stats.meanOfAbs
+        };
+    },
+
+    _sumPowers(p) {
+        if (!p) return 0;
+        return (p.delta||0)+(p.theta||0)+(p.alpha||0)+(p.beta||0)+(p.gamma||0)+(p.smr||0);
+    },
+
+    /* Per-channel mean/std stats across the 4 raw buffers */
+    _channelStats() {
+        const chans = ['tp9','af7','af8','tp10'];
+        const means = [], stds = [], absMeans = [];
+        for (const ch of chans) {
+            const b = this.buffers[ch];
+            if (!b || b.length < 8) continue;
+            const w = b.slice(-FFT_SIZE);
+            const m = w.reduce((a,x)=>a+x,0)/w.length;
+            const v = w.reduce((a,x)=>a+(x-m)*(x-m),0)/w.length;
+            means.push(m); stds.push(Math.sqrt(v));
+            absMeans.push(w.reduce((a,x)=>a+Math.abs(x),0)/w.length);
+        }
+        const agg = arr => {
+            if (!arr.length) return { mean: 0, std: 0 };
+            const m = arr.reduce((a,x)=>a+x,0)/arr.length;
+            const v = arr.reduce((a,x)=>a+(x-m)*(x-m),0)/arr.length;
+            return { mean: m, std: Math.sqrt(v) };
+        };
+        const mAgg = agg(means), sAgg = agg(stds);
+        return {
+            meanOfMeans: mAgg.mean, stdOfMeans: mAgg.std,
+            meanOfStds:  sAgg.mean, stdOfStds:  sAgg.std,
+            meanOfAbs:   absMeans.length ? absMeans.reduce((a,x)=>a+x,0)/absMeans.length : 0
+        };
     },
 
     /* ── FFT & band power ───────────────────────────────────────────── */
@@ -288,7 +401,7 @@ const MuseEEG = {
     },
 
     /* ── Metrics update & classification ───────────────────────────── */
-    _updateMetrics(powers) {
+    _updateMetrics(powers, powersAF7 = null, powersAF8 = null) {
         const { theta, alpha, smr, beta } = powers;
 
         const thetaBeta = beta > 0.0001 ? theta / beta : 0;
@@ -305,16 +418,59 @@ const MuseEEG = {
         else if (smrAlpha > FOCUS_GOOD * 0.8) focusState = 'moderate';
         else focusState = 'low';
 
+        /* Frontal Alpha Asymmetry (depression-mood biomarker) */
+        let faa = null;
+        if (powersAF7 && powersAF8 && powersAF7.alpha > 0 && powersAF8.alpha > 0
+            && typeof EEGFeatures !== 'undefined') {
+            faa = EEGFeatures.frontalAlphaAsymmetry(powersAF7.alpha, powersAF8.alpha);
+        }
+
+        /* Engagement & meditation indices */
+        let engagement = null, meditation = null, sleepStage = 'unknown';
+        let mentalState = null, cognitiveLoad = null, emotion = null;
+        if (typeof EEGFeatures !== 'undefined') {
+            engagement = EEGFeatures.engagementIndex(powers);
+            meditation = EEGFeatures.meditationIndex(powers);
+            sleepStage = EEGFeatures.classifySleepStage(powers);
+            mentalState   = EEGFeatures.classifyMentalState(powers, faa);
+            cognitiveLoad = EEGFeatures.classifyCognitiveLoad(powers);
+            /* Emotion uses the richer 15-feature vector (real Muse-trained) */
+            if (typeof NNRuntime !== 'undefined' && NNRuntime.has('emotion')) {
+                const ev = this.emotionFeatureVector();
+                if (ev) {
+                    try {
+                        const out = NNRuntime.predict('emotion', ev);
+                        if (out && out.label) emotion = { label: out.label, prob: out.prob, probs: out.probs };
+                    } catch (e) { /* ignore */ }
+                }
+            }
+        }
+
         Object.assign(this.metrics, {
             powers:         { ...powers },
+            powersAF7:      powersAF7 ? { ...powersAF7 } : this.metrics.powersAF7,
+            powersAF8:      powersAF8 ? { ...powersAF8 } : this.metrics.powersAF8,
             thetaBetaRatio: thetaBeta,
             smrAlphaRatio:  smrAlpha,
             alphaPeak,
+            alphaAsymmetry: faa,
+            sleepStage,
+            engagement,
+            meditation,
+            mentalState,
+            cognitiveLoad,
+            emotion,
             stressLevel,
             focusState,
         });
 
         if (this._onMetrics) this._onMetrics({ ...this.metrics });
+        if (this._metricsListeners.length) {
+            const snapshot = { ...this.metrics };
+            for (const fn of this._metricsListeners) {
+                try { fn(snapshot); } catch (e) { /* isolate listener errors */ }
+            }
+        }
     },
 
     /* ── Helpers ────────────────────────────────────────────────────── */
@@ -354,6 +510,9 @@ const MuseEEG = {
     getStatus()     { return { isConnected: this.isConnected, simulationMode: this.simulationMode }; },
     isSupported()   { return 'bluetooth' in navigator; },
 
+    /* For symmetry with BLEConnection.isConnected() */
+    isConnectedFn() { return this.isConnected; },
+
     stressLabel(level) {
         return { high: 'Stres Tinggi', medium: 'Stres Sedang', low: 'Stres Rendah' }[level] ?? level;
     },
@@ -363,3 +522,15 @@ const MuseEEG = {
 };
 
 window.MuseEEG = MuseEEG;
+/* Global alias to keep older app.js code working: EEGMuse.isConnected() */
+window.EEGMuse = {
+    isConnected: () => MuseEEG.isConnected,
+    metrics:     () => MuseEEG.getMetrics(),
+    connect:     () => MuseEEG.connect(),
+    disconnect:  () => MuseEEG.disconnect(),
+    onMetrics:   (cb) => MuseEEG.onMetrics(cb),
+    onConnection:(cb) => MuseEEG.onConnection(cb),
+    onError:     (cb) => MuseEEG.onError(cb),
+    startSimulation:(...a) => MuseEEG.startSimulation(...a),
+    stopSimulation:  () => MuseEEG.stopSimulation()
+};

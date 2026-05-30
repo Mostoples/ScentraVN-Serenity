@@ -223,6 +223,22 @@ function handleDataNotification(event) {
             rmssd: rmssd                         // RMSSD yang sudah dihitung
         });
 
+        // ============================================
+        // PPG SIGNAL PROCESSOR (advanced HRV / RR / Glucose / BP)
+        // Forward to PPGProcessor when raw red+IR samples are present;
+        // otherwise feed the firmware-derived BPM as a coarse beat tick.
+        // ============================================
+        try {
+            if (typeof PPGProcessor !== 'undefined') {
+                if (Array.isArray(data.red) && Array.isArray(data.ir) && data.red.length) {
+                    if (data.fs) PPGProcessor.setSampleRate(data.fs);
+                    PPGProcessor.pushSamples(data.red, data.ir, Date.now());
+                } else if (data.finger && data.hr > 0) {
+                    PPGProcessor.pushBPM(data.hr, Date.now());
+                }
+            }
+        } catch (e) { /* keep BLE pipeline resilient */ }
+
         // Update sensor data with new stress calculation
         sensorData = {
             ...sensorData,

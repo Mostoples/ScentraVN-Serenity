@@ -11,10 +11,22 @@ const InterventionEngine = {
         synachat: 0,
         music: 0,
         yoga: 0,
-        crisis: 0
+        crisis: 0,
+        eeg_stress: 0,
+        eeg_overload: 0,
+        eeg_drowsy: 0
     },
     COOLDOWN_PERIOD: 5 * 60 * 1000, // 5 minutes between automatic interventions
     SIMULATION_MODE: true, // Set to true to allow easier trigger during dev
+
+    /* ── EEG closed-loop state ─────────────────────────────────────
+     * Sustained-detection buffer: an EEG state must persist across
+     * several consecutive epochs before triggering, to avoid noise.
+     */
+    eegBuffer: [],
+    EEG_BUFFER_SIZE: 6,           // ~ last 6 metric ticks
+    EEG_SUSTAIN_RATIO: 0.66,      // 66% of buffer must agree
+    _eegSubscribed: false,
 
     /**
      * [GAP 2] Adaptive Threshold Calibration
@@ -44,6 +56,166 @@ const InterventionEngine = {
 
         console.log("Intervention Engine v2.0 Initialized. Threshold:", this.baseline.stressThreshold,
             "Personal baseline:", this.personalBaseline ? 'loaded' : 'learning...');
+
+        // Subscribe to EEG metrics for brain-driven interventions
+        this.subscribeEEG();
+    },
+
+    /**
+     * [EEG] Subscribe to MuseEEG metrics → brain-state-driven interventions.
+     * Uses the trained mental-state & cognitive-load MLP classifiers.
+     */
+    subscribeEEG() {
+        if (this._eegSubscribed) return;
+        if (typeof MuseEEG === 'undefined') {
+            /* MuseEEG script may load later — retry a few times */
+            this._eegRetries = (this._eegRetries || 0) + 1;
+            if (this._eegRetries <= 10) {
+                setTimeout(() => this.subscribeEEG(), 1000);
+            }
+            return;
+        }
+        try {
+            MuseEEG.onMetrics((m) => this.processEEG(m));
+            this._eegSubscribed = true;
+            console.log("Intervention Engine: subscribed to EEG metrics.");
+        } catch (e) { /* MuseEEG not ready yet */ }
+    },
+
+    /**
+     * [EEG] Process a Muse metrics tick. Buffers the ML-classified mental
+     * state and only fires an intervention when a concerning state is
+     * sustained across the buffer window (reduces false positives).
+     */
+    processEEG(m) {
+        if (!m) return;
+
+        // Prefer ML mental-state label; fall back to cognitive load
+        const state = m.mentalState?.label || null;
+        const load  = m.cognitiveLoad?.label || null;
+        const conf  = m.mentalState?.prob || 0;
+
+        // Only buffer reasonably confident classifications
+        if (state && conf >= 0.5) {
+            this.eegBuffer.push({ state, load, ts: Date.now() });
+            if (this.eegBuffer.length > this.EEG_BUFFER_SIZE) this.eegBuffer.shift();
+        }
+
+        if (this.eegBuffer.length < this.EEG_BUFFER_SIZE) return;
+
+        const now = Date.now();
+        const ratio = (label, key) => {
+            const c = this.eegBuffer.filter(e => e[key] === label).length;
+            return c / this.eegBuffer.length;
+        };
+
+        // 1) Sustained STRESS / tertekan → breathing or synachat
+        if (ratio('stressed', 'state') >= this.EEG_SUSTAIN_RATIO) {
+            if (now - this.cooldowns.eeg_stress > this.COOLDOWN_PERIOD) {
+                this.cooldowns.eeg_stress = now;
+                this.logInterventionToDB('eeg_stress');
+                this.showAromaOrFallback('stressed',
+                    "Pola gelombang otak menunjukkan ketegangan mental yang menetap. Latihan pernapasan terpandu bisa membantu menenangkan pikiran.",
+                    () => { if (typeof Router !== 'undefined') Router.navigate('mindful'); });
+                this.eegBuffer = [];
+                return;
+            }
+        }
+
+        // 2) Sustained COGNITIVE OVERLOAD → suggest a short break / mindful
+        if (ratio('overload', 'load') >= this.EEG_SUSTAIN_RATIO) {
+            if (now - this.cooldowns.eeg_overload > this.COOLDOWN_PERIOD) {
+                this.cooldowns.eeg_overload = now;
+                this.logInterventionToDB('eeg_overload');
+                this.showAromaOrFallback('overload',
+                    "Beban kognitif terdeteksi tinggi (theta naik, alpha turun). Istirahat 2 menit atau latihan grounding bisa memulihkan fokus.",
+                    () => { if (typeof Router !== 'undefined') Router.navigate('mindful'); });
+                this.eegBuffer = [];
+                return;
+            }
+        }
+
+        // 3) Sustained DROWSY during the day → gentle activation nudge
+        if (ratio('drowsy', 'state') >= this.EEG_SUSTAIN_RATIO) {
+            const hour = new Date().getHours();
+            if (hour >= 8 && hour <= 20 && now - this.cooldowns.eeg_drowsy > this.COOLDOWN_PERIOD * 2) {
+                this.cooldowns.eeg_drowsy = now;
+                this.logInterventionToDB('eeg_drowsy');
+                this.showAromaOrFallback('drowsy',
+                    "Gelombang otak menunjukkan kantuk. Peregangan singkat atau musik energik dari Mood Booster bisa menyegarkan.",
+                    () => { if (typeof Router !== 'undefined') Router.navigate('moodbooster'); });
+                this.eegBuffer = [];
+                return;
+            }
+        }
+    },
+
+    /**
+     * [AROMA] When a concerning EEG state is sustained, offer an aromatherapy
+     * blend (kemiri-based) tailored to that state — with a fallback action.
+     */
+    showAromaOrFallback(stateLabel, fallbackMsg, fallbackAction) {
+        // If aroma recommender is available, build a state-specific blend
+        if (typeof AromaRecommender !== 'undefined' && typeof AromaDB !== 'undefined') {
+            try {
+                /* Map sustained EEG state → recommender input */
+                const eegInput = { eeg: { mentalState: { label: stateLabel } } };
+                if (stateLabel === 'overload') eegInput.eeg.cognitiveLoad = { label: 'overload' };
+                const rec = AromaRecommender.recommend(eegInput);
+                if (rec && rec.blend && rec.blend.length) {
+                    const blendNames = rec.blend.map(b => `${b.name} (${b.drops} tetes)`).join(', ');
+                    const msg = `${fallbackMsg}\n\n🌿 Scentra menyarankan aromaterapi: ${rec.carrier.name} + ${blendNames}.`;
+                    this.showAromaAlert(msg, rec, fallbackAction);
+                    return;
+                }
+            } catch (e) { /* fall through */ }
+        }
+        this.showAlert(fallbackMsg, fallbackAction);
+    },
+
+    /**
+     * Aroma-specific alert with 2 actions: open Aroma Advisor, or do fallback.
+     */
+    showAromaAlert(message, rec, fallbackAction) {
+        if (document.querySelector('.intervention-modal-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'intervention-modal-overlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(76,29,149,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:9999;animation:fadeIn 0.3s;';
+
+        const blendChips = rec.blend.map(b =>
+            `<span style="display:inline-block;background:rgba(124,58,237,0.1);color:#6d28d9;font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:99px;margin:2px;">${b.name} · ${b.drops}d</span>`
+        ).join('');
+
+        overlay.innerHTML = `
+            <div style="background:white;padding:30px 24px;border-radius:28px;width:90%;max-width:400px;text-align:center;box-shadow:0 20px 40px rgba(124,58,237,0.25);transform:scale(0.95);animation:slideUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards;">
+                <div style="width:68px;height:68px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;color:#fff;font-size:2rem;box-shadow:0 8px 18px rgba(124,58,237,0.3);">
+                    <i class="fas fa-spray-can-sparkles"></i>
+                </div>
+                <h3 style="font-size:1.3rem;font-weight:800;margin-bottom:10px;color:#4c1d95;">Aromaterapi untuk Anda</h3>
+                <p style="color:#64748b;margin-bottom:14px;font-size:0.92rem;line-height:1.55;white-space:pre-line;">${message}</p>
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:0.72rem;color:#7c3aed;font-weight:700;margin-bottom:6px;">BASE: ${rec.carrier.name}</div>
+                    ${blendChips}
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <button id="btnAroma" class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;border-radius:14px;justify-content:center;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;">
+                        <i class="fas fa-flask"></i> Buka Aroma Advisor
+                    </button>
+                    <button id="btnAromaAlt" class="btn" style="width:100%;padding:14px;font-size:0.95rem;border-radius:14px;justify-content:center;background:#f3f4f6;color:#374151;border:none;">
+                        Latihan lain saja
+                    </button>
+                    <button id="btnAromaDismiss" style="width:100%;padding:10px;font-size:0.85rem;border-radius:14px;background:transparent;color:#9ca3af;border:1px solid #e5e7eb;cursor:pointer;">Nanti saja</button>
+                </div>
+            </div>
+            <style>@keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(0.95);}to{opacity:1;transform:translateY(0) scale(1);}}</style>
+        `;
+        document.body.appendChild(overlay);
+
+        const close = () => { overlay.style.animation = 'fadeOut 0.3s forwards'; setTimeout(() => overlay.remove(), 300); };
+        document.getElementById('btnAromaDismiss').onclick = close;
+        document.getElementById('btnAroma').onclick = () => { close(); if (typeof Router !== 'undefined') Router.navigate('aroma'); };
+        document.getElementById('btnAromaAlt').onclick = () => { close(); if (fallbackAction) fallbackAction(); };
     },
 
     /**
