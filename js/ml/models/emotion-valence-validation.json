@@ -1,0 +1,12 @@
+{
+  "dataset": "birdy654/eeg-brainwave-dataset-feeling-emotions",
+  "classes": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "compactAccuracy": 0.9324577861163227,
+  "compactMacroF1": 0.9321862567299991,
+  "fullReferenceAccuracy": 0.9849906191369606,
+  "note": "FULL = all 2548 feats (ceiling); COMPACT = deployable band-power feats"
+}

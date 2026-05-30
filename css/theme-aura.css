@@ -1,0 +1,694 @@
+/**
+ * ScentraVN Serenity — Aura + Glassmorphism Theme
+ * Inspired by smart-home / wellness mobile concepts
+ * Stacks on top of styles.css (does NOT replace it)
+ */
+
+/* =========================================================
+ * 1. GLOBAL BACKDROP — animated aura orbs
+ * ========================================================= */
+:root {
+    --aura-1: #a855f7;
+    --aura-2: #c084fc;
+    --aura-3: #ddd6fe;
+    --aura-4: #fbcfe8;
+    --aura-5: #ffffff;
+
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-bg-strong: rgba(255, 255, 255, 0.78);
+    --glass-bg-soft: rgba(255, 255, 255, 0.35);
+    --glass-border: rgba(255, 255, 255, 0.65);
+    --glass-shadow: 0 12px 40px rgba(124, 58, 237, 0.10),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+
+    --hero-gradient: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 45%, #a855f7 100%);
+}
+
+body {
+    background: linear-gradient(180deg, #F1ECFB 0%, #F5F3FF 40%, #FAF5FF 100%) !important;
+    position: relative;
+}
+
+/* Animated aura background — lives behind the whole app */
+.aura-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.aura-bg .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.55;
+    animation: orbDrift 22s ease-in-out infinite;
+    will-change: transform;
+}
+
+.aura-bg .orb.o1 { width: 420px; height: 420px; top: -120px; left: -100px;
+    background: radial-gradient(circle, var(--aura-1) 0%, transparent 70%);
+    animation-delay: 0s; }
+.aura-bg .orb.o2 { width: 360px; height: 360px; top: 18%; right: -120px;
+    background: radial-gradient(circle, var(--aura-4) 0%, transparent 70%);
+    animation-delay: -6s; opacity: 0.45; }
+.aura-bg .orb.o3 { width: 520px; height: 520px; bottom: -180px; left: 15%;
+    background: radial-gradient(circle, var(--aura-2) 0%, transparent 70%);
+    animation-delay: -11s; opacity: 0.40; }
+.aura-bg .orb.o4 { width: 280px; height: 280px; top: 50%; left: -80px;
+    background: radial-gradient(circle, var(--aura-3) 0%, transparent 70%);
+    animation-delay: -16s; opacity: 0.55; }
+.aura-bg .orb.o5 { width: 200px; height: 200px; top: 65%; right: 10%;
+    background: radial-gradient(circle, var(--aura-5) 0%, transparent 70%);
+    animation-delay: -3s; opacity: 0.5; }
+
+@keyframes orbDrift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(40px, -30px) scale(1.06); }
+    50% { transform: translate(-25px, 30px) scale(0.96); }
+    75% { transform: translate(15px, 15px) scale(1.03); }
+}
+
+/* App content above aura */
+.app-container {
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+}
+
+/* =========================================================
+ * 2. HEADER — make it floaty glass instead of opaque white
+ * ========================================================= */
+.app-header {
+    background: rgba(255, 255, 255, 0.55) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 4px 24px rgba(124, 58, 237, 0.06) !important;
+}
+
+/* =========================================================
+ * 3. HERO CARD — purple gradient header (greeting block)
+ * ========================================================= */
+.aura-hero {
+    position: relative;
+    border-radius: 28px;
+    padding: 26px 24px 28px;
+    background: var(--hero-gradient);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(124, 58, 237, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    margin-bottom: 24px;
+}
+
+/* Decorative line-art background (reminiscent of the smart-home reference) */
+.aura-hero::before,
+.aura-hero::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+.aura-hero::before {
+    width: 240px; height: 240px;
+    top: -90px; right: -60px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+}
+.aura-hero::after {
+    width: 160px; height: 160px;
+    bottom: -50px; left: -40px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+}
+
+.aura-hero .hero-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.aura-hero .hero-greeting {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.aura-hero .hero-name {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.aura-hero .hero-sub {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 500;
+}
+
+.aura-hero .hero-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.aura-hero .hero-action:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+
+.aura-hero .hero-score {
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+}
+.aura-hero .hero-score-text { display: flex; flex-direction: column; gap: 2px; }
+.aura-hero .hero-score-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 600;
+}
+.aura-hero .hero-score-value {
+    display: flex; align-items: baseline; gap: 6px;
+}
+.aura-hero .hero-score-value strong {
+    font-size: 2.4rem; font-weight: 800; line-height: 1;
+}
+.aura-hero .hero-score-value span {
+    font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);
+}
+
+.aura-hero .hero-score-icon {
+    width: 56px; height: 56px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem;
+    color: #fff;
+    backdrop-filter: blur(8px);
+}
+
+/* =========================================================
+ * 4. SECTION HEADERS — "Temperature info: / See all"
+ * ========================================================= */
+.aura-section {
+    margin: 28px 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.aura-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4c1d95;
+    letter-spacing: -0.01em;
+}
+.aura-section-link {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #7c3aed;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+.aura-section-link:hover { color: #5b21b6; }
+
+/* =========================================================
+ * 5. GLASS CARDS — shared container style
+ * ========================================================= */
+.glass-card {
+    position: relative;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 48px rgba(124, 58, 237, 0.16),
+                inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* =========================================================
+ * 6. METRIC PILLS — like the "21° Living room" cards
+ * ========================================================= */
+.metric-pills {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.metric-pill {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 16px 14px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; gap: 6px;
+}
+.metric-pill:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(124, 58, 237, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+.metric-pill .pill-icon {
+    width: 24px; height: 24px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    color: #fff;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    margin-bottom: 4px;
+}
+.metric-pill .pill-icon.danger { background: linear-gradient(135deg, #f472b6, #ec4899); }
+.metric-pill .pill-icon.info { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+.metric-pill .pill-icon.warning { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.metric-pill .pill-icon.success { background: linear-gradient(135deg, #34d399, #10b981); }
+
+.metric-pill .pill-value {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #4c1d95;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+.metric-pill .pill-value sup {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #7c3aed;
+    margin-left: 2px;
+}
+.metric-pill .pill-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6d28d9;
+}
+.metric-pill .pill-sub {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* =========================================================
+ * 7. SCRIPT CARDS — "Morning scene / Evening scene"
+ * ========================================================= */
+.script-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+.script-card {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 18px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column;
+}
+.script-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(124, 58, 237, 0.18);
+}
+.script-card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+}
+.script-card-head .icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+}
+.script-card-head .edit {
+    font-size: 0.7rem;
+    color: #7c3aed;
+    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+    cursor: pointer;
+}
+.script-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #4c1d95;
+    margin-bottom: 4px;
+}
+.script-card-desc {
+    font-size: 0.74rem;
+    color: #8E8E8E;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+/* =========================================================
+ * 8. DEVICE CARDS — "ON / OFF" toggles
+ * ========================================================= */
+.device-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.device-card {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 16px 14px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; gap: 8px;
+}
+.device-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(124, 58, 237, 0.18);
+}
+.device-card-head {
+    display: flex; justify-content: space-between; align-items: center;
+}
+.device-card-head .icon {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: rgba(124, 58, 237, 0.10);
+    color: #7c3aed;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+}
+.device-card-status {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+.device-card-status.on  { color: #10b981; }
+.device-card-status.off { color: #cbd5e1; }
+.device-card-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #4c1d95;
+}
+.device-card-room {
+    font-size: 0.7rem;
+    color: #8E8E8E;
+    font-weight: 500;
+}
+
+/* =========================================================
+ * 9. QUICK MENU — restyle existing .quick-menu-card
+ * ========================================================= */
+.quick-menu-card {
+    background: var(--glass-bg-strong) !important;
+    border: 1px solid var(--glass-border) !important;
+    backdrop-filter: blur(22px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    border-radius: 18px !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.quick-menu-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 14px 32px rgba(124, 58, 237, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+/* =========================================================
+ * 10. BOTTOM NAV — floating glass pill
+ * ========================================================= */
+.bottom-nav {
+    background: rgba(255, 255, 255, 0.78) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 -8px 32px rgba(124, 58, 237, 0.10) !important;
+}
+
+/* =========================================================
+ * 11. ANIMATIONS for entrance
+ * ========================================================= */
+@keyframes auraFadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.aura-hero,
+.metric-pills,
+.script-grid,
+.device-grid {
+    animation: auraFadeUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+.aura-hero { animation-delay: 0.05s; }
+.metric-pills { animation-delay: 0.15s; }
+.script-grid { animation-delay: 0.25s; }
+.device-grid { animation-delay: 0.35s; }
+
+/* =========================================================
+ * 12. RESPONSIVE
+ * ========================================================= */
+@media (max-width: 480px) {
+    .metric-pills { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .metric-pill { padding: 14px 10px; }
+    .metric-pill .pill-value { font-size: 1.45rem; }
+    .device-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .script-grid { grid-template-columns: 1fr; }
+    .aura-hero { padding: 22px 20px 24px; }
+    .aura-hero .hero-name { font-size: 1.55rem; }
+    .aura-hero .hero-score-value strong { font-size: 2rem; }
+}
+
+@media (min-width: 768px) {
+    .metric-pills { grid-template-columns: repeat(4, 1fr); }
+    .device-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+
+/* =========================================================
+ * 13. Chart containers — glass treatment
+ * ========================================================= */
+.chart-container {
+    background: var(--glass-bg) !important;
+    border: 1px solid var(--glass-border) !important;
+    backdrop-filter: blur(22px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+    box-shadow: var(--glass-shadow) !important;
+    border-radius: 22px !important;
+}
+
+/* Section titles inside dashboard */
+.section-title {
+    color: #4c1d95 !important;
+}
+
+/* Greeting section legacy fallback (in case any view re-uses) */
+.greeting-section h2 { color: #4c1d95; }
+
+/* Make the existing card grid feel airy */
+.card-grid > .card,
+.featured-card {
+    border-radius: 22px;
+}
+
+/* The legacy .featured-card if reused elsewhere */
+.featured-card {
+    background: var(--hero-gradient) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 20px 50px rgba(124, 58, 237, 0.30),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+
+/* =========================================================
+ * 14. Sleep Stage Timeline (SVG)
+ * ========================================================= */
+.sleep-timeline-wrap {
+    position: relative;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 12px 14px 18px;
+    backdrop-filter: blur(18px) saturate(160%);
+}
+.sleep-timeline-svg {
+    width: 100%;
+    height: 90px;
+    display: block;
+}
+.sleep-timeline-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+.sleep-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 12px;
+    font-size: 0.7rem;
+}
+.sleep-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #4c1d95;
+    font-weight: 600;
+}
+.sleep-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+/* Stage colors — used both inline (timeline rects) and in legend */
+.stage-wake { background: #f59e0b; fill: #f59e0b; }
+.stage-rem  { background: #ec4899; fill: #ec4899; }
+.stage-n1   { background: #a78bfa; fill: #a78bfa; }
+.stage-n2   { background: #7c3aed; fill: #7c3aed; }
+.stage-n3   { background: #4c1d95; fill: #4c1d95; }
+.stage-unknown { background: #cbd5e1; fill: #cbd5e1; }
+
+/* =========================================================
+ * 15. Sleep Detail Modal
+ * ========================================================= */
+.sleep-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(76, 29, 149, 0.35);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+.sleep-modal {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    backdrop-filter: blur(28px) saturate(160%);
+    box-shadow: 0 24px 56px rgba(124, 58, 237, 0.25);
+    max-width: 720px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 26px;
+    position: relative;
+    animation: auraFadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sleep-modal-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    background: rgba(124, 58, 237, 0.08);
+    border: none;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #6d28d9;
+    transition: all 0.2s;
+}
+.sleep-modal-close:hover {
+    background: rgba(124, 58, 237, 0.18);
+    transform: rotate(90deg);
+}
+.sleep-modal h3 {
+    color: #4c1d95;
+    margin-bottom: 6px;
+    font-weight: 800;
+}
+.sleep-modal-meta {
+    color: #64748b;
+    font-size: 0.82rem;
+    margin-bottom: 18px;
+}
+
+.sleep-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+    margin-bottom: 22px;
+}
+.sleep-summary-item {
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px solid rgba(124, 58, 237, 0.10);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+}
+.sleep-summary-item .lbl {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+.sleep-summary-item .val {
+    font-size: 1.3rem;
+    color: #4c1d95;
+    font-weight: 800;
+}
+.sleep-summary-item .sub {
+    font-size: 0.7rem;
+    color: #7c3aed;
+    margin-top: 2px;
+}
+
+.sleep-bands-bar {
+    display: flex;
+    height: 18px;
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    margin: 8px 0 14px;
+}
+.sleep-bands-bar > span {
+    transition: width 0.4s ease;
+}

@@ -70,3 +70,11 @@ js/config.keys.js
 
 # Firebase service account (never commit)
 serviceAccountKey.json
+
+# Research datasets downloaded from Kaggle (large)
+research_data/
+
+# Trained TF.js models (regenerate from python/ scripts) — keep small JSON RF/threshold files
+js/ml/models/*/
+!js/ml/models/.gitkeep
+!js/ml/models/*.json

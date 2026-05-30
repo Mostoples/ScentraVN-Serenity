@@ -1,0 +1,559 @@
+/**
+ * ScentraVN Serenity — Theme System
+ *
+ * Three modes: Light · Dark · Aura (default)
+ * Toggle via JS: ThemeManager.set('light'|'dark'|'aura')
+ * Stored in localStorage as 'scentravn_theme'.
+ *
+ * Implementation: data-theme attribute on <html> overrides CSS variables.
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+ * 1. UNIFIED ICON COLORS (all themes)
+ *    All quick-menu / card icons use a single purple gradient.
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Override every per-feature gradient to one purple */
+.admin-gradient,
+.assessment-gradient,
+.chat-gradient,
+.crisis-gradient,
+.sleep-gradient,
+.journal-gradient,
+.mindful-gradient,
+.mood-gradient,
+.academy-gradient,
+.heroic-gradient,
+.games-gradient,
+.questionnaire-gradient {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  color: #fff !important;
+}
+
+/* Make sure the icon glyph stays visible & white */
+.card-icon-box,
+.card-icon-box i {
+  color: #fff !important;
+}
+.card-icon-box {
+  box-shadow: 0 8px 22px rgba(124, 58, 237, 0.30);
+}
+
+/* Pill icon dots — also unified */
+.metric-pill .pill-icon,
+.metric-pill .pill-icon.danger,
+.metric-pill .pill-icon.info,
+.metric-pill .pill-icon.warning,
+.metric-pill .pill-icon.success {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+  color: #fff !important;
+}
+
+/* Script & device card mini-icons */
+.script-card-head .icon,
+.device-card-head .icon {
+  background: rgba(124, 58, 237, 0.12) !important;
+  color: #7c3aed !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 2. THEME TOGGLE BUTTON
+ * ═══════════════════════════════════════════════════════════════ */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  border-radius: 999px;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.10);
+  transition: all 0.25s ease;
+}
+
+.theme-toggle button {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: #6d28d9;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  font-size: 0.85rem;
+}
+
+.theme-toggle button:hover {
+  background: rgba(124, 58, 237, 0.10);
+}
+
+.theme-toggle button.active {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(124, 58, 237, 0.30);
+}
+
+.theme-toggle button.active i {
+  animation: anim-pulse 2.4s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 3. LIGHT THEME (default-ish, with stable variables)
+ * ═══════════════════════════════════════════════════════════════ */
+
+html[data-theme="light"] body {
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%) !important;
+}
+
+html[data-theme="light"] .aura-bg { display: none; }   /* hide orbs */
+
+html[data-theme="light"] .app-header {
+  background: rgba(255, 255, 255, 0.92) !important;
+}
+
+html[data-theme="light"] .glass-card,
+html[data-theme="light"] .quick-menu-card,
+html[data-theme="light"] .metric-pill,
+html[data-theme="light"] .script-card,
+html[data-theme="light"] .device-card,
+html[data-theme="light"] .card,
+html[data-theme="light"] .chart-container {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 4. DARK THEME
+ * ═══════════════════════════════════════════════════════════════ */
+
+html[data-theme="dark"] {
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+}
+
+html[data-theme="dark"] body {
+  background: #0f0a1f !important;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .aura-bg .orb {
+  opacity: 0.18 !important;
+}
+html[data-theme="dark"] .aura-bg .orb.o5 { display: none; }
+
+html[data-theme="dark"] .app-header {
+  background: rgba(20, 12, 38, 0.78) !important;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] .header-time,
+html[data-theme="dark"] .hero-greeting,
+html[data-theme="dark"] .aura-section-title,
+html[data-theme="dark"] h1, html[data-theme="dark"] h2,
+html[data-theme="dark"] h3, html[data-theme="dark"] h4 {
+  color: #ddd6fe !important;
+}
+
+html[data-theme="dark"] .header-date,
+html[data-theme="dark"] .hero-sub {
+  color: #a78bfa !important;
+}
+
+html[data-theme="dark"] .glass-card,
+html[data-theme="dark"] .quick-menu-card,
+html[data-theme="dark"] .metric-pill,
+html[data-theme="dark"] .script-card,
+html[data-theme="dark"] .device-card,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .chart-container {
+  background: rgba(30, 18, 60, 0.65) !important;
+  border: 1px solid rgba(139, 92, 246, 0.18) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.40),
+              inset 0 1px 0 rgba(167, 139, 250, 0.08) !important;
+}
+
+html[data-theme="dark"] .pill-value,
+html[data-theme="dark"] .card-title,
+html[data-theme="dark"] .script-card-title,
+html[data-theme="dark"] .device-card-name {
+  color: #ede9fe !important;
+}
+
+html[data-theme="dark"] .pill-label,
+html[data-theme="dark"] .pill-sub,
+html[data-theme="dark"] .card-subtitle,
+html[data-theme="dark"] .script-card-desc,
+html[data-theme="dark"] .device-card-room {
+  color: #a78bfa !important;
+}
+
+html[data-theme="dark"] .bottom-nav {
+  background: rgba(20, 12, 38, 0.92) !important;
+  border-top: 1px solid rgba(139, 92, 246, 0.18) !important;
+}
+
+html[data-theme="dark"] .bottom-nav .nav-item {
+  color: #a78bfa;
+}
+
+html[data-theme="dark"] .ble-button,
+html[data-theme="dark"] .lang-toggle-btn,
+html[data-theme="dark"] .theme-toggle {
+  background: rgba(40, 25, 80, 0.7) !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+  color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] .ble-button i,
+html[data-theme="dark"] .lang-toggle-btn i,
+html[data-theme="dark"] .theme-toggle button {
+  color: #c4b5fd !important;
+}
+
+/* Inputs & buttons in dark mode */
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background: rgba(30, 18, 60, 0.6) !important;
+  color: #ede9fe !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+}
+
+html[data-theme="dark"] .more-menu-panel {
+  background: rgba(20, 12, 38, 0.95) !important;
+  border: 1px solid rgba(139, 92, 246, 0.22) !important;
+}
+
+/* Loading screen mirrors theme */
+html[data-theme="dark"] .loading-screen {
+  background: linear-gradient(180deg, #0f0a1f 0%, #1a0f3d 100%) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 5. AURA THEME (default — already wired in theme-aura.css)
+ *    No overrides needed. This block exists for symmetry.
+ * ═══════════════════════════════════════════════════════════════ */
+
+html[data-theme="aura"] {
+  /* uses defaults from theme-aura.css */
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * 6. DARK MODE — DEEP COVERAGE
+ *    Modules with their own hardcoded colors need explicit overrides.
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* ── SynaChat ────────────────────────────────────────────────── */
+html[data-theme="dark"] .synachat-container,
+html[data-theme="dark"] .view-container.synachat-active,
+html[data-theme="dark"] body.synachat-view .app-container,
+html[data-theme="dark"] body.synachat-view .view-container {
+  background: #0f0a1f !important;
+}
+
+html[data-theme="dark"] .synachat-messages {
+  background: linear-gradient(180deg, #0f0a1f 0%, #1a0f3d 100%) !important;
+}
+
+html[data-theme="dark"] .synachat-messages::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.30) !important;
+}
+
+html[data-theme="dark"] .synachat-messages .welcome-message h3 {
+  color: #ede9fe !important;
+}
+
+html[data-theme="dark"] .synachat-messages .welcome-message p {
+  color: #a78bfa !important;
+}
+
+html[data-theme="dark"] .synachat-messages .quick-action {
+  background: rgba(40, 25, 80, 0.7) !important;
+  color: #ddd6fe !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+}
+
+html[data-theme="dark"] .synachat-messages .quick-action:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  color: #fff !important;
+}
+
+html[data-theme="dark"] .synachat-messages .message.assistant .message-bubble {
+  background: rgba(40, 25, 80, 0.85) !important;
+  color: #ede9fe !important;
+  border: 1px solid rgba(139, 92, 246, 0.20) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.30) !important;
+}
+
+html[data-theme="dark"] .synachat-messages .message.user .message-bubble {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  color: #fff !important;
+}
+
+html[data-theme="dark"] .synachat-messages .message.user .message-avatar {
+  background: rgba(40, 25, 80, 0.85) !important;
+  color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] .synachat-messages .message.assistant .message-avatar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  color: #fff !important;
+}
+
+html[data-theme="dark"] .synachat-messages .message .message-time {
+  color: #6d28d9 !important;
+}
+
+html[data-theme="dark"] .synachat-input-container,
+html[data-theme="dark"] .synachat-input-area {
+  background: rgba(20, 12, 38, 0.92) !important;
+  border-top: 1px solid rgba(139, 92, 246, 0.20) !important;
+}
+
+html[data-theme="dark"] .synachat-input,
+html[data-theme="dark"] .synachat-input-container input,
+html[data-theme="dark"] .synachat-input-container textarea {
+  background: rgba(40, 25, 80, 0.65) !important;
+  color: #ede9fe !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+}
+
+html[data-theme="dark"] .synachat-input::placeholder,
+html[data-theme="dark"] .synachat-input-container input::placeholder,
+html[data-theme="dark"] .synachat-input-container textarea::placeholder {
+  color: #7c3aed !important;
+  opacity: 0.7;
+}
+
+/* SynaChat avatar column / sidebar — keep purple gradient but darken */
+html[data-theme="dark"] .synachat-avatar-column,
+html[data-theme="dark"] .synachat-avatar-side {
+  background: linear-gradient(180deg, #4c1d95 0%, #5b21b6 50%, #6d28d9 100%) !important;
+}
+
+/* SynaChat header / hero strip showing "KESEHATAN LIVE" */
+html[data-theme="dark"] .synachat-header,
+html[data-theme="dark"] .synachat-status-bar,
+html[data-theme="dark"] .live-status-bar {
+  background: rgba(20, 12, 38, 0.92) !important;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.18) !important;
+  color: #c4b5fd !important;
+}
+
+/* Inline-styled white panels in synachat that show personal stats */
+html[data-theme="dark"] .synachat-container [style*="background: white"],
+html[data-theme="dark"] .synachat-container [style*="background:#fff"],
+html[data-theme="dark"] .synachat-container [style*="background: #fff"],
+html[data-theme="dark"] .synachat-container [style*="background:rgb(255"] {
+  background: rgba(40, 25, 80, 0.65) !important;
+  color: #ede9fe !important;
+}
+
+/* ── Modal generic styles ───────────────────────────────────── */
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .modal-body {
+  background: #1a0f3d !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(139, 92, 246, 0.22) !important;
+}
+
+html[data-theme="dark"] .sleep-modal {
+  background: rgba(20, 12, 38, 0.92) !important;
+  border: 1px solid rgba(139, 92, 246, 0.22) !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] .sleep-modal h3,
+html[data-theme="dark"] .sleep-modal h5,
+html[data-theme="dark"] .sleep-modal-meta {
+  color: #ede9fe !important;
+}
+
+html[data-theme="dark"] .sleep-summary-item {
+  background: rgba(40, 25, 80, 0.55) !important;
+  border-color: rgba(139, 92, 246, 0.22) !important;
+}
+
+html[data-theme="dark"] .sleep-summary-item .lbl,
+html[data-theme="dark"] .sleep-summary-item .val,
+html[data-theme="dark"] .sleep-summary-item .sub {
+  color: #ede9fe !important;
+}
+
+html[data-theme="dark"] .sleep-modal-close {
+  background: rgba(40, 25, 80, 0.6) !important;
+  color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] .sleep-timeline-wrap {
+  background: rgba(40, 25, 80, 0.55) !important;
+  border-color: rgba(139, 92, 246, 0.22) !important;
+}
+
+html[data-theme="dark"] .sleep-timeline-axis,
+html[data-theme="dark"] .sleep-legend-item {
+  color: #c4b5fd !important;
+}
+
+/* ── Section titles / muted text everywhere ─────────────────── */
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .greeting-section h2,
+html[data-theme="dark"] .greeting-section p {
+  color: #ede9fe !important;
+}
+
+html[data-theme="dark"] .aura-section-link {
+  color: #c4b5fd !important;
+}
+
+html[data-theme="dark"] .pill-icon {
+  /* unified gradient already; just ensure shadow visible */
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.45) !important;
+}
+
+/* ── Generic inline white backgrounds & text colors ─────────── */
+html[data-theme="dark"] [style*="color:#1e293b"],
+html[data-theme="dark"] [style*="color: #1e293b"],
+html[data-theme="dark"] [style*="color:#333"],
+html[data-theme="dark"] [style*="color: #333"],
+html[data-theme="dark"] [style*="color:#1a1a2e"],
+html[data-theme="dark"] [style*="color: #1a1a2e"],
+html[data-theme="dark"] [style*="color:#4c1d95"],
+html[data-theme="dark"] [style*="color: #4c1d95"],
+html[data-theme="dark"] [style*="color:#6d28d9"],
+html[data-theme="dark"] [style*="color: #6d28d9"] {
+  color: #ede9fe !important;
+}
+
+html[data-theme="dark"] [style*="color:#64748b"],
+html[data-theme="dark"] [style*="color: #64748b"],
+html[data-theme="dark"] [style*="color:#94a3b8"],
+html[data-theme="dark"] [style*="color: #94a3b8"],
+html[data-theme="dark"] [style*="color:#8E8E8E"],
+html[data-theme="dark"] [style*="color: #8E8E8E"] {
+  color: #a78bfa !important;
+}
+
+/* ── Toast / notifications ──────────────────────────────────── */
+html[data-theme="dark"] .toast,
+html[data-theme="dark"] .toast-success,
+html[data-theme="dark"] .toast-error {
+  background: rgba(40, 25, 80, 0.95) !important;
+  color: #ede9fe !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+}
+
+/* ── Onboarding tour ────────────────────────────────────────── */
+html[data-theme="dark"] .tour-tooltip,
+html[data-theme="dark"] .tour-popup,
+html[data-theme="dark"] .onboarding-tooltip {
+  background: rgba(20, 12, 38, 0.95) !important;
+  color: #ede9fe !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+}
+
+/* ── Buttons (generic) ──────────────────────────────────────── */
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] button.btn:not(.btn-primary):not(.btn-danger):not(.btn-accent) {
+  background: rgba(40, 25, 80, 0.65) !important;
+  color: #ddd6fe !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+}
+
+html[data-theme="dark"] .btn-secondary:hover {
+  background: rgba(60, 35, 110, 0.85) !important;
+}
+
+/* ── Quick-menu cards: titles & subtitles ───────────────────── */
+html[data-theme="dark"] .quick-menu-card .card-title {
+  color: #ede9fe !important;
+}
+html[data-theme="dark"] .quick-menu-card .card-subtitle {
+  color: #a78bfa !important;
+}
+
+/* ── Hero card stays purple (already gradient) ──────────────── */
+html[data-theme="dark"] .aura-hero,
+html[data-theme="dark"] .featured-card {
+  background: linear-gradient(135deg, #5b21b6 0%, #6d28d9 50%, #7c3aed 100%) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45),
+              inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+}
+
+/* ── Code blocks / inline code ─────────────────────────────── */
+html[data-theme="dark"] code,
+html[data-theme="dark"] pre {
+  background: rgba(40, 25, 80, 0.85) !important;
+  color: #c4b5fd !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+}
+
+/* ── Tables (admin) ─────────────────────────────────────────── */
+html[data-theme="dark"] table,
+html[data-theme="dark"] thead,
+html[data-theme="dark"] tbody,
+html[data-theme="dark"] tr {
+  background: rgba(20, 12, 38, 0.5) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(139, 92, 246, 0.18) !important;
+}
+
+html[data-theme="dark"] th {
+  background: rgba(40, 25, 80, 0.85) !important;
+  color: #ddd6fe !important;
+}
+
+html[data-theme="dark"] td {
+  border-color: rgba(139, 92, 246, 0.12) !important;
+}
+
+/* ── Charts canvas backgrounds ──────────────────────────────── */
+html[data-theme="dark"] .chart-canvas {
+  background: transparent !important;
+}
+
+/* ── Sleep timeline rows label color ────────────────────────── */
+html[data-theme="dark"] .sleep-timeline-svg text {
+  fill: #a78bfa !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 7. LIGHT MODE — ALSO DEEP COVERAGE FOR SYNACHAT
+ * ═══════════════════════════════════════════════════════════════ */
+
+html[data-theme="light"] .synachat-avatar-column,
+html[data-theme="light"] .synachat-avatar-side {
+  background: linear-gradient(180deg, #c4b5fd 0%, #a78bfa 50%, #8b5cf6 100%) !important;
+}
+
+html[data-theme="light"] .synachat-messages {
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] .synachat-messages .message.assistant .message-bubble {
+  background: #f8fafc !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+html[data-theme="light"] .synachat-input,
+html[data-theme="light"] .synachat-input-container input,
+html[data-theme="light"] .synachat-input-container textarea {
+  background: #f8fafc !important;
+  border: 1px solid rgba(0, 0, 0, 0.10) !important;
+}

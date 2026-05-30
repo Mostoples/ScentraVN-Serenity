@@ -71,6 +71,7 @@ const AdminUI = {
             'users': 'Users Management',
             'patients': 'Patient Data',
             'questionnaires': 'Questionnaires',
+            'aroma': 'Aromatherapy',
             'competition': 'Kesiapan Kompetisi',
             'notulen': 'Notulen Diskusi',
             'alat-dataset': 'Ketersediaan Alat Dataset'
@@ -88,6 +89,8 @@ const AdminUI = {
             this.renderPatientsTab();
         } else if (tabName === 'questionnaires') {
             this.renderQuestionnairesTab();
+        } else if (tabName === 'aroma') {
+            this.renderAromaTab();
         } else if (tabName === 'competition') {
             this.renderCompetitionTab();
         } else if (tabName === 'notulen') {
@@ -1553,6 +1556,126 @@ const AdminUI = {
     filterPatientData(dataType) {
         // Implement filter functionality
         console.log('Filtering by:', dataType);
+    },
+
+    /**
+     * Render Aromatherapy Recommendations Tab
+     */
+    async renderAromaTab() {
+        const container = document.getElementById('adminDashboardContent');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div style="text-align:center;padding:40px;color:#6b7280;">
+                <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;"></i>
+                Memuat data aromaterapi...
+            </div>`;
+
+        try {
+            const recs = await AdminManager.loadAromaRecommendations(500);
+
+            if (!recs.length) {
+                container.innerHTML = `
+                    <div class="admin-empty-state">
+                        <div class="admin-empty-icon"><i class="fas fa-spray-can-sparkles"></i></div>
+                        <div class="admin-empty-title">Belum Ada Rekomendasi Aromaterapi</div>
+                        <div class="admin-empty-description">
+                            Data akan muncul saat pengguna menggunakan Aroma Advisor.
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            /* Aggregate: dominant-need distribution + oil frequency */
+            const dominantCount = {};
+            const oilCount = {};
+            const dimLabel = {
+                calm:'Tenang', uplift:'Mood', ground:'Grounding', energize:'Energi',
+                focus:'Fokus', sleep:'Tidur', appetite:'Nafsu makan'
+            };
+            recs.forEach(r => {
+                if (r.dominant) dominantCount[r.dominant] = (dominantCount[r.dominant] || 0) + 1;
+                (r.blend || []).forEach(b => { oilCount[b.id] = (oilCount[b.id] || 0) + 1; });
+            });
+
+            const total = recs.length;
+            const topDominant = Object.entries(dominantCount).sort((a,b)=>b[1]-a[1]);
+            const topOils = Object.entries(oilCount).sort((a,b)=>b[1]-a[1]).slice(0, 8);
+
+            const oilName = (id) => (typeof AromaDB !== 'undefined' && AromaDB.get(id)) ? AromaDB.get(id).name : id;
+
+            container.innerHTML = `
+                <div style="margin-bottom:28px;">
+                    <h1 style="font-size:1.6rem;font-weight:800;color:var(--admin-text-primary,#1e293b);margin-bottom:6px;">Aromatherapy Recommendations</h1>
+                    <p style="color:var(--admin-text-secondary,#64748b);font-size:0.92rem;">${total} rekomendasi tercatat dari pengguna</p>
+                </div>
+
+                <div class="admin-stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:28px;">
+                    <div class="admin-stat-card">
+                        <div class="stat-header"><div><div class="stat-label">Total Rekomendasi</div><div class="stat-value">${total}</div></div>
+                        <div class="stat-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fas fa-spray-can-sparkles"></i></div></div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="stat-header"><div><div class="stat-label">Kebutuhan Teratas</div><div class="stat-value" style="font-size:1.3rem;">${topDominant.length ? (dimLabel[topDominant[0][0]]||topDominant[0][0]) : '—'}</div></div>
+                        <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chart-pie"></i></div></div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="stat-header"><div><div class="stat-label">Minyak Terpopuler</div><div class="stat-value" style="font-size:1.3rem;">${topOils.length ? oilName(topOils[0][0]) : '—'}</div></div>
+                        <div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-leaf"></i></div></div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+                    <div class="admin-card" style="padding:18px;">
+                        <h3 style="font-size:1rem;margin-bottom:14px;color:var(--admin-text-primary,#1e293b);">Distribusi Kebutuhan Dominan</h3>
+                        ${topDominant.map(([k,c]) => `
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                                <span style="width:90px;font-size:0.78rem;color:#6d28d9;font-weight:600;">${dimLabel[k]||k}</span>
+                                <div style="flex:1;height:10px;background:rgba(124,58,237,0.08);border-radius:99px;overflow:hidden;">
+                                    <div style="height:100%;width:${Math.round(c/total*100)}%;background:linear-gradient(90deg,#8b5cf6,#c084fc);"></div>
+                                </div>
+                                <span style="font-size:0.75rem;color:#7c3aed;font-weight:700;">${c}</span>
+                            </div>`).join('')}
+                    </div>
+                    <div class="admin-card" style="padding:18px;">
+                        <h3 style="font-size:1rem;margin-bottom:14px;color:var(--admin-text-primary,#1e293b);">Minyak Esensial Terpopuler</h3>
+                        ${topOils.map(([id,c]) => `
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                                <span style="width:110px;font-size:0.78rem;color:#4c1d95;font-weight:600;">${oilName(id)}</span>
+                                <div style="flex:1;height:10px;background:rgba(124,58,237,0.08);border-radius:99px;overflow:hidden;">
+                                    <div style="height:100%;width:${Math.round(c/(topOils[0][1])*100)}%;background:linear-gradient(90deg,#10b981,#34d399);"></div>
+                                </div>
+                                <span style="font-size:0.75rem;color:#059669;font-weight:700;">${c}</span>
+                            </div>`).join('')}
+                    </div>
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead><tr>
+                            <th>Waktu</th><th>User</th><th>Kebutuhan</th><th>Blend</th><th>Hunger</th>
+                        </tr></thead>
+                        <tbody>
+                            ${recs.slice(0, 100).map(r => {
+                                const ts = r.timestamp?.toDate ? r.timestamp.toDate() : null;
+                                const when = ts ? ts.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+                                const blend = (r.blend||[]).map(b => oilName(b.id)).join(', ') || '—';
+                                return `<tr>
+                                    <td>${when}</td>
+                                    <td style="font-family:monospace;font-size:0.72rem;">${(r.userId||'').slice(0,8)}…</td>
+                                    <td><span style="background:rgba(124,58,237,0.1);color:#6d28d9;padding:3px 10px;border-radius:99px;font-size:0.72rem;font-weight:700;">${dimLabel[r.dominant]||r.dominant||'—'}</span></td>
+                                    <td style="font-size:0.78rem;">${blend}</td>
+                                    <td>${r.hunger ?? '—'}</td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } catch (e) {
+            console.error('Failed to render aroma tab:', e);
+            container.innerHTML = `<div class="admin-empty-state"><div class="admin-empty-title">Gagal memuat data</div><div class="admin-empty-description">${e.message}</div></div>`;
+        }
     },
 
     /**

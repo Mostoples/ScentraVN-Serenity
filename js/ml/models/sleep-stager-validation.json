@@ -1,0 +1,8 @@
+{
+  "dataset": "brl028/sleep-edf-30s-epochs",
+  "epochsEvaluated": 6608,
+  "accuracy": 0.5957929782082324,
+  "macroF1": 0.556520629185749,
+  "trainedOn": "real Sleep-EDF (subject-wise split)",
+  "note": "honest external validation"
+}

@@ -1,0 +1,499 @@
+/**
+ * ScentraVN Serenity — Animated Icons (Flaticon-style)
+ *
+ * GPU-accelerated CSS animations applied to Font Awesome icons.
+ * All animations are infinite loops by default. Each animation maps
+ * conceptually to its icon (heart → heartbeat, brain → wobble, etc.)
+ *
+ * Performance: pure transform/opacity → composited, no layout reflow.
+ * Accessibility: completely disabled when prefers-reduced-motion is set.
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+ * 1. KEYFRAMES — animation library
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Heart-style pulse with double beat */
+@keyframes anim-heartbeat {
+  0%, 25%, 50%, 100% { transform: scale(1); }
+  10%, 35%           { transform: scale(1.18); }
+}
+
+/* Slow steady pulse */
+@keyframes anim-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%      { transform: scale(1.10); opacity: 0.85; }
+}
+
+/* Lungs-style breathe (longer cycle) */
+@keyframes anim-breathe {
+  0%, 100% { transform: scale(0.96); }
+  50%      { transform: scale(1.08); }
+}
+
+/* Brain wobble */
+@keyframes anim-wobble {
+  0%, 100% { transform: rotate(-3deg) scale(1); }
+  25%      { transform: rotate( 3deg) scale(1.04); }
+  50%      { transform: rotate(-2deg) scale(0.98); }
+  75%      { transform: rotate( 2deg) scale(1.02); }
+}
+
+/* Continuous spin */
+@keyframes anim-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Slow tilt back-and-forth */
+@keyframes anim-rock {
+  0%, 100% { transform: rotate(-8deg); }
+  50%      { transform: rotate( 8deg); }
+}
+
+/* Bell shake */
+@keyframes anim-ring {
+  0%, 50%, 100% { transform: rotate(0); }
+  10%, 30%      { transform: rotate(15deg); }
+  20%, 40%      { transform: rotate(-15deg); }
+}
+
+/* Vertical bounce */
+@keyframes anim-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* Horizontal nudge (for arrows) */
+@keyframes anim-slide-x {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(4px); }
+}
+
+/* Glow / aura ping */
+@keyframes anim-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 currentColor); }
+  50%      { filter: drop-shadow(0 0 8px currentColor); }
+}
+
+/* Wave (sine-like rotation tilt) */
+@keyframes anim-wave {
+  0%, 100% { transform: rotate(0); }
+  20%      { transform: rotate(14deg); }
+  40%      { transform: rotate(-8deg); }
+  60%      { transform: rotate(14deg); }
+  80%      { transform: rotate(-4deg); }
+}
+
+/* Twinkle for stars / sparkles */
+@keyframes anim-twinkle {
+  0%, 100% { transform: scale(1)   rotate(0);    opacity: 1; }
+  25%      { transform: scale(1.2) rotate(15deg); opacity: 0.8; }
+  50%      { transform: scale(0.95) rotate(-10deg); opacity: 1; }
+  75%      { transform: scale(1.15) rotate(8deg);  opacity: 0.85; }
+}
+
+/* Fade in/out for floating clouds */
+@keyframes anim-float-fade {
+  0%, 100% { transform: translateY(0)    scale(1);   opacity: 1; }
+  50%      { transform: translateY(-3px) scale(1.04); opacity: 0.85; }
+}
+
+/* Drop-style fall for water */
+@keyframes anim-drop {
+  0%, 100% { transform: translateY(0)    scaleY(1);   }
+  40%      { transform: translateY(2px)  scaleY(1.1); }
+  60%      { transform: translateY(-1px) scaleY(0.95); }
+}
+
+/* Shake for warnings / errors */
+@keyframes anim-shake {
+  0%, 100%       { transform: translateX(0); }
+  10%, 30%, 50%  { transform: translateX(-2px); }
+  20%, 40%, 60%  { transform: translateX( 2px); }
+}
+
+/* Subtle constant gentle scale — fallback for everything */
+@keyframes anim-gentle {
+  0%, 100% { transform: scale(1);    }
+  50%      { transform: scale(1.06); }
+}
+
+/* Spinner-like 3D flip for sync / refresh */
+@keyframes anim-flip {
+  0%   { transform: perspective(60px) rotateY(0); }
+  50%  { transform: perspective(60px) rotateY(180deg); }
+  100% { transform: perspective(60px) rotateY(360deg); }
+}
+
+/* Music note bobble */
+@keyframes anim-music {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50%      { transform: rotate( 6deg) translateY(-3px); }
+}
+
+/* Fire flicker */
+@keyframes anim-flicker {
+  0%, 100% { transform: scale(1)    skewX(0); }
+  25%      { transform: scale(1.06) skewX(-3deg); }
+  50%      { transform: scale(0.97) skewX( 4deg); }
+  75%      { transform: scale(1.04) skewX(-2deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 2. ICON MAPPINGS — Font Awesome class → animation
+ * ═══════════════════════════════════════════════════════════════ */
+
+i.fas, i.far, i.fab, i.fa-solid, i.fa-regular, i.fa-brands {
+  display: inline-block;       /* enables transform */
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* —— HEART / PULSE —— */
+i.fa-heart,
+i.fa-heart-pulse,
+i.fa-heartbeat,
+i.fa-shield-heart,
+i.fa-hand-holding-heart {
+  animation: anim-heartbeat 1.4s ease-in-out infinite;
+  color: inherit;
+}
+
+/* —— BREATHING / LUNGS —— */
+i.fa-lungs,
+i.fa-wind {
+  animation: anim-breathe 3.5s ease-in-out infinite;
+}
+
+/* —— BRAIN —— */
+i.fa-brain,
+i.fa-head-side-virus {
+  animation: anim-wobble 3.2s ease-in-out infinite;
+}
+
+/* —— SPIN forever (loaders, sync) —— */
+i.fa-spinner,
+i.fa-circle-notch,
+i.fa-rotate,
+i.fa-sync,
+i.fa-arrows-rotate,
+i.fa-cog,
+i.fa-gear,
+i.fa-sliders-h,
+i.fa-sliders {
+  animation: anim-spin 4s linear infinite;
+}
+
+/* Fast spin for explicit fa-spin (keep FA built-in) */
+i.fa-spin {
+  animation: anim-spin 1.2s linear infinite !important;
+}
+
+/* —— MUSIC / WAVES —— */
+i.fa-music,
+i.fa-headphones,
+i.fa-volume-up,
+i.fa-volume-high {
+  animation: anim-music 1.6s ease-in-out infinite;
+}
+
+i.fa-wave-square,
+i.fa-chart-line,
+i.fa-signal {
+  animation: anim-wave 2.2s ease-in-out infinite;
+}
+
+/* —— BELLS / NOTIFICATIONS —— */
+i.fa-bell,
+i.fa-bullhorn {
+  animation: anim-ring 3s ease-in-out infinite;
+}
+
+/* —— STARS / SPARKLES / TWINKLE —— */
+i.fa-star,
+i.fa-star-of-life,
+i.fa-sparkles,
+i.fa-wand-magic-sparkles,
+i.fa-trophy,
+i.fa-medal,
+i.fa-award,
+i.fa-crown {
+  animation: anim-twinkle 2.6s ease-in-out infinite;
+}
+
+/* —— ARROWS — slide hint —— */
+i.fa-arrow-right,
+i.fa-chevron-right,
+i.fa-angle-right,
+i.fa-caret-right {
+  animation: anim-slide-x 1.4s ease-in-out infinite;
+}
+
+i.fa-arrow-up,
+i.fa-chevron-up,
+i.fa-angle-up,
+i.fa-caret-up {
+  animation: anim-bounce 1.6s ease-in-out infinite;
+}
+
+/* —— SLEEP / NIGHT —— */
+i.fa-moon,
+i.fa-bed,
+i.fa-snowflake {
+  animation: anim-pulse 3.6s ease-in-out infinite;
+}
+
+/* —— WEATHER / DAY —— */
+i.fa-sun {
+  animation: anim-spin 18s linear infinite;
+}
+
+i.fa-cloud,
+i.fa-cloud-sun,
+i.fa-cloud-moon {
+  animation: anim-float-fade 4s ease-in-out infinite;
+}
+
+/* —— FIRE —— */
+i.fa-fire,
+i.fa-fire-flame-curved {
+  animation: anim-flicker 0.8s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+/* —— WATER / DROPLET —— */
+i.fa-droplet,
+i.fa-tint {
+  animation: anim-drop 1.8s ease-in-out infinite;
+}
+
+/* —— WARNINGS —— */
+i.fa-exclamation-triangle,
+i.fa-triangle-exclamation,
+i.fa-exclamation-circle,
+i.fa-circle-exclamation {
+  animation: anim-shake 1.2s ease-in-out infinite;
+  color: #f59e0b;
+}
+
+/* —— BLUETOOTH / WIFI —— */
+i.fa-bluetooth,
+i.fa-bluetooth-b,
+i.fa-wifi,
+i.fa-broadcast-tower,
+i.fa-tower-broadcast {
+  animation: anim-glow 2.2s ease-in-out infinite;
+}
+
+/* —— CHATS / COMMUNICATION —— */
+i.fa-comments,
+i.fa-comment,
+i.fa-message,
+i.fa-microphone,
+i.fa-headset {
+  animation: anim-bounce 2.4s ease-in-out infinite;
+}
+
+/* —— CALENDAR / CLOCK —— */
+i.fa-clock,
+i.fa-stopwatch,
+i.fa-hourglass-half,
+i.fa-hourglass {
+  animation: anim-spin 12s linear infinite;
+}
+
+/* —— SHIELDS / SECURITY —— */
+i.fa-shield,
+i.fa-shield-halved,
+i.fa-lock,
+i.fa-key {
+  animation: anim-pulse 3s ease-in-out infinite;
+}
+
+/* —— USERS —— */
+i.fa-user,
+i.fa-user-circle,
+i.fa-user-plus,
+i.fa-users {
+  animation: anim-gentle 3.2s ease-in-out infinite;
+}
+
+/* —— HAND / WAVE —— */
+i.fa-hand,
+i.fa-hand-sparkles,
+i.fa-hand-fist {
+  animation: anim-wave 2.8s ease-in-out infinite;
+  transform-origin: 70% 100%;
+}
+
+/* —— EYE —— */
+i.fa-eye,
+i.fa-eye-slash {
+  animation: anim-pulse 2.5s ease-in-out infinite;
+}
+
+/* —— FLASK / RESEARCH —— */
+i.fa-flask,
+i.fa-vials,
+i.fa-microscope {
+  animation: anim-rock 3s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+/* —— GAMEPAD —— */
+i.fa-gamepad {
+  animation: anim-bounce 1.4s ease-in-out infinite;
+}
+
+/* —— GRADUATION / LEARNING —— */
+i.fa-graduation-cap,
+i.fa-book,
+i.fa-book-open {
+  animation: anim-rock 4s ease-in-out infinite;
+}
+
+/* —— LEAF / SPA / NATURE —— */
+i.fa-leaf,
+i.fa-spa,
+i.fa-tree {
+  animation: anim-rock 3.6s ease-in-out infinite;
+}
+
+/* —— ROBOTS / AI —— */
+i.fa-robot {
+  animation: anim-bounce 2s ease-in-out infinite;
+}
+
+/* —— TEMPERATURE —— */
+i.fa-temperature-half,
+i.fa-thermometer-half {
+  animation: anim-pulse 2.4s ease-in-out infinite;
+}
+
+/* —— ROCKETS / GO —— */
+i.fa-rocket,
+i.fa-paper-plane {
+  animation: anim-bounce 1.5s ease-in-out infinite;
+}
+
+/* —— SEARCH —— */
+i.fa-search,
+i.fa-magnifying-glass {
+  animation: anim-rock 2.4s ease-in-out infinite;
+}
+
+/* —— DOWNLOAD / UPLOAD —— */
+i.fa-download {
+  animation: anim-bounce 1.8s ease-in-out infinite;
+}
+i.fa-upload {
+  animation: anim-bounce 1.8s ease-in-out infinite reverse;
+}
+
+/* —— SUCCESS —— */
+i.fa-circle-check,
+i.fa-check-circle {
+  animation: anim-pulse 2.8s ease-in-out infinite;
+  color: #10b981;
+}
+
+/* —— CHARTS / METRICS —— */
+i.fa-chart-bar,
+i.fa-chart-pie,
+i.fa-chart-area {
+  animation: anim-gentle 3s ease-in-out infinite;
+}
+
+/* —— GLOBE —— */
+i.fa-globe {
+  animation: anim-spin 30s linear infinite;
+}
+
+/* —— CLIPBOARD —— */
+i.fa-clipboard-list,
+i.fa-clipboard-check,
+i.fa-list-check {
+  animation: anim-rock 4.5s ease-in-out infinite;
+}
+
+/* —— FOOD / HUNGER (just in case) —— */
+i.fa-utensils,
+i.fa-mug-hot {
+  animation: anim-pulse 3s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 3. CONTEXT-AWARE OVERRIDES
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Inputs / form fields — keep static so they don't distract */
+.input-wrapper i,
+input + i,
+button.toggle-password i {
+  animation: none !important;
+}
+
+/* Tab nav, table headers — calmer pace */
+.admin-tab-btn i,
+.table-header h3 i {
+  animation-duration: 5s !important;
+}
+
+/* Sidebar / inactive menu items — pause until hover */
+.more-menu-item i {
+  animation-play-state: paused;
+}
+.more-menu-item:hover i {
+  animation-play-state: running;
+}
+
+/* Bottom-nav: only animate active tab */
+.bottom-nav .nav-item i {
+  animation-play-state: paused;
+}
+.bottom-nav .nav-item.active i {
+  animation-play-state: running;
+}
+
+/* Pause animation while user is typing or focusing inputs */
+body:has(input:focus, textarea:focus, select:focus) .feature-card i,
+body:has(input:focus, textarea:focus, select:focus) .quick-menu-card i {
+  animation-play-state: paused;
+}
+
+/* Loading screen logo: keep its own pulse */
+.loading-logo i {
+  animation: anim-heartbeat 1.5s ease-in-out infinite !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 4. ACCESSIBILITY — disable all motion if user requests
+ * ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  i.fas, i.far, i.fab, i.fa-solid, i.fa-regular, i.fa-brands,
+  .loading-logo i {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 5. ON-DEMAND CONTROLS
+ *    Add `.icon-static` to any icon to opt out of animation.
+ *    Add `.icon-animate-once` for one-shot animation on appear.
+ * ═══════════════════════════════════════════════════════════════ */
+i.icon-static,
+.icon-static i {
+  animation: none !important;
+}
+
+i.icon-animate-once {
+  animation-iteration-count: 1 !important;
+}
+
+/* Slow down massive icons (>2rem) — they look weird animating fast */
+.feature-icon i,
+.hero-score-icon i,
+.app-logo i {
+  animation-duration: 4s !important;
+}

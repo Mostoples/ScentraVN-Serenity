@@ -1,7 +1,7 @@
 {
-  "name": "synawatch",
+  "name": "scentravn-serenity",
   "version": "1.0.0",
-  "description": "SYNAWATCH - AI-Powered Smart Health Monitoring PWA",
+  "description": "ScentraVN Serenity - AI-Powered Smart Health Monitoring PWA",
   "main": "setup-admin.js",
   "scripts": {
     "dev": "npx http-server . -p 3000 -c-1",
@@ -15,9 +15,11 @@
     "firebase",
     "admin",
     "api-keys",
-    "synawatch"
+    "scentravn",
+    "serenity",
+    "health-monitoring"
   ],
-  "author": "SynaWatch Team",
+  "author": "ScentraVN Team",
   "license": "MIT",
   "dependencies": {
     "firebase-admin": "^12.7.0",

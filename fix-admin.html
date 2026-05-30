@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fix Admin Role - SYNAWATCH</title>
+    <title>Fix Admin Role - ScentraVN Serenity</title>
     <style>
         * {
             margin: 0;
@@ -148,7 +148,7 @@
 <body>
     <div class="container">
         <h1>🔧 Fix Admin Role</h1>
-        <p class="subtitle">Memperbaiki role admin untuk admin@synawatch.com</p>
+        <p class="subtitle">Memperbaiki role admin untuk admin@scentravn.com</p>
 
         <div id="status" class="status loading">
             ⏳ Menginisialisasi Firebase...
@@ -166,7 +166,7 @@
                 <li><strong>Logout</strong> dari akun admin yang sedang login</li>
                 <li><strong>Clear browser cache:</strong> Tekan <code>Ctrl + Shift + Delete</code></li>
                 <li><strong>Hard reload:</strong> Tekan <code>Ctrl + F5</code></li>
-                <li><strong>Login lagi</strong> dengan admin@synawatch.com</li>
+                <li><strong>Login lagi</strong> dengan admin@scentravn.com</li>
                 <li>Sekarang seharusnya otomatis redirect ke <strong>/admin</strong></li>
             </ol>
         </div>
@@ -178,15 +178,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // Firebase config
+        // Firebase config — ScentraVN
         const firebaseConfig = {
-            apiKey: "AIzaSyBFuHo6oQp1h_VTkPfUOJC6Y_2kAfVBNI8",
-            authDomain: "synawacth-id.firebaseapp.com",
-            projectId: "synawacth-id",
-            storageBucket: "synawacth-id.firebasestorage.app",
-            messagingSenderId: "454326963433",
-            appId: "1:454326963433:web:3f7f32e820fe11bd2ee9b7",
-            measurementId: "G-DHPB8VFQY0"
+            apiKey: "AIzaSyCvYBVasZNLghuQhRhLwoYOPkdR3noVXrA",
+            authDomain: "scentravn.firebaseapp.com",
+            databaseURL: "https://scentravn-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "scentravn",
+            storageBucket: "scentravn.firebasestorage.app",
+            messagingSenderId: "479113972827",
+            appId: "1:479113972827:web:399f5543c7624e75b1037e"
         };
 
         // Initialize Firebase
@@ -215,7 +215,7 @@
                             <p>Untuk melihat dan mengubah role, Anda harus login terlebih dahulu.</p>
                             <ol>
                                 <li>Buka <a href="auth.html" target="_blank">auth.html</a></li>
-                                <li>Login dengan <strong>admin@synawatch.com</strong></li>
+                                <li>Login dengan <strong>admin@scentravn.com</strong></li>
                                 <li>Setelah login, kembali ke halaman ini</li>
                             </ol>
                         </div>
