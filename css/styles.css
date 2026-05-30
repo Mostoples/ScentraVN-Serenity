@@ -385,19 +385,19 @@ img, svg {
 /* Content max-width constraint for readability on large screens */
 @media (min-width: 768px) {
     .view-container {
-        max-width: 720px;
+        max-width: 100%;
     }
 }
 
 @media (min-width: 1024px) {
     .view-container {
-        max-width: 900px;
+        max-width: 100%;
     }
 }
 
 @media (min-width: 1280px) {
     .view-container {
-        max-width: 1100px;
+        max-width: 100%;
     }
 }
 
@@ -1983,7 +1983,7 @@ img, video, canvas {
 
     .view-container {
         padding: var(--space-5);
-        max-width: 600px;
+        max-width: 100%;
         margin: 0 auto;
     }
 
@@ -1997,7 +1997,7 @@ img, video, canvas {
     }
 
     .featured-card, .health-hero {
-        max-width: 600px;
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
@@ -2020,7 +2020,7 @@ img, video, canvas {
 
     .view-container {
         padding: var(--space-6) var(--space-8);
-        max-width: 720px;
+        max-width: 100%;
         margin: 0 auto;
     }
 
@@ -2108,7 +2108,7 @@ img, video, canvas {
     }
 
     .view-container {
-        max-width: 900px;
+        max-width: 100%;
         padding: var(--space-8);
     }
 
@@ -2153,7 +2153,7 @@ img, video, canvas {
 /* Desktops (1280px and up) */
 @media (min-width: 1280px) {
     .view-container {
-        max-width: 1100px;
+        max-width: 100%;
     }
 
     .greeting-section {
@@ -2166,13 +2166,13 @@ img, video, canvas {
     }
 
     .featured-card {
-        max-width: 800px;
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
 
     .health-hero {
-        max-width: 800px;
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
@@ -2291,7 +2291,7 @@ img, video, canvas {
 @media (min-width: 768px) {
     .ble-card {
         padding: var(--space-8);
-        max-width: 500px;
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
@@ -5363,7 +5363,7 @@ body.synachat-view .synachat-container {
 
 /* ===== GAMES PAGE - Modern Design ===== */
 .games-page {
-    max-width: 900px;
+    max-width: 100%;
     margin: 0 auto;
     padding-bottom: 100px;
 }

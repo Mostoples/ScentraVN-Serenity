@@ -129,10 +129,75 @@
 
   if (typeof window !== 'undefined') window.ThemeManager = ThemeManager;
 
+  /* ── Animation Toggle ─────────────────────────────────────── */
+  const AnimToggle = {
+    KEY: 'scentravn_animations',
+    enabled: true,
+
+    init() {
+      const saved = localStorage.getItem(this.KEY);
+      this.enabled = saved !== 'off';
+      this._apply();
+      this._mount();
+    },
+
+    toggle() {
+      this.enabled = !this.enabled;
+      localStorage.setItem(this.KEY, this.enabled ? 'on' : 'off');
+      this._apply();
+      this._refreshBtn();
+    },
+
+    _apply() {
+      document.documentElement.classList.toggle('reduce-motion', !this.enabled);
+    },
+
+    _mount() {
+      const insert = () => {
+        if (document.querySelector('.anim-toggle-btn')) return;
+        const btn = document.createElement('button');
+        btn.className = 'anim-toggle-btn';
+        btn.setAttribute('aria-label', 'Toggle animations');
+        btn.title = 'Toggle Animasi';
+        btn.innerHTML = `<i class="fas ${this.enabled ? 'fa-bolt' : 'fa-bolt-slash'}"></i>`;
+        btn.addEventListener('click', () => this.toggle());
+
+        const headerRight = document.querySelector('.app-header .header-right');
+        if (headerRight) {
+          headerRight.prepend(btn);
+        } else {
+          btn.style.cssText = 'position:fixed;top:16px;right:60px;z-index:500;';
+          document.body.appendChild(btn);
+        }
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', insert);
+      } else {
+        insert();
+      }
+      setTimeout(insert, 600);
+      setTimeout(insert, 1500);
+    },
+
+    _refreshBtn() {
+      const btn = document.querySelector('.anim-toggle-btn');
+      if (btn) btn.innerHTML = `<i class="fas ${this.enabled ? 'fa-bolt' : 'fa-bolt-slash'}"></i>`;
+    }
+  };
+
+  if (typeof window !== 'undefined') window.AnimToggle = AnimToggle;
+
   /* Auto-init */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => ThemeManager.init());
   } else {
     ThemeManager.init();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => AnimToggle.init());
+  } else {
+    AnimToggle.init();
   }
 })();

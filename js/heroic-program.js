@@ -17,7 +17,7 @@
 if (typeof Views !== 'undefined') {
     Views.heroic = function() {
         return `
-        <div class="view-container" style="max-width: 700px; margin: 0 auto; padding-top: 16px;">
+        <div class="view-container" style="margin: 0 auto; padding-top: 16px;">
 
             <!-- Hero Header -->
             <div style="background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);

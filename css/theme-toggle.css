@@ -557,3 +557,56 @@ html[data-theme="light"] .synachat-input-container textarea {
   background: #f8fafc !important;
   border: 1px solid rgba(0, 0, 0, 0.10) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+ * 8. ANIMATION TOGGLE BUTTON
+ * ═══════════════════════════════════════════════════════════════ */
+
+.anim-toggle-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+  color: #6d28d9;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.10);
+}
+
+.anim-toggle-btn:hover {
+  background: rgba(124, 58, 237, 0.12);
+  transform: scale(1.1);
+}
+
+html[data-theme="dark"] .anim-toggle-btn {
+  background: rgba(40, 25, 80, 0.7) !important;
+  border-color: rgba(139, 92, 246, 0.30) !important;
+  color: #c4b5fd !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 9. REDUCE MOTION — kills all animations & transitions
+ * ═══════════════════════════════════════════════════════════════ */
+
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+html.reduce-motion .auth-orb,
+html.reduce-motion .bg-orb,
+html.reduce-motion .aura-bg,
+html.reduce-motion .orb {
+  display: none !important;
+}

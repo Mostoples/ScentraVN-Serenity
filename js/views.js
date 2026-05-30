@@ -9,7 +9,7 @@ const Views = {
      */
     assessment() {
         return `
-            <div class="view-container" style="max-width: 600px; margin: 0 auto; padding-top: 40px;">
+            <div class="view-container" style="margin: 0 auto; padding-top: 40px;">
                 <div id="assessmentProgressWrapper" style="margin-bottom: 32px; display: none;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">${t('assessment.progress')}</span>
@@ -1209,7 +1209,7 @@ const Views = {
      */
     sleep() {
         return `
-            <div class="view-container" style="max-width: 700px; margin: 0 auto; padding-bottom: 80px;">
+            <div class="view-container" style="margin: 0 auto; padding-bottom: 80px;">
                 <!-- Header -->
                 <div class="health-hero" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);">
                     <i class="fas fa-moon" style="font-size: 2.5rem; margin-bottom: 12px; color: #a5b4fc;"></i>
@@ -1312,7 +1312,7 @@ const Views = {
      */
     moodbooster() {
         return `
-            <div class="view-container" style="max-width: 700px; margin: 0 auto;">
+            <div class="view-container" style="margin: 0 auto;">
                 <div id="moodboosterContent">
                     <div style="text-align: center; padding: 40px 20px;">
                         <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
@@ -1328,7 +1328,7 @@ const Views = {
      */
     mindful() {
         return `
-            <div class="view-container" style="max-width: 700px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-primary);">
+            <div class="view-container" style="margin: 0 auto; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-primary);">
                 <div style="text-align: center; margin-bottom: 60px;">
                     <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">${t('mindful.title')}</h2>
                     <p style="color: var(--text-secondary);">${t('mindful.desc')}</p>
@@ -1351,7 +1351,7 @@ const Views = {
      */
     journal() {
         return `
-            <div class="view-container" style="max-width: 700px; margin: 0 auto;">
+            <div class="view-container" style="margin: 0 auto;">
                 <div style="margin-bottom: 24px;">
                     <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;"><i class="fas fa-book-open" style="color: var(--primary-500);"></i> ${t('journal.title')}</h2>
                     <p style="color: var(--text-tertiary);">${t('journal.desc')}</p>
@@ -1378,7 +1378,7 @@ const Views = {
      */
     support() {
         return `
-            <div class="view-container" style="max-width: 700px; margin: 0 auto;">
+            <div class="view-container" style="margin: 0 auto;">
                 <div id="supportContent">
                     <div style="text-align: center; padding: 40px 20px;">
                         <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
@@ -1394,7 +1394,7 @@ const Views = {
      */
     academy() {
         return `
-            <div class="view-container" style="max-width: 700px; margin: 0 auto;">
+            <div class="view-container" style="margin: 0 auto;">
                 <div id="academyContent">
                     <div style="text-align: center; padding: 40px 20px;">
                         <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
@@ -1597,7 +1597,7 @@ const Views = {
      */
     yoga() {
         return `
-            <div class="view-container" style="max-width: 700px; margin: 0 auto; padding-top: 20px;">
+            <div class="view-container" style="margin: 0 auto; padding-top: 20px;">
                 <!-- Header -->
                 <div style="text-align: center; margin-bottom: 24px;">
                     <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: 0 6px 20px rgba(20, 184, 166, 0.35);">
