@@ -93,11 +93,12 @@ const InterventionEngine = {
         // Prefer ML mental-state label; fall back to cognitive load
         const state = m.mentalState?.label || null;
         const load  = m.cognitiveLoad?.label || null;
+        const emo   = m.emotion?.label || null;
         const conf  = m.mentalState?.prob || 0;
 
         // Only buffer reasonably confident classifications
         if (state && conf >= 0.5) {
-            this.eegBuffer.push({ state, load, ts: Date.now() });
+            this.eegBuffer.push({ state, load, emo, ts: Date.now() });
             if (this.eegBuffer.length > this.EEG_BUFFER_SIZE) this.eegBuffer.shift();
         }
 
@@ -109,13 +110,13 @@ const InterventionEngine = {
             return c / this.eegBuffer.length;
         };
 
-        // 1) Sustained STRESS / tertekan → breathing or synachat
-        if (ratio('stressed', 'state') >= this.EEG_SUSTAIN_RATIO) {
+        // 1) Sustained NEGATIVE emotion → calming / uplift intervention
+        if (ratio('negative', 'emo') >= this.EEG_SUSTAIN_RATIO) {
             if (now - this.cooldowns.eeg_stress > this.COOLDOWN_PERIOD) {
                 this.cooldowns.eeg_stress = now;
                 this.logInterventionToDB('eeg_stress');
                 this.showAromaOrFallback('stressed',
-                    "Pola gelombang otak menunjukkan ketegangan mental yang menetap. Latihan pernapasan terpandu bisa membantu menenangkan pikiran.",
+                    "Pola emosi negatif terdeteksi menetap pada EEG. Latihan pernapasan atau aromaterapi menenangkan bisa membantu.",
                     () => { if (typeof Router !== 'undefined') Router.navigate('mindful'); });
                 this.eegBuffer = [];
                 return;
@@ -135,14 +136,14 @@ const InterventionEngine = {
             }
         }
 
-        // 3) Sustained DROWSY during the day → gentle activation nudge
-        if (ratio('drowsy', 'state') >= this.EEG_SUSTAIN_RATIO) {
+        // 3) Sustained RELAXED+low engagement during the day → gentle activation
+        if (ratio('relaxed', 'state') >= this.EEG_SUSTAIN_RATIO) {
             const hour = new Date().getHours();
-            if (hour >= 8 && hour <= 20 && now - this.cooldowns.eeg_drowsy > this.COOLDOWN_PERIOD * 2) {
+            if (hour >= 8 && hour <= 20 && now - this.cooldowns.eeg_drowsy > this.COOLDOWN_PERIOD * 3) {
                 this.cooldowns.eeg_drowsy = now;
                 this.logInterventionToDB('eeg_drowsy');
                 this.showAromaOrFallback('drowsy',
-                    "Gelombang otak menunjukkan kantuk. Peregangan singkat atau musik energik dari Mood Booster bisa menyegarkan.",
+                    "Gelombang otak menunjukkan kondisi sangat rileks/mengantuk di jam aktif. Peregangan atau musik energik bisa menyegarkan.",
                     () => { if (typeof Router !== 'undefined') Router.navigate('moodbooster'); });
                 this.eegBuffer = [];
                 return;

@@ -2460,7 +2460,7 @@ const Views = {
                         <div class="pill-icon"><i class="fas fa-face-smile"></i></div>
                         <div class="pill-value" style="font-size:1.1rem;"><span id="biolabMentalState">—</span></div>
                         <div class="pill-label">Mental state</div>
-                        <div class="pill-sub" id="biolabMentalStateConf">MLP · 97%</div>
+                        <div class="pill-sub" id="biolabMentalStateConf">real-EEG · 72%</div>
                     </div>
                     <div class="metric-pill">
                         <div class="pill-icon warning"><i class="fas fa-gauge-high"></i></div>

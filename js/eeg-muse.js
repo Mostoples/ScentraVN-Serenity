@@ -433,15 +433,22 @@ const MuseEEG = {
             engagement = EEGFeatures.engagementIndex(powers);
             meditation = EEGFeatures.meditationIndex(powers);
             sleepStage = EEGFeatures.classifySleepStage(powers);
-            mentalState   = EEGFeatures.classifyMentalState(powers, faa);
             cognitiveLoad = EEGFeatures.classifyCognitiveLoad(powers);
-            /* Emotion uses the richer 15-feature vector (real Muse-trained) */
-            if (typeof NNRuntime !== 'undefined' && NNRuntime.has('emotion')) {
-                const ev = this.emotionFeatureVector();
-                if (ev) {
+
+            /* Mental-state & emotion now share the 15-feature browser contract
+               (both real Muse-trained). Compute the vector once. */
+            const fv = (typeof NNRuntime !== 'undefined') ? this.emotionFeatureVector() : null;
+            if (fv && typeof NNRuntime !== 'undefined') {
+                if (NNRuntime.has('mentalState')) {
                     try {
-                        const out = NNRuntime.predict('emotion', ev);
-                        if (out && out.label) emotion = { label: out.label, prob: out.prob, probs: out.probs };
+                        const o = NNRuntime.predict('mentalState', fv);
+                        if (o && o.label) mentalState = { label: o.label, prob: o.prob, probs: o.probs };
+                    } catch (e) { /* ignore */ }
+                }
+                if (NNRuntime.has('emotion')) {
+                    try {
+                        const o = NNRuntime.predict('emotion', fv);
+                        if (o && o.label) emotion = { label: o.label, prob: o.prob, probs: o.probs };
                     } catch (e) { /* ignore */ }
                 }
             }

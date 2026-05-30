@@ -1,0 +1,12 @@
+{
+  "dataset": "birdy654/eeg-brainwave-dataset-mental-state",
+  "classes": [
+    "focused",
+    "neutral",
+    "relaxed"
+  ],
+  "compactAccuracy": 0.7225806451612903,
+  "compactMacroF1": 0.7176991926991927,
+  "fullReferenceAccuracy": 0.967741935483871,
+  "note": "replaced synthetic model with real Muse-trained model"
+}

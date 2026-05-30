@@ -188,6 +188,7 @@
     mentalStateLabel(state) {
       return ({
         focused:  'Fokus',  relaxed: 'Rileks',
+        neutral:  'Netral',
         drowsy:   'Mengantuk', stressed: 'Tertekan'
       })[state] ?? state;
     },

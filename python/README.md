@@ -89,6 +89,13 @@ its reported confidence and continues to use the heuristic alongside.
 |---|---|---|---|
 | Sleep stager | Real Sleep-EDF | yes (subject-wise) | ~60% |
 | Emotion valence | Real Muse EEG | yes (holdout) | 93% (compact) |
-| Mental state | Synthetic QEEG | no | 97% (synthetic) |
+| Mental state | Real Muse EEG | yes (holdout) | 72% (compact) |
 | Cognitive load | Synthetic | no | 90% (synthetic) |
 | Stress (PPG) | Real (small N) | yes | 64% |
+
+### `train_mentalstate_real.py` — REAL Muse mental-state
+- **Dataset**: birdy654/eeg-brainwave-dataset-mental-state (2479 samples, Muse)
+- **Classes**: concentrating→focused / neutral / relaxed
+- FULL (988 feats RF): **96.8%** ceiling; COMPACT (15 feats MLP): **72.3%** deployed
+- Replaced the previous synthetic 97% model. Mental-state & emotion now share
+  the same 15-feature browser contract (`MuseEEG.emotionFeatureVector()`).

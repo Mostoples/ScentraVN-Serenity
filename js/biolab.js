@@ -358,7 +358,7 @@
       /* Mental state (MLP) */
       if (m.mentalState && typeof EEGFeatures !== 'undefined') {
         this._setText('biolabMentalState', EEGFeatures.mentalStateLabel(m.mentalState.label));
-        this._setText('biolabMentalStateConf', `MLP · ${Math.round((m.mentalState.prob || 0) * 100)}%`);
+        this._setText('biolabMentalStateConf', `real-EEG · ${Math.round((m.mentalState.prob || 0) * 100)}%`);
       } else {
         this._setText('biolabMentalState', '—');
       }
