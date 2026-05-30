@@ -273,6 +273,20 @@ const App = {
             if (typeof AromaModule !== 'undefined') AromaModule.init();
         });
 
+        Router.register('modelcard', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.modelCard());
+            if (typeof ModelCardView !== 'undefined') ModelCardView.init();
+        });
+
+        Router.register('rawrecorder', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.rawRecorder());
+            if (typeof RawRecorderView !== 'undefined') RawRecorderView.init();
+        });
+
         Router.register('sleepsession', () => {
             const nav = document.querySelector('.bottom-nav');
             if (nav) nav.style.display = 'flex';
@@ -446,6 +460,18 @@ const App = {
                     <a class="more-menu-item" data-route="aroma" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed;"><i class="fas fa-spray-can-sparkles"></i></div>
                         <span>Aroma Advisor</span>
+                    </a>
+                    <a class="more-menu-item" data-route="modelcard" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;"><i class="fas fa-shield-halved"></i></div>
+                        <span>Model Card</span>
+                    </a>
+                    <a class="more-menu-item" data-route="rawrecorder" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;"><i class="fas fa-record-vinyl"></i></div>
+                        <span>RAW Recorder</span>
+                    </a>
+                    <a class="more-menu-item" onclick="window.open('research.html','_blank'); App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;"><i class="fas fa-flask"></i></div>
+                        <span>Laporan Riset</span>
                     </a>
                     <a class="more-menu-item" data-route="sleepsession" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;"><i class="fas fa-bed"></i></div>

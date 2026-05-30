@@ -1,0 +1,13 @@
+{
+  "dataset": "STEW (Simultaneous Task EEG Workload)",
+  "classes": [
+    "relaxed",
+    "focused",
+    "overload"
+  ],
+  "accuracySubjectIndependent": 0.2857142857142857,
+  "accuracySubjectDependent": 0.6074074074074074,
+  "macroF1": 0.29685314685314684,
+  "caveat": "Cross-subject workload from frontal EEG is hard: ~29% subject-independent (near chance) vs ~61% subject-dependent. Also cross-hardware (Emotiv 14ch \u2192 Muse frontal). Treat as low-confidence advisory only.",
+  "note": "real workload EEG validation \u2014 honest negative on generalization"
+}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScentraVN Serenity — Laporan Riset & Machine Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/icon-animations.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --p:#7c3aed; --p2:#a855f7; --ink:#1e1b2e; --muted:#64748b;
+            --green:#10b981; --amber:#f59e0b; --orange:#f97316; --red:#ef4444; --indigo:#6366f1;
+        }
+        body {
+            font-family:'Plus Jakarta Sans',sans-serif; color:var(--ink);
+            background:linear-gradient(180deg,#F1ECFB 0%,#F5F3FF 45%,#FAF5FF 100%);
+            line-height:1.65; min-height:100vh; padding-bottom:60px;
+        }
+        .aura { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+        .aura span { position:absolute; border-radius:50%; filter:blur(80px); opacity:0.4; }
+        .aura .o1 { width:420px;height:420px;top:-120px;left:-100px;background:radial-gradient(circle,#a855f7,transparent 70%);}
+        .aura .o2 { width:360px;height:360px;top:30%;right:-120px;background:radial-gradient(circle,#fbcfe8,transparent 70%);}
+        .aura .o3 { width:480px;height:480px;bottom:-160px;left:20%;background:radial-gradient(circle,#c084fc,transparent 70%);}
+        .wrap { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:24px 18px; }
+        .hero {
+            background:linear-gradient(135deg,#7c3aed,#8b5cf6 45%,#a855f7);
+            color:#fff; border-radius:28px; padding:34px 28px; margin-bottom:24px;
+            box-shadow:0 20px 50px rgba(124,58,237,.35);
+        }
+        .hero h1 { font-size:1.9rem; font-weight:800; letter-spacing:-.02em; margin-bottom:8px; }
+        .hero p { opacity:.92; font-size:.95rem; max-width:640px; }
+        .hero .badge { display:inline-block; background:rgba(255,255,255,.18); padding:5px 12px; border-radius:99px; font-size:.72rem; font-weight:600; margin-bottom:14px; }
+        .card {
+            background:rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.65);
+            border-radius:20px; padding:22px; margin-bottom:18px;
+            backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+            box-shadow:0 12px 40px rgba(124,58,237,.1);
+        }
+        h2 { font-size:1.25rem; font-weight:800; color:#4c1d95; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+        h3 { font-size:1rem; font-weight:700; color:#5b21b6; margin:16px 0 8px; }
+        p.lead { color:var(--muted); margin-bottom:14px; }
+        table { width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; }
+        th { background:rgba(124,58,237,.1); color:#4c1d95; text-align:left; padding:10px; font-weight:700; }
+        td { padding:10px; border-bottom:1px solid rgba(124,58,237,.08); color:#334155; vertical-align:top; }
+        tr:last-child td { border-bottom:none; }
+        .grade { display:inline-block; padding:2px 9px; border-radius:99px; font-size:.68rem; font-weight:700; white-space:nowrap; }
+        .g-real{background:#d1fae5;color:#065f46;} .g-weak{background:#fef3c7;color:#92400e;}
+        .g-adv{background:#ffedd5;color:#9a3412;} .g-heur{background:#fee2e2;color:#991b1b;}
+        .acc-bar { height:8px; background:rgba(124,58,237,.1); border-radius:99px; overflow:hidden; margin-top:5px; width:90px; }
+        .acc-bar > div { height:100%; }
+        a.src { color:var(--p); text-decoration:none; font-weight:600; word-break:break-all; }
+        a.src:hover { text-decoration:underline; }
+        .srclist li { margin-bottom:10px; font-size:.82rem; color:#334155; list-style:none; padding-left:24px; position:relative; }
+        .srclist li::before { content:'\f0c1'; font-family:'Font Awesome 6 Free'; font-weight:900; position:absolute; left:0; color:var(--p); }
+        .pipeline { display:flex; flex-direction:column; gap:10px; }
+        .step { display:flex; align-items:flex-start; gap:12px; }
+        .step .num { width:28px;height:28px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;}
+        .step .txt { font-size:.86rem; color:#334155; }
+        .back { display:inline-flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font-weight:600; font-size:.85rem; margin-bottom:16px; opacity:.9; }
+        .note { background:rgba(245,158,11,.1); border-left:3px solid var(--amber); border-radius:10px; padding:12px 14px; font-size:.8rem; color:#92400e; margin-top:12px; }
+        .toc { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+        .toc a { background:rgba(124,58,237,.1); color:#6d28d9; padding:6px 12px; border-radius:99px; font-size:.76rem; font-weight:600; text-decoration:none; }
+        .toc a:hover { background:rgba(124,58,237,.2); }
+        .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; margin:8px 0; }
+        .kpi { background:rgba(124,58,237,.06); border-radius:14px; padding:14px; text-align:center; }
+        .kpi .v { font-size:1.5rem; font-weight:800; color:#4c1d95; }
+        .kpi .l { font-size:.7rem; color:var(--muted); margin-top:2px; }
+        @media(max-width:560px){ table{font-size:.74rem;} td,th{padding:7px;} }
+    </style>
+</head>
+<body>
+    <div class="aura"><span class="o1"></span><span class="o2"></span><span class="o3"></span></div>
+    <div class="wrap">
+        <a href="app.html" class="back"><i class="fas fa-arrow-left"></i> Kembali ke Aplikasi</a>
+
+        <div class="hero">
+            <span class="badge"><i class="fas fa-flask"></i> RESEARCH & ML TRANSPARENCY</span>
+            <h1>Laporan Riset & Machine Learning</h1>
+            <p>Dokumentasi jujur seluruh model AI di ScentraVN Serenity: dataset, metode training, akurasi nyata (validasi subject-wise), batasan, dan tautan sumber dataset.</p>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-list"></i> Daftar Isi</h2>
+            <div class="toc">
+                <a href="#ringkasan">Ringkasan</a>
+                <a href="#models">Tabel Model</a>
+                <a href="#detail">Detail per Target</a>
+                <a href="#pipeline">Pipeline Training</a>
+                <a href="#sumber">Sumber Dataset</a>
+                <a href="#etika">Etika & Disclaimer</a>
+            </div>
+        </div>
+
+        <div class="card" id="ringkasan">
+            <h2><i class="fas fa-chart-pie"></i> Ringkasan</h2>
+            <div class="kpi-grid">
+                <div class="kpi"><div class="v">12</div><div class="l">Model / metrik</div></div>
+                <div class="kpi"><div class="v">5</div><div class="l">Tervalidasi data nyata</div></div>
+                <div class="kpi"><div class="v">6</div><div class="l">Dataset publik</div></div>
+                <div class="kpi"><div class="v">100%</div><div class="l">Open & gratis</div></div>
+            </div>
+            <p class="lead" style="margin-top:12px;">Semua model dijalankan langsung di browser (pure-JS NNRuntime, tanpa TensorFlow.js) menggunakan fitur yang dapat dihitung live dari sensor. Tidak ada angka yang dilebih-lebihkan: model synthetic ditandai jelas, dan model yang gagal generalisasi (cth. cognitive load lintas-subjek) ditampilkan apa adanya.</p>
+        </div>
+
+        <div class="card" id="models">
+            <h2><i class="fas fa-table"></i> Tabel Akurasi Model</h2>
+            <table>
+                <thead><tr><th>Target</th><th>Sensor</th><th>Akurasi nyata</th><th>Grade</th></tr></thead>
+                <tbody id="modelTable"></tbody>
+            </table>
+            <div class="note"><i class="fas fa-circle-info"></i> "Akurasi nyata" = hasil pada test set data nyata dengan validasi subject-wise (tanpa kebocoran antar subjek) bila tersedia.</div>
+        </div>
+
+        <div class="card" id="detail">
+            <h2><i class="fas fa-microscope"></i> Detail per Target</h2>
+
+            <h3>1. Stress berbasis EDA / Keringat — 77% ✅</h3>
+            <p class="lead">Dilatih pada WESAD (Empatica E4, 15 subjek). Hanya pakai fitur EDA + suhu kulit agar cocok dengan smartwatch ScentraVN. Validasi subject-wise: <b>akurasi 77%, F1 0.70</b>. EDA adalah penanda aktivitas saraf simpatik yang kuat untuk stres.</p>
+
+            <h3>2. Stress berbasis EEG — Heuristik QEEG ⚠️</h3>
+            <p class="lead">Menggunakan rasio theta/beta dari Muse (penanda arousal QEEG). Threshold berbasis literatur, belum dilatih sebagai model. Dipakai melengkapi emotion & EDA.</p>
+
+            <h3>3. Emotion (EEG) — 93% ✅ &nbsp; Mental State (EEG) — 72% ✅ &nbsp; Sleep (EEG) — 60% ✅</h3>
+            <p class="lead">Tiga model EEG tervalidasi pada data nyata. Emotion & mental-state dilatih pada hardware Muse yang sama dengan produk; sleep stager pada Sleep-EDF (197 subjek, validasi subject-wise).</p>
+
+            <h3>4. Cognitive Load (EEG) — 29% lintas-subjek / 61% within ⚠️</h3>
+            <p class="lead">Dilatih pada STEW (Emotiv 14ch). Temuan jujur: fitur membawa sinyal workload (61% subject-dependent) TAPI tidak generalisasi antar orang (29%, mendekati chance). Ditandai sebagai advisory.</p>
+
+            <h3>5. Blood Pressure / Glucose / Hemoglobin — Heuristik / Eksperimental 🔴</h3>
+            <p class="lead">Estimasi research-grade dari morfologi PPG. Glucose: R²≈0 pada dataset 22-pasien (jatuh ke heuristik). BP: MAE literatur 8-12 mmHg. Hemoglobin: butuh PPG multi-wavelength (MAX30102 hanya 2λ). Bukan alat medis.</p>
+
+            <h3>6. Asam Urat — Berbasis input klinis, BUKAN sensor 🔴</h3>
+            <p class="lead">Asam urat <b>tidak dapat</b> diukur dari PPG/EDA/sensor optik. Penelitian yang ada memprediksi dari data klinis (usia, BMI, tekanan darah, pola makan). Di app ditampilkan sebagai estimasi risiko berbasis input manual, bukan pembacaan sensor.</p>
+        </div>
+
+        <div class="card" id="pipeline">
+            <h2><i class="fas fa-diagram-project"></i> Pipeline Training</h2>
+            <div class="pipeline">
+                <div class="step"><div class="num">1</div><div class="txt"><b>Akuisisi dataset</b> — diunduh via Kaggle API / GitHub / PhysioNet.</div></div>
+                <div class="step"><div class="num">2</div><div class="txt"><b>Ekstraksi fitur</b> — fitur yang IDENTIK dapat dihitung live di browser (band power, HRV, statistik EDA) agar training = inference.</div></div>
+                <div class="step"><div class="num">3</div><div class="txt"><b>Split subject-wise</b> — tidak ada subjek yang sama di train & test (mencegah kebocoran optimistik).</div></div>
+                <div class="step"><div class="num">4</div><div class="txt"><b>Training</b> — scikit-learn MLP / RandomForest. Ceiling diukur dengan fitur penuh, model compact untuk deploy.</div></div>
+                <div class="step"><div class="num">5</div><div class="txt"><b>Export JSON</b> — bobot diekspor ke format NNRuntime (pure-JS), dimuat langsung di browser tanpa TF.js.</div></div>
+                <div class="step"><div class="num">6</div><div class="txt"><b>Validasi eksternal</b> — angka jujur dicatat di file <code>*-validation.json</code> & ditampilkan di Model Card.</div></div>
+            </div>
+        </div>
+
+        <div class="card" id="sumber">
+            <h2><i class="fas fa-link"></i> Sumber Dataset</h2>
+            <ul class="srclist">
+                <li>WESAD (stress, EDA) — <a class="src" href="https://github.com/WJMatthew/WESAD" target="_blank" rel="noopener">github.com/WJMatthew/WESAD</a> · Kaggle: asmarufoglu/wesad-features · Schmidt et al. 2018</li>
+                <li>EEG Emotion (Muse) — <a class="src" href="https://www.kaggle.com/datasets/birdy654/eeg-brainwave-dataset-feeling-emotions" target="_blank" rel="noopener">kaggle.com/birdy654/eeg-brainwave-dataset-feeling-emotions</a> · Bird et al.</li>
+                <li>EEG Mental State (Muse) — <a class="src" href="https://www.kaggle.com/datasets/birdy654/eeg-brainwave-dataset-mental-state" target="_blank" rel="noopener">kaggle.com/birdy654/eeg-brainwave-dataset-mental-state</a></li>
+                <li>Sleep-EDF (sleep staging) — <a class="src" href="https://www.kaggle.com/datasets/brl028/sleep-edf-30s-epochs" target="_blank" rel="noopener">kaggle.com/brl028/sleep-edf-30s-epochs</a> · PhysioNet</li>
+                <li>STEW Workload (cognitive load) — <a class="src" href="https://www.kaggle.com/datasets/mitulahirwal/mental-cognitive-workload-eeg-data-stew-dataset" target="_blank" rel="noopener">kaggle.com/mitulahirwal/...-stew-dataset</a></li>
+                <li>Mental Stress PPG — <a class="src" href="https://www.kaggle.com/datasets/chtalhaanwar/mental-stress-ppg" target="_blank" rel="noopener">kaggle.com/chtalhaanwar/mental-stress-ppg</a></li>
+                <li>PPG + Blood Sugar — <a class="src" href="https://www.kaggle.com/datasets/muhammadyasirsaleem/ppg-signal-with-blood-sugar-level-data" target="_blank" rel="noopener">kaggle.com/muhammadyasirsaleem/ppg-signal-with-blood-sugar-level-data</a></li>
+                <li>BP Benchmark (PPG) — <a class="src" href="https://github.com/inventec-ai-center/bp-benchmark" target="_blank" rel="noopener">github.com/inventec-ai-center/bp-benchmark</a></li>
+                <li>Hemoglobin multi-λ PPG — <a class="src" href="https://www.nature.com/articles/s41597-026-06945-6" target="_blank" rel="noopener">Nature Sci. Data 2026 (4-wavelength PPG)</a></li>
+                <li>Uric Acid ML (clinical) — <a class="src" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7582147/" target="_blank" rel="noopener">JMIR 2020 — Blood Uric Acid Prediction</a></li>
+            </ul>
+        </div>
+
+        <div class="card" id="etika">
+            <h2><i class="fas fa-shield-halved"></i> Etika & Disclaimer</h2>
+            <p class="lead">ScentraVN Serenity adalah alat <b>wellness</b>, bukan perangkat medis. Estimasi kesehatan (glukosa, tekanan darah, hemoglobin, asam urat, stage tidur) bersifat eksperimental/komplementer dan tidak boleh digunakan untuk diagnosis, penentuan dosis obat, atau menggantikan pemeriksaan klinis.</p>
+            <div class="note"><i class="fas fa-triangle-exclamation"></i> Semua model dilatih pada dataset publik dengan populasi terbatas. Generalisasi ke individu di luar dataset bisa berbeda jauh. Selalu konsultasikan profesional kesehatan untuk keputusan medis.</div>
+        </div>
+
+        <p style="text-align:center; color:var(--muted); font-size:.78rem; margin-top:20px;">
+            ScentraVN Serenity · Laporan ini dihasilkan dari pipeline di <code>python/</code> & file <code>*-validation.json</code>.
+        </p>
+    </div>
+
+    <script src="js/model-cards.js"></script>
+    <script>
+        // Build the model table from the shared ModelCards data
+        (function() {
+            if (typeof ModelCards === 'undefined') return;
+            const tbody = document.getElementById('modelTable');
+            const colorFor = g => ({real:'#10b981','real-weak':'#f59e0b',advisory:'#f97316',heuristic:'#ef4444'}[g]||'#64748b');
+            const gradeClass = g => ({real:'g-real','real-weak':'g-weak',advisory:'g-adv',heuristic:'g-heur'}[g]||'g-heur');
+            tbody.innerHTML = ModelCards.all.map(m => {
+                const meta = ModelCards.gradeMeta(m.grade);
+                const accPct = (m.accuracy!=null) ? Math.round(m.accuracy*100) : null;
+                const bar = accPct!=null
+                    ? `<div class="acc-bar"><div style="width:${accPct}%;background:${colorFor(m.grade)};"></div></div>`
+                    : '';
+                return `<tr>
+                    <td><b>${m.name}</b></td>
+                    <td>${m.input}</td>
+                    <td>${m.accuracyLabel}${bar}</td>
+                    <td><span class="grade ${gradeClass(m.grade)}">${meta.label}</span></td>
+                </tr>`;
+            }).join('');
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "dataset": "WESAD",
+  "classes": [
+    "calm",
+    "stress"
+  ],
+  "edaTempAccuracy": 0.7743918980016277,
+  "edaTempMacroF1": 0.703347062532549,
+  "allSensorsAccuracy": 0.7414775296138891,
+  "validation": "subject-wise holdout",
+  "source": "https://github.com/WJMatthew/WESAD ; Schmidt et al. 2018",
+  "note": "EDA+TEMP matches custom smartwatch; subject-wise honest"
+}

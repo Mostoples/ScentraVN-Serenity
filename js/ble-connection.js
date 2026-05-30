@@ -237,6 +237,12 @@ function handleDataNotification(event) {
                     PPGProcessor.pushBPM(data.hr, Date.now());
                 }
             }
+            /* EDA stress runner (WESAD-trained, EDA + skin temp) */
+            if (typeof EDAStress !== 'undefined') {
+                const edaVal = (data.gsrRaw != null) ? data.gsrRaw
+                             : (data.gsr != null ? data.gsr : null);
+                EDAStress.push(edaVal, data.bt != null ? data.bt : null);
+            }
         } catch (e) { /* keep BLE pipeline resilient */ }
 
         // Update sensor data with new stress calculation

@@ -433,10 +433,9 @@ const MuseEEG = {
             engagement = EEGFeatures.engagementIndex(powers);
             meditation = EEGFeatures.meditationIndex(powers);
             sleepStage = EEGFeatures.classifySleepStage(powers);
-            cognitiveLoad = EEGFeatures.classifyCognitiveLoad(powers);
 
-            /* Mental-state & emotion now share the 15-feature browser contract
-               (both real Muse-trained). Compute the vector once. */
+            /* Mental-state, emotion & cognitive-load now share the 15-feature
+               browser contract (all real Muse/EEG-trained). Compute once. */
             const fv = (typeof NNRuntime !== 'undefined') ? this.emotionFeatureVector() : null;
             if (fv && typeof NNRuntime !== 'undefined') {
                 if (NNRuntime.has('mentalState')) {
@@ -449,6 +448,12 @@ const MuseEEG = {
                     try {
                         const o = NNRuntime.predict('emotion', fv);
                         if (o && o.label) emotion = { label: o.label, prob: o.prob, probs: o.probs };
+                    } catch (e) { /* ignore */ }
+                }
+                if (NNRuntime.has('cogLoad')) {
+                    try {
+                        const o = NNRuntime.predict('cogLoad', fv);
+                        if (o && o.label) cognitiveLoad = { label: o.label, prob: o.prob, probs: o.probs };
                     } catch (e) { /* ignore */ }
                 }
             }

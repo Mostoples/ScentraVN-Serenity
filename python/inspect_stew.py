@@ -3,18 +3,15 @@ import numpy as np
 from pathlib import Path
 
 d = Path('research_data/stew')
-for fn in ['dataset.mat', 'class_012.mat', 'rating.mat', 'three_class_one_hot.mat']:
-    p = d / fn
-    if not p.exists():
-        continue
+for f in sorted(d.glob('*.mat')):
     try:
-        m = sio.loadmat(p)
+        m = sio.loadmat(f)
         keys = [k for k in m.keys() if not k.startswith('__')]
-        print(f"\n{fn}: keys={keys}")
+        print(f'\n{f.name}: keys={keys}')
         for k in keys:
-            arr = m[k]
-            print(f"  {k}: shape={getattr(arr,'shape',None)} dtype={getattr(arr,'dtype',None)}")
-            if hasattr(arr, 'shape') and arr.size < 30:
-                print(f"     values: {np.array(arr).ravel()[:20]}")
+            v = m[k]
+            print(f'  {k}: shape={getattr(v,"shape",None)} dtype={getattr(v,"dtype",None)}')
+            if hasattr(v, 'shape') and v.size < 30:
+                print('    values:', np.array(v).ravel()[:20])
     except Exception as e:
-        print(f"{fn}: error {e}")
+        print(f'{f.name}: ERROR {e}')

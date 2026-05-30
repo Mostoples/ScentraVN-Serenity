@@ -215,6 +215,7 @@
           await NNRuntime.load('mentalState', '/js/ml/models/mental-state-mlp.json');
           await NNRuntime.load('cogLoad',     '/js/ml/models/cognitive-load-mlp.json');
           await NNRuntime.load('emotion',     '/js/ml/models/emotion-valence-mlp.json');
+          await NNRuntime.load('edaStress',   '/js/ml/models/eda-stress-mlp.json');
         }
 
         const badge = document.getElementById('mlStatusBadge');
@@ -366,7 +367,7 @@
       /* Cognitive load (MLP) */
       if (m.cognitiveLoad && typeof EEGFeatures !== 'undefined') {
         this._setText('biolabCogLoad', EEGFeatures.cognitiveLoadLabel(m.cognitiveLoad.label));
-        this._setText('biolabCogLoadConf', `MLP · ${Math.round((m.cognitiveLoad.prob || 0) * 100)}%`);
+        this._setText('biolabCogLoadConf', `advisory · ${Math.round((m.cognitiveLoad.prob || 0) * 100)}%`);
       } else {
         this._setText('biolabCogLoad', '—');
       }

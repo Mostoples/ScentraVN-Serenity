@@ -2466,7 +2466,7 @@ const Views = {
                         <div class="pill-icon warning"><i class="fas fa-gauge-high"></i></div>
                         <div class="pill-value" style="font-size:1.1rem;"><span id="biolabCogLoad">—</span></div>
                         <div class="pill-label">Cognitive load</div>
-                        <div class="pill-sub" id="biolabCogLoadConf">MLP · 90%</div>
+                        <div class="pill-sub" id="biolabCogLoadConf">low conf · advisory</div>
                     </div>
                     <div class="metric-pill">
                         <div class="pill-icon success"><i class="fas fa-face-smile-beam"></i></div>
@@ -2854,6 +2854,120 @@ const Views = {
 
                 <div class="aura-section" style="margin-top:28px;"><span class="aura-section-title">Pustaka Aroma</span></div>
                 <div id="aromaLibrary" class="card-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;"></div>
+            </div>
+        `;
+    },
+
+    /**
+     * Model Card — transparent AI accuracy disclosure to the user.
+     */
+    modelCard() {
+        return `
+            <div class="view-container">
+                <section class="aura-hero" style="margin-bottom:22px;">
+                    <div class="hero-row">
+                        <div>
+                            <div class="hero-greeting">Transparansi AI</div>
+                            <div class="hero-name">Model Card</div>
+                            <div class="hero-sub">Akurasi & batasan tiap model — jujur apa adanya</div>
+                        </div>
+                        <div class="hero-score-icon"><i class="fas fa-shield-halved"></i></div>
+                    </div>
+                </section>
+
+                <div class="glass-card" style="padding:14px 16px; margin-bottom:18px; border-left:3px solid #6366f1;">
+                    <p style="font-size:0.8rem; color:#3730a3; line-height:1.6;">
+                        <i class="fas fa-circle-info"></i> Kami percaya transparansi. Halaman ini menampilkan akurasi nyata setiap model AI di ScentraVN — termasuk yang masih lemah. Semua estimasi kesehatan bersifat <strong>wellness/eksperimental</strong>, bukan diagnosis medis.
+                    </p>
+                </div>
+
+                <div id="modelCardList" style="display:flex; flex-direction:column; gap:14px;"></div>
+
+                <div class="aura-section" style="margin-top:26px;"><span class="aura-section-title">Komponen Signal Processing (bukan ML)</span></div>
+                <div class="glass-card" style="padding:16px;">
+                    <p style="font-size:0.75rem; color:#64748b; margin-bottom:12px; line-height:1.5;">Metrik ini dihitung dengan signal processing (DSP), bukan machine learning — jadi akurasinya tinggi & deterministik.</p>
+                    <div id="dspList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+
+                <div class="glass-card" style="padding:16px; margin-top:18px; border-left:3px solid #f59e0b;">
+                    <p style="font-size:0.76rem; color:#92400e; line-height:1.6;">
+                        <i class="fas fa-triangle-exclamation"></i> <strong>Disclaimer.</strong> ScentraVN adalah alat wellness, bukan perangkat medis. Jangan gunakan estimasi glukosa, tekanan darah, atau stage tidur untuk diagnosis, dosis obat, atau menggantikan pemeriksaan klinis.
+                    </p>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * RAW Data Recorder — multi-device synchronized capture & export.
+     */
+    rawRecorder() {
+        const dev = (id, name, icon, sensors) => `
+            <div class="glass-card" style="padding:16px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;"><i class="fas ${icon}"></i></div>
+                    <div style="flex:1;">
+                        <div style="font-size:0.92rem;font-weight:700;color:#4c1d95;">${name}</div>
+                        <div style="font-size:0.7rem;color:#94a3b8;" id="rawDev-${id}-status">terputus</div>
+                    </div>
+                    <span id="rawDev-${id}-dot" style="width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span>
+                </div>
+                <div style="font-size:0.7rem;color:#64748b;margin:8px 0;line-height:1.5;">${sensors}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="aura-section-link" id="rawConnect-${id}" type="button" style="background:rgba(124,58,237,0.1);padding:6px 14px;border-radius:99px;">Hubungkan</button>
+                    <span style="font-size:0.7rem;color:#7c3aed;font-weight:600;align-self:center;" id="rawDev-${id}-count">0 frame</span>
+                </div>
+            </div>`;
+
+        return `
+            <div class="view-container">
+                <section class="aura-hero" style="margin-bottom:22px;">
+                    <div class="hero-row">
+                        <div>
+                            <div class="hero-greeting">Data Acquisition</div>
+                            <div class="hero-name">RAW Recorder</div>
+                            <div class="hero-sub" id="rawTimer">Rekam data mentah multi-device</div>
+                        </div>
+                        <div class="hero-score-icon"><i class="fas fa-record-vinyl"></i></div>
+                    </div>
+                </section>
+
+                <div class="glass-card" style="padding:14px 16px; margin-bottom:18px; border-left:3px solid #6366f1;">
+                    <p style="font-size:0.78rem; color:#3730a3; line-height:1.6;">
+                        <i class="fas fa-circle-info"></i> Rekam sinyal mentah dari semua device sekaligus (BLE / WiFi / Firebase). Hasil bisa di-<strong>save sebagai JSON/CSV</strong> atau diunggah ke cloud untuk riset & training model.
+                    </p>
+                </div>
+
+                <div class="aura-section"><span class="aura-section-title">Perangkat</span></div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    ${dev('watch8', 'Samsung Galaxy Watch 8', 'fa-watch-smart', 'HR · HRV · SpO2 · Accel · Gyro · Suhu kulit · EDA · Langkah · Barometer (via aplikasi perantara → WiFi/Firebase)')}
+                    ${dev('muse', 'Muse Sleep (EEG)', 'fa-brain', 'TP9 · AF7 · AF8 · TP10 · Band powers · Accel · Gyro (via Web Bluetooth)')}
+                    ${dev('scentra', 'ScentraVN Watch', 'fa-microchip', 'MAX30102 (red/IR/HR/SpO2) · MLX90614 suhu · IMU · EDA/GSR (via BLE/WiFi/Firebase)')}
+                </div>
+
+                <div class="glass-card" style="padding:18px; margin-top:18px;">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+                        <div class="metric-pill" style="padding:12px;"><div class="pill-label">Durasi</div><div class="pill-value" style="font-size:1.2rem;"><span id="rawDuration">0s</span></div></div>
+                        <div class="metric-pill" style="padding:12px;"><div class="pill-label">Total frame</div><div class="pill-value" style="font-size:1.2rem;"><span id="rawTotal">0</span></div></div>
+                        <div class="metric-pill" style="padding:12px;"><div class="pill-label">Status</div><div class="pill-value" style="font-size:1.1rem;"><span id="rawStatus">idle</span></div></div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button id="rawStartBtn" class="hero-action" type="button" style="background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;flex:1;justify-content:center;"><i class="fas fa-circle"></i> <span>Mulai Rekam</span></button>
+                        <button id="rawStopBtn" class="hero-action" type="button" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);flex:1;justify-content:center;display:none;"><i class="fas fa-stop"></i> <span>Stop</span></button>
+                    </div>
+                </div>
+
+                <div class="aura-section" style="margin-top:18px;"><span class="aura-section-title">Ekspor &amp; Simpan</span></div>
+                <div class="glass-card" style="padding:16px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button id="rawExportJson" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-code"></i> JSON (lengkap)</button>
+                        <button id="rawExportMuse" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-csv"></i> CSV Muse</button>
+                        <button id="rawExportScentra" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-csv"></i> CSV ScentraVN</button>
+                        <button id="rawExportWatch8" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-csv"></i> CSV Watch8</button>
+                        <button id="rawSaveCloud" class="aura-section-link" type="button" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 14px;border-radius:99px;"><i class="fas fa-cloud-arrow-up"></i> Simpan ke Cloud</button>
+                    </div>
+                    <p style="font-size:0.7rem;color:#94a3b8;margin-top:10px;line-height:1.5;">JSON menyimpan resolusi penuh. Cloud menyimpan versi downsampled (batas dokumen Firestore 1MB).</p>
+                </div>
             </div>
         `;
     }
