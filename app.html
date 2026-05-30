@@ -41,6 +41,17 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Critical: Loading Screen CSS (must be in head to prevent FOUC) -->
+    <script>
+        /* Apply saved performance + theme mode BEFORE first paint (no flash) */
+        (function() {
+            try {
+                var pm = localStorage.getItem('scentravn_perf_mode');
+                if (pm === 'lite') document.documentElement.classList.add('lite-mode', 'reduce-motion');
+                var th = localStorage.getItem('scentravn_theme');
+                if (th) document.documentElement.setAttribute('data-theme', th);
+            } catch (e) {}
+        })();
+    </script>
     <style>
         .loading-screen {
             position: fixed;
@@ -121,6 +132,7 @@
     <link rel="stylesheet" href="css/theme-aura.css">
     <link rel="stylesheet" href="css/icon-animations.css">
     <link rel="stylesheet" href="css/theme-toggle.css">
+    <link rel="stylesheet" href="css/lite-mode.css">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -193,6 +205,7 @@
 
     <!-- App Scripts -->
     <script src="js/theme-manager.js"></script>
+    <script src="js/performance-mode.js"></script>
     <script src="js/config.keys.js"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>

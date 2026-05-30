@@ -1,0 +1,190 @@
+/**
+ * ScentraVN Serenity — LITE (Performance) Mode
+ *
+ * Activated by adding class `lite-mode` to <html>.
+ * Goal: make the app fast & light on low-end devices by removing the most
+ * GPU/CPU-expensive visual effects while keeping the layout intact.
+ *
+ * What it strips:
+ *   - backdrop-filter / blur (glassmorphism) → solid backgrounds  ← biggest win
+ *   - all keyframe animations & transitions
+ *   - animated aura/orb backgrounds
+ *   - heavy box-shadows → flat/minimal
+ *   - gradients on large surfaces → solid colors (optional, kept subtle)
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+ * 1. KILL ANIMATIONS & TRANSITIONS (global)
+ * ═══════════════════════════════════════════════════════════════ */
+html.lite-mode *,
+html.lite-mode *::before,
+html.lite-mode *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+/* Font-Awesome animated icons: freeze completely */
+html.lite-mode i.fas,
+html.lite-mode i.far,
+html.lite-mode i.fab,
+html.lite-mode i.fa-solid,
+html.lite-mode i.fa-regular,
+html.lite-mode i.fa-brands {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  filter: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 2. REMOVE BLUR / BACKDROP-FILTER  (biggest performance cost)
+ * ═══════════════════════════════════════════════════════════════ */
+html.lite-mode * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Replace translucent glass with solid surfaces (aura theme) */
+html.lite-mode[data-theme="aura"] .glass-card,
+html.lite-mode[data-theme="aura"] .quick-menu-card,
+html.lite-mode[data-theme="aura"] .metric-pill,
+html.lite-mode[data-theme="aura"] .script-card,
+html.lite-mode[data-theme="aura"] .device-card,
+html.lite-mode[data-theme="aura"] .card,
+html.lite-mode[data-theme="aura"] .chart-container,
+html.lite-mode[data-theme="aura"] .app-header,
+html.lite-mode[data-theme="aura"] .bottom-nav,
+html.lite-mode[data-theme="aura"] .theme-toggle {
+  background: #ffffff !important;
+  border: 1px solid rgba(124, 58, 237, 0.14) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Dark theme lite: solid dark panels */
+html.lite-mode[data-theme="dark"] .glass-card,
+html.lite-mode[data-theme="dark"] .quick-menu-card,
+html.lite-mode[data-theme="dark"] .metric-pill,
+html.lite-mode[data-theme="dark"] .script-card,
+html.lite-mode[data-theme="dark"] .device-card,
+html.lite-mode[data-theme="dark"] .card,
+html.lite-mode[data-theme="dark"] .chart-container,
+html.lite-mode[data-theme="dark"] .app-header,
+html.lite-mode[data-theme="dark"] .bottom-nav,
+html.lite-mode[data-theme="dark"] .theme-toggle {
+  background: #1a1230 !important;
+  border: 1px solid rgba(139, 92, 246, 0.18) !important;
+  box-shadow: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 3. HIDE ANIMATED AURA / ORB BACKGROUNDS
+ * ═══════════════════════════════════════════════════════════════ */
+html.lite-mode .aura-bg,
+html.lite-mode .bg-animation,
+html.lite-mode .bg-orb,
+html.lite-mode .aura-bg .orb,
+html.lite-mode .auth-orb,
+html.lite-mode .orb {
+  display: none !important;
+}
+
+/* Flat background instead of animated gradient */
+html.lite-mode[data-theme="aura"] body {
+  background: #f5f3ff !important;
+}
+html.lite-mode[data-theme="light"] body {
+  background: #f8fafc !important;
+}
+html.lite-mode[data-theme="dark"] body {
+  background: #0f0a1f !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 4. FLATTEN HEAVY SHADOWS & TRANSFORMS ON HOVER
+ * ═══════════════════════════════════════════════════════════════ */
+html.lite-mode .glass-card:hover,
+html.lite-mode .quick-menu-card:hover,
+html.lite-mode .metric-pill:hover,
+html.lite-mode .script-card:hover,
+html.lite-mode .device-card:hover {
+  transform: none !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Keep hero gradient (cheap) but drop its big glow shadow */
+html.lite-mode .aura-hero,
+html.lite-mode .featured-card {
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 5. LOADING SCREEN — skip the pulse in lite mode
+ * ═══════════════════════════════════════════════════════════════ */
+html.lite-mode .loading-logo,
+html.lite-mode .loading-spinner {
+  animation: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * 6. PERFORMANCE TOGGLE BUTTON
+ * ═══════════════════════════════════════════════════════════════ */
+.perf-toggle-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #6d28d9;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.10);
+}
+.perf-toggle-btn:hover { background: rgba(124, 58, 237, 0.12); }
+.perf-toggle-btn.lite-active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border-color: transparent;
+}
+html.lite-mode .perf-toggle-btn {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #ffffff;
+}
+html.lite-mode .perf-toggle-btn.lite-active {
+  background: #10b981;
+}
+html[data-theme="dark"] .perf-toggle-btn {
+  background: rgba(40, 25, 80, 0.7);
+  border-color: rgba(139, 92, 246, 0.30);
+  color: #c4b5fd;
+}
+
+/* A small toast shown when switching modes */
+.perf-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1b2e;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.perf-toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }

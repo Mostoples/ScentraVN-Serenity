@@ -64,6 +64,18 @@ const SynachatAvatar = {
             return true;
         }
 
+        // LITE MODE: skip the heavy Three.js 3D avatar entirely (big CPU/GPU win)
+        if (typeof ScentraPerf !== 'undefined' && ScentraPerf.isLite()) {
+            console.log('SynachatAvatar: skipped (lite mode)');
+            const c = document.getElementById(containerId);
+            if (c) {
+                c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:160px;">' +
+                    '<img src="images/logo.png" alt="Dr. Synachat" style="width:96px;height:96px;border-radius:50%;object-fit:cover;opacity:.9;">' +
+                    '</div>';
+            }
+            return false;
+        }
+
         this.container = document.getElementById(containerId);
         if (!this.container) {
             console.error('Avatar container not found:', containerId);

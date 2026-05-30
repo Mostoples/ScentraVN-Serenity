@@ -33,6 +33,10 @@
       this._loadSleepHistory();
       this._refreshSleepUI();
       this._loadInterventionLog();
+      /* Re-schedule ticks when performance mode changes */
+      if (typeof ScentraPerf !== 'undefined') {
+        ScentraPerf.onChange(() => this._scheduleTick());
+      }
       this.inited = true;
     },
 
@@ -317,7 +321,9 @@
 
     _scheduleTick() {
       clearInterval(this.refreshTimer);
-      this.refreshTimer = setInterval(() => this._tick(), 5000);
+      /* Lite mode: slower refresh to save CPU */
+      const interval = (typeof ScentraPerf !== 'undefined' && ScentraPerf.isLite()) ? 12000 : 5000;
+      this.refreshTimer = setInterval(() => this._tick(), interval);
     },
 
     _tick() {
