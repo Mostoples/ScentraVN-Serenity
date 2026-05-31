@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - HEROIC-XAI Engine (Sprint 1)
+ * SCENTRAVN - HEROIC-XAI Engine (Sprint 1)
  *
  * Implements the 6-dimensional HEROIC psychoeducation framework with
  * Explainable AI (XAI) transparency layer, grounded in:
@@ -389,7 +389,7 @@ const HeroicXAI = {
     // ─── Persistence ──────────────────────────────────────────────────────────
     _saveToStorage() {
         try {
-            localStorage.setItem('synawatch_heroic_scores', JSON.stringify({
+            localStorage.setItem('scentravn_heroic_scores', JSON.stringify({
                 scores: this.scores,
                 lastUpdated: this.lastUpdated
             }));
@@ -398,7 +398,7 @@ const HeroicXAI = {
 
     _loadFromStorage() {
         try {
-            const saved = localStorage.getItem('synawatch_heroic_scores');
+            const saved = localStorage.getItem('scentravn_heroic_scores');
             if (saved) {
                 const data = JSON.parse(saved);
                 if (data.scores) {

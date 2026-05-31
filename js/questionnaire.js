@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Kuesioner Pengujian Aplikasi
+ * SCENTRAVN - Kuesioner Pengujian Aplikasi
  * 9-page questionnaire with SUS, UI/UX, TAM, UEQ, Trust, Therapeutic, Engagement, NPS scoring
  * Saves results to Firestore collection 'questionnaireResults'
  */
@@ -9,7 +9,7 @@ const Questionnaire = {
     TOTAL_PAGES: 9,
 
     SUS_QUESTIONS: [
-        { code: 'sus1',  text: 'Saya merasa ingin sering menggunakan aplikasi SynaWatch ini.' },
+        { code: 'sus1',  text: 'Saya merasa ingin sering menggunakan aplikasi ScentraVN ini.' },
         { code: 'sus2',  text: 'Saya merasa aplikasi ini terlalu rumit untuk digunakan.' },
         { code: 'sus3',  text: 'Aplikasi ini mudah digunakan.' },
         { code: 'sus4',  text: 'Saya membutuhkan bantuan orang lain untuk bisa menggunakan aplikasi ini.' },
@@ -37,11 +37,11 @@ const Questionnaire = {
     ],
 
     TAM_QUESTIONS: [
-        { code: 'tam1', text: 'Menggunakan SynaWatch membantu saya memantau kondisi kesehatan mental saya.', group: 'usefulness' },
+        { code: 'tam1', text: 'Menggunakan ScentraVN membantu saya memantau kondisi kesehatan mental saya.', group: 'usefulness' },
         { code: 'tam2', text: 'Aplikasi ini meningkatkan kesadaran saya terhadap kondisi emosi dan stres saya.', group: 'usefulness' },
-        { code: 'tam3', text: 'SynaWatch bermanfaat dalam membantu saya mengelola kesehatan mental sehari-hari.', group: 'usefulness' },
+        { code: 'tam3', text: 'ScentraVN bermanfaat dalam membantu saya mengelola kesehatan mental sehari-hari.', group: 'usefulness' },
         { code: 'tam4', text: 'Secara keseluruhan, aplikasi ini berguna bagi saya.', group: 'usefulness' },
-        { code: 'tam5', text: 'Mempelajari cara menggunakan SynaWatch terasa mudah bagi saya.', group: 'ease' },
+        { code: 'tam5', text: 'Mempelajari cara menggunakan ScentraVN terasa mudah bagi saya.', group: 'ease' },
         { code: 'tam6', text: 'Interaksi dengan aplikasi ini jelas dan mudah dipahami.', group: 'ease' },
         { code: 'tam7', text: 'Saya dapat menggunakan aplikasi ini tanpa banyak usaha.', group: 'ease' },
         { code: 'tam8', text: 'Secara keseluruhan, aplikasi ini mudah digunakan.', group: 'ease' }
@@ -59,7 +59,7 @@ const Questionnaire = {
     ],
 
     TRUST_QUESTIONS: [
-        { code: 'trust1', text: 'Saya percaya bahwa data kesehatan saya aman di dalam aplikasi SynaWatch.' },
+        { code: 'trust1', text: 'Saya percaya bahwa data kesehatan saya aman di dalam aplikasi ScentraVN.' },
         { code: 'trust2', text: 'Saya merasa nyaman memberikan data pribadi dan kondisi emosi saya ke aplikasi ini.' },
         { code: 'trust3', text: 'Saya yakin data saya tidak akan disalahgunakan atau dibagikan tanpa izin.' },
         { code: 'trust4', text: 'Informasi tentang privasi dan keamanan data dalam aplikasi sudah cukup jelas.' },
@@ -77,7 +77,7 @@ const Questionnaire = {
     ],
 
     ENGAGEMENT_QUESTIONS: [
-        { code: 'eng1', text: 'Saya akan menggunakan SynaWatch secara rutin jika tersedia.' },
+        { code: 'eng1', text: 'Saya akan menggunakan ScentraVN secara rutin jika tersedia.' },
         { code: 'eng2', text: 'Saya merasa terdorong untuk menyelesaikan program atau latihan dalam aplikasi.' },
         { code: 'eng3', text: 'Notifikasi atau pengingat dari aplikasi ini akan memotivasi saya untuk konsisten.' },
         { code: 'eng4', text: 'Saya merasa ada kemajuan nyata saat menggunakan fitur-fitur dalam aplikasi ini.' },
@@ -784,7 +784,7 @@ const Questionnaire = {
             const data = {
                 submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 userId: user ? user.uid : null,
-                appVersion: 'SynaWatch v1.0 MVP',
+                appVersion: 'ScentraVN v1.0 MVP',
                 testingPhase: 'Without Smartwatch',
                 source: 'questionnaire',
                 responden: {

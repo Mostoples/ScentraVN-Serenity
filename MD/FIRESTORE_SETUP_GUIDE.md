@@ -1,4 +1,4 @@
-# SYNAWATCH - Firestore Complete Setup Guide
+# SCENTRAVN - Firestore Complete Setup Guide
 
 **Status:** Ready for comprehensive database initialization
 **Created:** March 25, 2026
@@ -21,7 +21,7 @@
 
 ## Overview
 
-The Firestore database needs **14 collections** to support all SynaWatch features:
+The Firestore database needs **14 collections** to support all ScentraVN features:
 
 | Collection | Purpose | Data Type |
 |-----------|---------|-----------|
@@ -53,7 +53,7 @@ The Firestore database needs **14 collections** to support all SynaWatch feature
 **If you don't have serviceAccountKey.json:**
 1. Go to [Firebase Console](https://console.firebase.google.com/project/synawacth-id/settings/serviceaccounts/adminsdk)
 2. Click "Generate New Private Key"
-3. Save as `serviceAccountKey.json` in `/SYNAWATCH/` directory
+3. Save as `serviceAccountKey.json` in `/SCENTRAVN/` directory
 4. **KEEP IT SECURE** - Add to `.gitignore`
 
 ---
@@ -65,7 +65,7 @@ The Firestore database needs **14 collections** to support all SynaWatch feature
 Run the schema initialization script:
 
 ```bash
-cd /c/Users/mosto/Desktop/SYNAWATCH
+cd /c/Users/mosto/Desktop/SCENTRAVN
 node setup-firestore-schema.js init-schema
 ```
 
@@ -109,7 +109,7 @@ This will display all required indexes. You have 2 options:
 #### **Option A: Automatic Creation (Recommended)**
 
 ```bash
-cd synawatch
+cd scentravn
 firebase firestore:indexes
 ```
 
@@ -142,14 +142,14 @@ interventions:   userId (↑) + recommendedAt (↓)
 ### **Step 3: Deploy Security Rules** (5 minutes)
 
 ```bash
-cd synawatch
+cd scentravn
 firebase deploy --only firestore:rules
 ```
 
 Or manually:
 
 1. Go to [Firestore Security Rules](https://console.firebase.google.com/project/synawacth-id/firestore/rules)
-2. Paste contents of `/SYNAWATCH/firestore.rules`
+2. Paste contents of `/SCENTRAVN/firestore.rules`
 3. Click "Publish"
 
 ### **Step 4: Verify Setup** (2 minutes)
@@ -487,7 +487,7 @@ The `firestore.rules` file implements:
 
 **Via CLI:**
 ```bash
-cd synawatch
+cd scentravn
 firebase deploy --only firestore:rules
 ```
 
@@ -639,13 +639,13 @@ node setup-firestore-schema.js create-indexes
 node setup-firestore-schema.js backup-data
 
 # Deploy security rules
-cd synawatch && firebase deploy --only firestore:rules
+cd scentravn && firebase deploy --only firestore:rules
 
 # Deploy hosting
-cd synawatch && firebase deploy --only hosting
+cd scentravn && firebase deploy --only hosting
 
 # Deploy everything
-cd synawatch && firebase deploy
+cd scentravn && firebase deploy
 
 # Start emulator
 firebase emulators:start --only firestore

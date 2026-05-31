@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Dashboard Logic
+ * SCENTRAVN - Dashboard Logic
  * Real-time charts always visible with live updates when connected
  */
 

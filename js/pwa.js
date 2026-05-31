@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - PWA Handler
+ * SCENTRAVN - PWA Handler
  * Elegant PWA install prompt and service worker management
  */
 
@@ -160,10 +160,10 @@ const PWA = {
 
                 <div class="pwa-banner-header">
                     <div class="pwa-app-icon">
-                        <img src="images/logo.png" alt="SYNAWATCH" width="64" height="64" class="pwa-app-icon-img">
+                        <img src="images/logo.png" alt="SCENTRAVN" width="64" height="64" class="pwa-app-icon-img">
                     </div>
                     <div class="pwa-app-info">
-                        <h3>Install SYNAWATCH</h3>
+                        <h3>Install SCENTRAVN</h3>
                         <p>Add to your home screen for the best experience</p>
                     </div>
                 </div>
@@ -737,7 +737,7 @@ const PWA = {
                     <i class="fas fa-check"></i>
                 </div>
                 <h3>App Installed!</h3>
-                <p>SYNAWATCH has been added to your home screen. Enjoy faster access to your health data!</p>
+                <p>SCENTRAVN has been added to your home screen. Enjoy faster access to your health data!</p>
             </div>
         `;
         document.body.appendChild(modal);

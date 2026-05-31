@@ -17,12 +17,12 @@ cp yoga_for_mental_health/seed-firestore.js setup-yoga-data.js
 node setup-yoga-data.js
 
 # 3. Add yoga component to Vue
-# Edit synawatch/index.html - add yoga route
+# Edit scentravn/index.html - add yoga route
 
 # 4. Deploy
 firebase deploy
 
-# 5. Test at https://synawatch.web.app/#/yoga
+# 5. Test at https://scentravn.web.app/#/yoga
 ```
 
 ---
@@ -194,7 +194,7 @@ firebase deploy --only firestore:rules
 
 #### Day 1-2: Create Yoga Main Component
 
-**File:** `synawatch/js/components/yoga-view.js`
+**File:** `scentravn/js/components/yoga-view.js`
 
 ```javascript
 // Yoga Main View
@@ -394,7 +394,7 @@ async function startYogaSession(protocolId) {
 
 #### Day 3-4: Create Yoga Session Component
 
-**File:** `synawatch/js/components/yoga-session.js`
+**File:** `scentravn/js/components/yoga-session.js`
 
 ```javascript
 // Yoga Session View
@@ -643,7 +643,7 @@ class YogaSessionManager {
 
 #### Day 5-7: Add to App Routes
 
-**File:** `synawatch/js/app.js` (modify)
+**File:** `scentravn/js/app.js` (modify)
 
 ```javascript
 // Add yoga routes

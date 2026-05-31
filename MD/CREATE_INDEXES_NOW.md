@@ -96,7 +96,7 @@ Click **"Create Index"** and fill in for **EACH** of these 8 indexes:
 ## OPTION 3: Auto-Deploy via Firebase CLI
 
 ```bash
-cd /c/Users/mosto/Desktop/SYNAWATCH/synawatch
+cd /c/Users/mosto/Desktop/SCENTRAVN/scentravn
 firebase firestore:indexes
 ```
 

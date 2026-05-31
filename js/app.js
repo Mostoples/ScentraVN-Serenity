@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - SPA Application
+ * SCENTRAVN - SPA Application
  * Main application entry point
  */
 
@@ -14,7 +14,7 @@ const App = {
         if (this.initialized || this._initializing) return;
         this._initializing = true;
 
-        console.log('Initializing SYNAWATCH SPA...');
+        console.log('Initializing SCENTRAVN SPA...');
 
         // Wait for Firebase auth
         await this.waitForAuth();
@@ -31,6 +31,11 @@ const App = {
             BLEConnection.onConnectionChange(this.handleBLEConnection.bind(this));
         }
 
+        // Sambungkan ke App ScentraVN via Firebase RTDB (live bridge)
+        if (typeof ScentraLive !== 'undefined') {
+            ScentraLive.start();
+        }
+
         // Update time
         this.updateTime();
         setInterval(() => this.updateTime(), 1000);
@@ -43,7 +48,7 @@ const App = {
 
         this.initialized = true;
         this._initializing = false;
-        console.log('SYNAWATCH SPA initialized');
+        console.log('SCENTRAVN SPA initialized');
     },
 
     /**
@@ -273,6 +278,17 @@ const App = {
             if (typeof AromaModule !== 'undefined') AromaModule.init();
         });
 
+        Router.register('live', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            if (typeof ScentraLive !== 'undefined') {
+                Router.render(ScentraLive.pageHTML());
+                ScentraLive.initPage();
+            } else {
+                Router.render('<div style="padding:40px;text-align:center;color:#64748b;">Live bridge tidak tersedia (SDK Firebase Database belum dimuat).</div>');
+            }
+        });
+
         Router.register('modelcard', () => {
             const nav = document.querySelector('.bottom-nav');
             if (nav) nav.style.display = 'flex';
@@ -351,7 +367,7 @@ const App = {
         if (spo2El) state.spo2 = parseInt(spo2El.textContent) || 0;
         // Read cached assessment from localStorage
         try {
-            const cached = localStorage.getItem('synawatch_assessment');
+            const cached = localStorage.getItem('scentravn_assessment');
             if (cached) {
                 const a = JSON.parse(cached);
                 state.phq9Score = a.phq9Score || 0;
@@ -649,6 +665,11 @@ const App = {
      * Initialize Dashboard View
      */
     initDashboardView() {
+        // Cermin status koneksi terakhir dari App ScentraVN ke kartu device
+        if (typeof ScentraLive !== 'undefined' && ScentraLive.latest && ScentraLive.latest.galaxyWatch) {
+            ScentraLive._reflectDashboard(ScentraLive.latest);
+        }
+
         // Set greeting
         const greetingEl = document.getElementById('greeting');
         const userNameEl = document.getElementById('userName');
@@ -674,21 +695,9 @@ const App = {
             });
         }
 
-        // Aura dashboard: reflect BLE / Muse connection state on device cards
-        try {
-            const watchEl = document.getElementById('watchStatus');
-            const museEl  = document.getElementById('museStatus');
-            const bleOn   = (typeof BLEConnection !== 'undefined' && BLEConnection.isConnected && BLEConnection.isConnected());
-            const museOn  = (typeof EEGMuse !== 'undefined' && EEGMuse.isConnected && EEGMuse.isConnected());
-            if (watchEl) {
-                watchEl.textContent = bleOn ? 'ON' : 'OFF';
-                watchEl.className = 'device-card-status ' + (bleOn ? 'on' : 'off');
-            }
-            if (museEl) {
-                museEl.textContent = museOn ? 'ON' : 'OFF';
-                museEl.className = 'device-card-status ' + (museOn ? 'on' : 'off');
-            }
-        } catch (e) { /* noop */ }
+        // Status kartu device (watchStatus/museStatus) dicerminkan dari App ScentraVN
+        // via ScentraLive (RTDB) — sudah ditangani di awal initDashboardView() &
+        // pada tiap snapshot. Jalur BLE lokal lama dihapus (web hanya membaca RTDB).
 
         // Check if user is admin and show admin card
         if (this.currentUser && typeof db !== 'undefined') {
@@ -881,6 +890,15 @@ const App = {
         if (previousRoute === 'sleep' && typeof SleepLab !== 'undefined') {
             SleepLab.destroy();
         }
+        if (previousRoute === 'live' && typeof ScentraLive !== 'undefined') {
+            ScentraLive.destroyPage();
+        }
+        if (previousRoute === 'health' && typeof unwireHealthLiveBridge === 'function') {
+            unwireHealthLiveBridge();
+        }
+        if (previousRoute === 'sleepsession' && typeof SleepSessionUI !== 'undefined' && SleepSessionUI.destroy) {
+            SleepSessionUI.destroy();
+        }
     }
 };
 
@@ -922,7 +940,7 @@ function confirmLogout() {
                 <i class="fas fa-sign-out-alt"></i>
             </div>
             <h3>Logout</h3>
-            <p>Are you sure you want to logout from SYNAWATCH?</p>
+            <p>Are you sure you want to logout from SCENTRAVN?</p>
             <div class="logout-modal-buttons">
                 <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
                 <button class="btn btn-danger" onclick="performLogout()">

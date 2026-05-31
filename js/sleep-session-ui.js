@@ -2,14 +2,18 @@
  * ScentraVN Serenity — Sleep Session UI controller
  *
  * Binds the SleepSession recorder + EEGFeatures to the Sleep Session view.
- *
  * Renders a live hypnogram (5 lanes: WAKE → REM → N1 → N2 → N3), running stats,
  * stage distribution bar chart, and a list of recent sessions stored in Firestore.
+ *
+ * NOTE: diselaraskan dengan API riil SleepSession (js/sleep-session.js):
+ *   isRecording, startedAt(ms), epochs[], onTick(cb), start(), stop()→sessionDoc,
+ *   getState(), getHistory(limit). Tiap epoch = 30 detik.
  */
 
 (() => {
   'use strict';
 
+  const EPOCH_SEC = 30;
   const STAGE_ORDER = ['wake', 'rem', 'n1', 'n2', 'n3'];
   const STAGE_LABELS = { wake: 'Awake', rem: 'REM', n1: 'N1', n2: 'N2', n3: 'N3', unknown: '—' };
   const STAGE_COLORS = {
@@ -23,13 +27,16 @@
 
   const SleepSessionUI = {
     timerHandle: null,
+    _historyCache: [],
 
     init() {
       if (typeof SleepSession === 'undefined') return;
 
-      SleepSession.onEpoch       = (e) => this._onEpoch(e);
-      SleepSession.onStateChange = ()  => this._renderState();
-      SleepSession.onSummary     = (s) => this._renderSummary(s);
+      /* SleepSession memakai SATU callback onTick(epoch, count) per epoch */
+      SleepSession.onTick((epoch) => {
+        this._onEpoch(epoch);
+        this._renderState();
+      });
 
       const btn = document.getElementById('sleepSessionBtn');
       const refresh = document.getElementById('sleepRefreshBtn');
@@ -53,11 +60,16 @@
 
     /* ── Toggle start/stop ────────────────────────────────────────── */
     async _toggle() {
-      if (SleepSession.isRunning) {
-        const summary = await SleepSession.stop();
-        this._renderSummary(summary);
+      if (SleepSession.isRecording) {
+        const session = await SleepSession.stop();
+        this._renderState();
+        this._renderSummary(session?.summary);
       } else {
-        await SleepSession.start({ source: 'manual' });
+        const ok = SleepSession.start();
+        if (!ok && typeof Utils !== 'undefined') {
+          Utils.showToast('Tidak bisa memulai sesi. Pastikan Muse terhubung.', 'error');
+        }
+        this._renderState();
       }
     },
 
@@ -68,44 +80,41 @@
       const span  = btn.querySelector('span');
       const icon  = btn.querySelector('i');
 
-      if (SleepSession.isRunning) {
+      if (SleepSession.isRecording) {
         if (span) span.textContent = 'Stop';
         if (icon) icon.className = 'fas fa-stop';
-        if (status) status.textContent = 'recording';
-        if (status) status.style.color = '#10b981';
+        if (status) { status.textContent = 'recording'; status.style.color = '#10b981'; }
       } else {
         if (span) span.textContent = 'Start';
         if (icon) icon.className = 'fas fa-play';
-        if (status) status.textContent = 'idle';
-        if (status) status.style.color = '#64748b';
+        if (status) { status.textContent = 'idle'; status.style.color = '#64748b'; }
       }
     },
 
     /* ── Live tick ────────────────────────────────────────────────── */
     _tickClock() {
-      if (!SleepSession.isRunning || !SleepSession.startTs) return;
-      const elapsed = Date.now() - SleepSession.startTs;
+      if (!SleepSession.isRecording || !SleepSession.startedAt) return;
+      const elapsed = (Date.now() - SleepSession.startedAt) / 1000;
       const el = document.getElementById('sleepElapsed');
-      if (el) el.textContent = this._fmtDuration(elapsed / 1000);
+      if (el) el.textContent = this._fmtDuration(elapsed);
     },
 
     /* ── Per-epoch update ─────────────────────────────────────────── */
     _onEpoch(epoch) {
-      const epochs = SleepSession.epochs;
+      const epochs = SleepSession.epochs || [];
 
-      /* Counters */
       const c = document.getElementById('sleepEpochCount');
       if (c) c.textContent = epochs.length;
 
       const cur = document.getElementById('sleepCurrentStage');
-      if (cur) {
+      if (cur && epoch) {
         cur.textContent = STAGE_LABELS[epoch.stage] ?? epoch.stage;
         cur.style.color = STAGE_COLORS[epoch.stage] ?? '#4c1d95';
       }
 
-      /* Live score */
-      if (typeof EEGFeatures !== 'undefined') {
-        const summary = EEGFeatures.summariseSleep(epochs.map(e => ({ stage: e.stage, durationSec: e.durationSec })));
+      /* Live score — tiap epoch dianggap EPOCH_SEC detik */
+      if (typeof EEGFeatures !== 'undefined' && epochs.length) {
+        const summary = EEGFeatures.summariseSleep(epochs.map(e => ({ stage: e.stage, durationSec: EPOCH_SEC })));
         const sc = document.getElementById('sleepLiveScore');
         if (sc && summary) sc.textContent = summary.score;
       }
@@ -113,7 +122,7 @@
       this._renderHypnogram(epochs);
     },
 
-    /* ── Hypnogram drawing ────────────────────────────────────────── */
+    /* ── Hypnogram drawing (tiap epoch = lebar sama) ──────────────── */
     _renderHypnogram(epochs) {
       const track = document.getElementById('hypnogramTrack');
       if (!track) return;
@@ -123,43 +132,36 @@
 
       const height = track.clientHeight || 90;
       const laneH  = height / STAGE_ORDER.length;
+      const trackWidth = track.clientWidth || 300;
+      const w = trackWidth / epochs.length;
 
-      const total = epochs.reduce((a, e) => a + e.durationSec, 0);
-      let xCursor = 0;
-      const trackWidth = track.clientWidth;
-
-      epochs.forEach(e => {
-        const w = (e.durationSec / total) * trackWidth;
+      epochs.forEach((e, i) => {
         const laneIdx = STAGE_ORDER.indexOf(e.stage);
-        if (laneIdx === -1) { xCursor += w; return; }
+        if (laneIdx === -1) return;
 
         const block = document.createElement('div');
         block.style.position = 'absolute';
-        block.style.left = xCursor + 'px';
+        block.style.left = (i * w) + 'px';
         block.style.top = (laneIdx * laneH) + 'px';
         block.style.width = Math.max(2, w) + 'px';
         block.style.height = laneH + 'px';
         block.style.background = STAGE_COLORS[e.stage];
         block.style.opacity = 0.85;
         block.style.borderRadius = '3px';
-        block.title = `${STAGE_LABELS[e.stage]} · ${e.durationSec}s`;
+        block.title = `${STAGE_LABELS[e.stage]} · ${EPOCH_SEC}s`;
         track.appendChild(block);
-
-        xCursor += w;
       });
     },
 
     /* ── Summary panel ────────────────────────────────────────────── */
     _renderSummary(summary) {
-      this._renderState();
       if (!summary || !summary.totalSec) return;
       const panel = document.getElementById('sleepDistPanel');
       const bars = document.getElementById('sleepStageBars');
       if (!panel || !bars) return;
       panel.style.display = 'block';
 
-      const stages = STAGE_ORDER;
-      bars.innerHTML = stages.map(s => {
+      bars.innerHTML = STAGE_ORDER.map(s => {
         const pct = (summary.percentages?.[s] || 0);
         const dur = (summary.durationsSec?.[s] || 0);
         return `
@@ -182,23 +184,25 @@
       if (!list) return;
       list.innerHTML = `<div style="color:#94a3b8; font-size:0.8rem;">Loading…</div>`;
 
-      const sessions = await SleepSession.listHistory(20);
+      const sessions = await SleepSession.getHistory(20);
+      this._historyCache = sessions;
       if (!sessions.length) {
         list.innerHTML = `<div style="color:#94a3b8; font-size:0.8rem; padding: 12px;">Belum ada sesi tidur tersimpan.</div>`;
         return;
       }
 
       list.innerHTML = sessions.map(s => {
-        const start = s.startedAtMs ? new Date(s.startedAtMs) : null;
+        const start = s.startedAt ? new Date(s.startedAt) : null;
         const day  = start ? start.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) : '—';
         const time = start ? start.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
         const dur  = s.durationSec ? this._fmtDuration(s.durationSec) : '—';
         const score = s.summary?.score ?? '—';
+        const eff   = s.summary?.efficiency != null ? `${s.summary.efficiency}%` : '—';
         return `
           <div class="script-card" onclick="SleepSessionUI._showDetail('${s.id}')">
             <div class="script-card-head">
               <div class="icon"><i class="fas fa-bed"></i></div>
-              <span class="edit">${s.status || '—'}</span>
+              <span class="edit">eff ${eff}</span>
             </div>
             <div class="script-card-title">${day} · ${time}</div>
             <div class="script-card-desc">Score ${score} · ${dur}</div>
@@ -207,8 +211,8 @@
       }).join('');
     },
 
-    async _showDetail(id) {
-      const detail = await SleepSession.getSessionDetail(id);
+    _showDetail(id) {
+      const detail = this._historyCache.find(s => s.id === id);
       if (!detail) return;
       /* Replay into hypnogram & summary panels */
       this._renderHypnogram(detail.epochs || []);

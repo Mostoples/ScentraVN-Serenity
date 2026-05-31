@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Sleep Lab Module
+ * SCENTRAVN - Sleep Lab Module
  * Handles sleep readiness scoring, bedtime routines, relaxation audio,
  * sleep history tracking, and Firestore persistence.
  */
@@ -8,8 +8,8 @@ const SleepLab = {
     audioPlayer: null,
     currentTrack: null,
     completedRoutines: [],
-    CHECKLIST_KEY: 'synawatch_sleep_checklist',
-    HISTORY_KEY: 'synawatch_sleep_history',
+    CHECKLIST_KEY: 'scentravn_sleep_checklist',
+    HISTORY_KEY: 'scentravn_sleep_history',
 
     init() {
         this.setupAudio();

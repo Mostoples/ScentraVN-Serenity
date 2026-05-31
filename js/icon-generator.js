@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - PWA Icon Generator
+ * SCENTRAVN - PWA Icon Generator
  * Generates PWA icons dynamically using Canvas
  */
 

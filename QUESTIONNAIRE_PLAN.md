@@ -1,5 +1,5 @@
-# 📋 Rencana Implementasi Kuesioner Pengujian SynaWatch
-> Dokumen ini dibuat untuk memudahkan kolaborasi tim dalam mengimplementasikan fitur kuesioner pengujian aplikasi SynaWatch yang terintegrasi dengan Firebase Firestore.
+# 📋 Rencana Implementasi Kuesioner Pengujian ScentraVN
+> Dokumen ini dibuat untuk memudahkan kolaborasi tim dalam mengimplementasikan fitur kuesioner pengujian aplikasi ScentraVN yang terintegrasi dengan Firebase Firestore.
 
 ---
 
@@ -9,14 +9,14 @@ Membuat halaman kuesioner pengujian (`questionnaire.html`) yang:
 1. Dapat diakses langsung dari halaman **beranda (dashboard)** aplikasi via banner card
 2. Menyimpan semua jawaban responden langsung ke **Firestore** collection `questionnaireResults`
 3. Menghitung skor secara otomatis (SUS, TAM, rata-rata, dll.)
-4. Sesuai dengan desain SynaWatch (glassmorphism + gradien ungu)
+4. Sesuai dengan desain ScentraVN (glassmorphism + gradien ungu)
 
 ---
 
 ## 📁 File yang Perlu Dibuat / Dimodifikasi
 
 ```
-synawatch/
+scentravn/
 ├── questionnaire.html          ← BUAT BARU  (halaman kuesioner lengkap)
 └── js/
     └── views.js                ← MODIFIKASI (tambah banner card di dashboard)
@@ -33,7 +33,7 @@ Setiap dokumen disimpan otomatis saat user submit, dengan struktur:
 ```json
 {
   "submittedAt": "<Firestore Timestamp>",
-  "appVersion": "SynaWatch v1.0 MVP",
+  "appVersion": "ScentraVN v1.0 MVP",
   "testingPhase": "Without Smartwatch",
   "source": "questionnaire.html",
 
@@ -136,7 +136,7 @@ Kuesioner terdiri dari **9 halaman** dengan **66 item** total.
 
 | Kode | Pertanyaan |
 |---|---|
-| sus1 | Saya merasa ingin sering menggunakan aplikasi SynaWatch ini. |
+| sus1 | Saya merasa ingin sering menggunakan aplikasi ScentraVN ini. |
 | sus2 | Saya merasa aplikasi ini terlalu rumit untuk digunakan. |
 | sus3 | Aplikasi ini mudah digunakan. |
 | sus4 | Saya membutuhkan bantuan orang lain untuk bisa menggunakan aplikasi ini. |
@@ -189,16 +189,16 @@ Kuesioner terdiri dari **9 halaman** dengan **66 item** total.
 
 | Kode | Pertanyaan |
 |---|---|
-| tam1 | Menggunakan SynaWatch membantu saya memantau kondisi kesehatan mental saya. |
+| tam1 | Menggunakan ScentraVN membantu saya memantau kondisi kesehatan mental saya. |
 | tam2 | Aplikasi ini meningkatkan kesadaran saya terhadap kondisi emosi dan stres saya. |
-| tam3 | SynaWatch bermanfaat dalam membantu saya mengelola kesehatan mental sehari-hari. |
+| tam3 | ScentraVN bermanfaat dalam membantu saya mengelola kesehatan mental sehari-hari. |
 | tam4 | Secara keseluruhan, aplikasi ini berguna bagi saya. |
 
 **Perceived Ease of Use / Persepsi Kemudahan (tam5–8)**
 
 | Kode | Pertanyaan |
 |---|---|
-| tam5 | Mempelajari cara menggunakan SynaWatch terasa mudah bagi saya. |
+| tam5 | Mempelajari cara menggunakan ScentraVN terasa mudah bagi saya. |
 | tam6 | Interaksi dengan aplikasi ini jelas dan mudah dipahami. |
 | tam7 | Saya dapat menggunakan aplikasi ini tanpa banyak usaha. |
 | tam8 | Secara keseluruhan, aplikasi ini mudah digunakan. |
@@ -226,7 +226,7 @@ Kuesioner terdiri dari **9 halaman** dengan **66 item** total.
 
 | Kode | Pertanyaan |
 |---|---|
-| trust1 | Saya percaya bahwa data kesehatan saya aman di dalam aplikasi SynaWatch. |
+| trust1 | Saya percaya bahwa data kesehatan saya aman di dalam aplikasi ScentraVN. |
 | trust2 | Saya merasa nyaman memberikan data pribadi dan kondisi emosi saya ke aplikasi ini. |
 | trust3 | Saya yakin data saya tidak akan disalahgunakan atau dibagikan tanpa izin. |
 | trust4 | Informasi tentang privasi dan keamanan data dalam aplikasi sudah cukup jelas. |
@@ -254,7 +254,7 @@ Kuesioner terdiri dari **9 halaman** dengan **66 item** total.
 
 | Kode | Pertanyaan |
 |---|---|
-| eng1 | Saya akan menggunakan SynaWatch secara rutin jika tersedia. |
+| eng1 | Saya akan menggunakan ScentraVN secara rutin jika tersedia. |
 | eng2 | Saya merasa terdorong untuk menyelesaikan program atau latihan dalam aplikasi. |
 | eng3 | Notifikasi atau pengingat dari aplikasi ini akan memotivasi saya untuk konsisten. |
 | eng4 | Saya merasa ada kemajuan nyata saat menggunakan fitur-fitur dalam aplikasi ini. |
@@ -267,7 +267,7 @@ Kuesioner terdiri dari **9 halaman** dengan **66 item** total.
 **H.1 — NPS (Net Promoter Score)**
 > Skala 0–10 · Wajib
 
-*"Seberapa besar kemungkinan Anda merekomendasikan SynaWatch kepada teman atau orang yang Anda kenal?"*
+*"Seberapa besar kemungkinan Anda merekomendasikan ScentraVN kepada teman atau orang yang Anda kenal?"*
 
 - 0–6 = Detractor
 - 7–8 = Passive
@@ -281,7 +281,7 @@ Kuesioner terdiri dari **9 halaman** dengan **66 item** total.
 | open_confusing | Fitur mana yang paling membingungkan atau sulit digunakan? |
 | open_missing | Fitur apa yang belum ada namun Anda harapkan ada? |
 | open_smartwatch | Bagaimana pendapat Anda tentang konsep smartwatch yang terhubung ke aplikasi ini? |
-| open_suggestion | Saran atau masukan lain untuk pengembangan SynaWatch? |
+| open_suggestion | Saran atau masukan lain untuk pengembangan ScentraVN? |
 
 ---
 
@@ -289,7 +289,7 @@ Kuesioner terdiri dari **9 halaman** dengan **66 item** total.
 
 ### Step 1 — Buat `questionnaire.html`
 
-Buat file baru `synawatch/questionnaire.html` dengan ketentuan:
+Buat file baru `scentravn/questionnaire.html` dengan ketentuan:
 
 - **Firebase:** Load dari CDN `https://www.gstatic.com/firebasejs/9.23.0/`
   - `firebase-app-compat.js`
@@ -298,12 +298,12 @@ Buat file baru `synawatch/questionnaire.html` dengan ketentuan:
 - **Config:** Import `js/config.js` (sudah ada di proyek)
 - **Firestore:** Init menggunakan `CONFIG.FIREBASE_*` dari config.js
 - **Collection target:** `questionnaireResults`
-- **Desain:** Ikuti tema SynaWatch — font `Plus Jakarta Sans`, warna utama `#7c3aed`, glassmorphism, animasi aura ungu
+- **Desain:** Ikuti tema ScentraVN — font `Plus Jakarta Sans`, warna utama `#7c3aed`, glassmorphism, animasi aura ungu
 
 **Struktur halaman:**
 ```
 ├── Background aura animation (3 orbs)
-├── Header card (logo SYNAWATCH + judul)
+├── Header card (logo SCENTRAVN + judul)
 ├── Progress bar + step dots (9 langkah)
 ├── Page 0: Informasi Responden
 ├── Page 1: SUS (10 item, skala 1-5)
@@ -365,7 +365,7 @@ Pada fungsi `dashboard()`, tambahkan HTML banner card **setelah** featured Healt
           <span style="background:rgba(255,255,255,0.25);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:0.5px;">BETA</span>
         </div>
         <p style="font-size:12px;color:rgba(255,255,255,0.82);margin:0;line-height:1.4;">
-          Bantu kami tingkatkan SynaWatch — isi kuesioner &amp; beri feedback!
+          Bantu kami tingkatkan ScentraVN — isi kuesioner &amp; beri feedback!
         </p>
       </div>
     </div>
@@ -387,7 +387,7 @@ Pada fungsi `dashboard()`, tambahkan HTML banner card **setelah** featured Healt
 
 ## ✅ Checklist Implementasi
 
-- [ ] Buat file `synawatch/questionnaire.html`
+- [ ] Buat file `scentravn/questionnaire.html`
 - [ ] Pastikan `js/config.js` bisa diakses dari `questionnaire.html`
 - [ ] Pastikan Firebase Firestore terhubung dan bisa menerima data
 - [ ] Tambahkan banner card di `js/views.js` → fungsi `dashboard()`
@@ -396,7 +396,7 @@ Pada fungsi `dashboard()`, tambahkan HTML banner card **setelah** featured Healt
 
 ---
 
-## 🎨 Referensi Desain (Token CSS dari SynaWatch)
+## 🎨 Referensi Desain (Token CSS dari ScentraVN)
 
 ```css
 /* Warna */
@@ -439,4 +439,4 @@ Semua sudah tersedia di proyek, tidak perlu install tambahan:
 
 ---
 
-*Dokumen ini dibuat untuk membantu koordinasi tim pengembang SynaWatch. Diperbarui: 2026-03-30*
+*Dokumen ini dibuat untuk membantu koordinasi tim pengembang ScentraVN. Diperbarui: 2026-03-30*

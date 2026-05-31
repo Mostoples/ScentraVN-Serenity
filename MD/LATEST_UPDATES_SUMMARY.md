@@ -1,4 +1,4 @@
-# SynaWatch - Latest Updates Summary
+# ScentraVN - Latest Updates Summary
 **Deployed:** March 25, 2026 | **Status:** ✅ LIVE
 
 ---
@@ -117,7 +117,7 @@ Added 10 cards to home page untuk quick access:
 
 **Step 1: Setup Admin User**
 ```bash
-# In /SYNAWATCH directory:
+# In /SCENTRAVN directory:
 node setup-admin.js setup-admin your-email@example.com
 ```
 
@@ -143,7 +143,7 @@ https://synawacth-id.web.app/#/admin
 
 ### Latest Deployment:
 ```
-✅ GitHub: Pushed to https://github.com/abdilth4-tech/synawatch
+✅ GitHub: Pushed to https://github.com/abdilth4-tech/scentravn
 ✅ Firebase: Deployed to https://synawacth-id.web.app
 ✅ Files: 226 total files, 19 new uploaded
 ✅ Status: LIVE and accessible

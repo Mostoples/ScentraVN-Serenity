@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Profile Page Logic
+ * SCENTRAVN - Profile Page Logic
  */
 
 let weeklyChart = null;
@@ -56,6 +56,19 @@ async function loadProfileData() {
 
         if (editNameInput) {
             editNameInput.value = userData?.name || user.displayName || '';
+        }
+
+        // Subtitle "Musik Negara" → tampilkan pilihan saat ini
+        const countrySub = document.getElementById('profileCountrySubtitle');
+        if (countrySub) {
+            const isId = (typeof I18n !== 'undefined' && I18n.currentLang === 'id');
+            if (userData?.country && userData?.countryName) {
+                countrySub.textContent = `${userData.countryName} · ${isId ? 'ketuk untuk mengganti' : 'tap to change'}`;
+            } else if (userData?.musicPreference === 'none') {
+                countrySub.textContent = isId ? 'Dilewati · ketuk untuk memilih' : 'Skipped · tap to choose';
+            } else {
+                countrySub.textContent = isId ? 'Belum dipilih · ketuk untuk memilih' : 'Not set · tap to choose';
+            }
         }
     } catch (error) {
         console.error('Error loading profile:', error);

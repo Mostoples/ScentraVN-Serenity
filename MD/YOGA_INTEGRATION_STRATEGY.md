@@ -22,7 +22,7 @@
 ## 📊 EXECUTIVE SUMMARY
 
 ### Objective
-Integrate yoga as a **primary mental health intervention** in SynaWatch with:
+Integrate yoga as a **primary mental health intervention** in ScentraVN with:
 - ✅ 254+ yoga poses from external APIs
 - ✅ WHO-based yoga protocols for mental health
 - ✅ Evidence-based targeting (PHQ-9, GAD-7, DASS-21 scores)
@@ -157,7 +157,7 @@ GET /poses/:id                       // Single pose detail
 ### Firestore Collections Structure (Yoga Module)
 
 ```
-SYNAWATCH/
+SCENTRAVN/
 ├── yoga_protocols/
 │   ├── doc: anxiety_relief_protocol
 │   │   ├── name: "Anxiety Relief Program"
@@ -287,7 +287,7 @@ yoga_poses:
 
 #### 1.1 Create Yoga Data Sync Service
 
-**File:** `synawatch/js/services/yoga-sync.js`
+**File:** `scentravn/js/services/yoga-sync.js`
 
 ```javascript
 class YogaSyncService {
@@ -682,7 +682,7 @@ syncYogaData();
 
 #### 2.1 Yoga Feature Main Component
 
-**File:** `synawatch/js/components/yoga-main.js`
+**File:** `scentravn/js/components/yoga-main.js`
 
 ```javascript
 // Yoga Main Dashboard Component
@@ -748,7 +748,7 @@ const yogaMainView = `
 
 #### 2.2 Yoga Session Component
 
-**File:** `synawatch/js/components/yoga-session.js`
+**File:** `scentravn/js/components/yoga-session.js`
 
 ```javascript
 class YogaSession {
@@ -937,7 +937,7 @@ class YogaSession {
 
 #### 3.1 Adaptive Protocol Selector
 
-**File:** `synawatch/js/services/yoga-recommendation.js`
+**File:** `scentravn/js/services/yoga-recommendation.js`
 
 ```javascript
 class YogaRecommendationEngine {
@@ -1069,7 +1069,7 @@ export default new YogaRecommendationEngine();
 
 #### 4.1 Add Yoga to Main App Navigation
 
-**File:** `synawatch/js/views.js` (modify)
+**File:** `scentravn/js/views.js` (modify)
 
 ```javascript
 // Add to views object

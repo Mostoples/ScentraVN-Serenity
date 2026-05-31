@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * SYNAWATCH - Firestore Schema Setup
+ * SCENTRAVN - Firestore Schema Setup
  * Creates all collections, fields, and indexes for complete functionality
  *
  * Usage: node setup-firestore-schema.js [command]
@@ -756,7 +756,7 @@ switch (command) {
         break;
     default:
         console.log(`
-📊 SYNAWATCH - Firestore Schema Setup
+📊 SCENTRAVN - Firestore Schema Setup
 
 Usage: node setup-firestore-schema.js [command]
 

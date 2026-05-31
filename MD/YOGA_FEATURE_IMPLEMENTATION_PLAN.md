@@ -1,4 +1,4 @@
-# 🧘 SYNAWATCH - Yoga for Mental Health Feature Implementation Plan
+# 🧘 SCENTRAVN - Yoga for Mental Health Feature Implementation Plan
 
 **Date:** March 25, 2026
 **Status:** Planning Phase
@@ -35,7 +35,7 @@ Yoga has proven effectiveness in reducing anxiety, depression, and stress (multi
 
 ### **Why Multiple APIs?**
 
-SynaWatch will use **3 complementary yoga APIs** to provide the best user experience:
+ScentraVN will use **3 complementary yoga APIs** to provide the best user experience:
 
 | API | Strength | Use Case |
 |-----|----------|----------|
@@ -142,7 +142,7 @@ GET /poses?name=mountain%20pose
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ SynaWatch Yoga for Mental Health Integration Architecture  │
+│ ScentraVN Yoga for Mental Health Integration Architecture  │
 └─────────────────────────────────────────────────────────────┘
 
 PHASE 1: Assessment & Recommendation

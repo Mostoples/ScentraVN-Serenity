@@ -36,7 +36,7 @@
   - Session summary screens
 ```
 
-### ✅ Phase 4: Full SynaWatch Integration
+### ✅ Phase 4: Full ScentraVN Integration
 ```javascript
 ✓ app.html
   - Added yoga.css stylesheet
@@ -84,10 +84,10 @@ firebase deploy
 
 # 3. Verify deployment
 firebase open hosting:site
-# You should see the app at: https://synawatch.web.app
+# You should see the app at: https://scentravn.web.app
 
 # 4. Test yoga feature
-# Navigate to: https://synawatch.web.app/#/yoga
+# Navigate to: https://scentravn.web.app/#/yoga
 ```
 
 ### Step 3: Test Yoga Feature
@@ -125,7 +125,7 @@ firebase functions:log --only yoga
 ## 📂 FILE STRUCTURE (Created)
 
 ```
-synawatch/
+scentravn/
 ├── js/
 │   └── yoga.js                    ← NEW: Core yoga feature (500 lines)
 │

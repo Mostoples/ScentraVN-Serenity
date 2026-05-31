@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - HEROIC Journal Extension (Sprint 3)
+ * SCENTRAVN - HEROIC Journal Extension (Sprint 3)
  *
  * Extends the existing Journal module with:
  * 1. 9 HEROIC-aligned journal templates (3 per emotional state)

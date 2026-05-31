@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Journal Module v2.0
+ * SCENTRAVN - Journal Module v2.0
  * [GAP 4] Sensor-Contextualized Journaling
  * Based on: Gao et al. 2024 (MindScape), Lattie et al. 2021, Eisenbarth et al. 2025
  *

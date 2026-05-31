@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Mood Booster Module v3.0
+ * SCENTRAVN - Mood Booster Module v3.0
  * [GAP 3] Biofeedback-Driven Music Therapy
  * Features: play/pause, daily mood check (once per day), biofeedback recommendation
  */
@@ -11,7 +11,7 @@ const MoodBooster = {
     currentTrackKey: null, // "category:index"
     isPlaying: false,
 
-    MOOD_STORAGE_KEY: 'synawatch_mood_date',
+    MOOD_STORAGE_KEY: 'scentravn_mood_date',
 
     // Local audio files in /audio folder
     audioUrls: {

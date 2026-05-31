@@ -4,7 +4,7 @@
 
 1. **Create the music folder** (if it doesn't exist):
    ```
-   SynaWatch/music/
+   ScentraVN/music/
    ```
 
 2. **Download traditional music** for each ASEAN country from the websites below
@@ -103,7 +103,7 @@ Download dan simpan file-file ini di folder `music/` (5 file saja):
 Setelah download semua file, pastikan struktur folder seperti ini:
 
 ```
-SynaWatch/
+ScentraVN/
 └── music/
     ├── indonesia-gamelan.mp3
     ├── malaysia-traditional.mp3

@@ -1,10 +1,10 @@
 /**
- * SYNAWATCH - Internationalization (i18n) Module
+ * SCENTRAVN - Internationalization (i18n) Module
  * Supports: Bahasa Indonesia (id) and English (en)
  */
 
 const I18n = {
-    currentLang: localStorage.getItem('synawatch_lang') || 'id',
+    currentLang: localStorage.getItem('scentravn_lang') || 'id',
 
     translations: {
         id: {
@@ -93,7 +93,7 @@ const I18n = {
             'assessment.ucla_a3': 'Kadang-kadang',
             'assessment.ucla_a4': 'Sering',
             'assessment.result_title': 'Evaluasi Selesai',
-            'assessment.result_desc': 'Terima kasih. Sistem kami telah menyesuaikan fitur SYNAWATCH khusus untuk kondisi Anda.',
+            'assessment.result_desc': 'Terima kasih. Sistem kami telah menyesuaikan fitur SCENTRAVN khusus untuk kondisi Anda.',
             'assessment.mental_score': 'Mental Score',
             'assessment.social_link': 'Social Link',
             'assessment.save_pdf': 'Simpan / Cetak Hasil',
@@ -115,7 +115,7 @@ const I18n = {
             'assessment.cat_high': 'Tinggi',
             // Recommendations
             'assessment.rec_severe_title': 'Bantuan Tersedia Untuk Anda',
-            'assessment.rec_severe_desc': 'Skor Anda menunjukkan tingkat beban mental yang tinggi. SYNAWATCH merekomendasikan Anda untuk berbicara dengan tenaga profesional.',
+            'assessment.rec_severe_desc': 'Skor Anda menunjukkan tingkat beban mental yang tinggi. SCENTRAVN merekomendasikan Anda untuk berbicara dengan tenaga profesional.',
             'assessment.rec_severe_btn': 'Buka Support Hub',
             'assessment.rec_moderate_title': 'Rekomendasi Fitur',
             'assessment.rec_moderate_desc': 'SYNACHAT AI siap menemani Anda ngobrol dan meredakan beban pikiran Anda hari ini.',
@@ -324,7 +324,7 @@ const I18n = {
             'ble.disconnect': 'Putuskan',
             'ble.connecting': 'Menghubungkan ke perangkat...',
             'ble.connected_to': 'Terhubung ke {name}',
-            'ble.connected': 'Terhubung ke SYNAWATCH',
+            'ble.connected': 'Terhubung ke SCENTRAVN',
             'ble.disconnected': 'Terputus dari perangkat',
             'ble.reconnecting': 'Mencoba menghubungkan kembali ({attempt}/{max})...',
             'ble.reconnected_to': 'Terhubung kembali ke {name}',
@@ -403,8 +403,8 @@ const I18n = {
 
             // Questionnaire
             'questionnaire.title': 'Kuesioner Pengujian',
-            'questionnaire.subtitle': 'Bantu kami tingkatkan SynaWatch',
-            'questionnaire.banner_desc': 'Bantu kami tingkatkan SynaWatch — isi kuesioner &amp; beri feedback!',
+            'questionnaire.subtitle': 'Bantu kami tingkatkan ScentraVN',
+            'questionnaire.banner_desc': 'Bantu kami tingkatkan ScentraVN — isi kuesioner &amp; beri feedback!',
             'questionnaire.give_feedback': 'Beri Feedback',
             'questionnaire.save_failed': 'Gagal menyimpan data. Periksa koneksi internet Anda dan coba lagi.',
 
@@ -475,7 +475,7 @@ const I18n = {
 
             // Onboarding Tour
             // Onboarding Tour — Common
-            'tour.welcome_title': 'Selamat Datang di SYNAWATCH!',
+            'tour.welcome_title': 'Selamat Datang di SCENTRAVN!',
             'tour.welcome_desc': 'Mari kami perkenalkan fitur-fitur utama untuk membantu Anda memantau kesehatan dengan lebih baik.',
             'tour.finish_title': 'Selesai!',
             'tour.finish_desc': 'Anda sudah memahami halaman ini. Jelajahi fitur lainnya dan hubungkan perangkat sensor untuk pengalaman penuh.',
@@ -547,10 +547,10 @@ const I18n = {
             'tour.profile.intro_desc': 'Lihat statistik penggunaan, ubah bahasa, kelola akun, dan akses semua pengaturan dari sini.',
             // Academy
             'tour.academy.intro_title': 'Academy',
-            'tour.academy.intro_desc': 'Pelajari tentang kesehatan mental, teknik relaksasi, dan cara memaksimalkan fitur SYNAWATCH melalui materi edukasi interaktif.',
+            'tour.academy.intro_desc': 'Pelajari tentang kesehatan mental, teknik relaksasi, dan cara memaksimalkan fitur SCENTRAVN melalui materi edukasi interaktif.',
             // Research
             'tour.research.intro_title': 'Dasar Penelitian',
-            'tour.research.intro_desc': 'Semua fitur SYNAWATCH didukung oleh riset ilmiah. Halaman ini menampilkan referensi dan metodologi yang mendasari setiap fitur.',
+            'tour.research.intro_desc': 'Semua fitur SCENTRAVN didukung oleh riset ilmiah. Halaman ini menampilkan referensi dan metodologi yang mendasari setiap fitur.',
             // Yoga
             'tour.yoga.search_title': 'Cari Pose',
             'tour.yoga.search_desc': 'Ketik nama pose, bagian tubuh, atau manfaat yang Anda cari. Misalnya "relaksasi" atau "punggung".',
@@ -649,7 +649,7 @@ const I18n = {
             'assessment.ucla_a3': 'Sometimes',
             'assessment.ucla_a4': 'Often',
             'assessment.result_title': 'Evaluation Complete',
-            'assessment.result_desc': 'Thank you. Our system has customized SYNAWATCH features for your condition.',
+            'assessment.result_desc': 'Thank you. Our system has customized SCENTRAVN features for your condition.',
             'assessment.mental_score': 'Mental Score',
             'assessment.social_link': 'Social Link',
             'assessment.save_pdf': 'Save / Print Results',
@@ -668,7 +668,7 @@ const I18n = {
             'assessment.cat_mod_high': 'Moderately High',
             'assessment.cat_high': 'High',
             'assessment.rec_severe_title': 'Help is Available',
-            'assessment.rec_severe_desc': 'Your score indicates a high mental burden. SYNAWATCH recommends speaking with a professional.',
+            'assessment.rec_severe_desc': 'Your score indicates a high mental burden. SCENTRAVN recommends speaking with a professional.',
             'assessment.rec_severe_btn': 'Open Support Hub',
             'assessment.rec_moderate_title': 'Feature Recommendation',
             'assessment.rec_moderate_desc': 'SYNACHAT AI is ready to chat and help ease your mind today.',
@@ -877,7 +877,7 @@ const I18n = {
             'ble.disconnect': 'Disconnect',
             'ble.connecting': 'Connecting to device...',
             'ble.connected_to': 'Connected to {name}',
-            'ble.connected': 'Connected to SYNAWATCH',
+            'ble.connected': 'Connected to SCENTRAVN',
             'ble.disconnected': 'Disconnected from device',
             'ble.reconnecting': 'Attempting to reconnect ({attempt}/{max})...',
             'ble.reconnected_to': 'Reconnected to {name}',
@@ -956,8 +956,8 @@ const I18n = {
 
             // Questionnaire
             'questionnaire.title': 'App Testing Questionnaire',
-            'questionnaire.subtitle': 'Help us improve SynaWatch',
-            'questionnaire.banner_desc': 'Help us improve SynaWatch — fill in the questionnaire &amp; give feedback!',
+            'questionnaire.subtitle': 'Help us improve ScentraVN',
+            'questionnaire.banner_desc': 'Help us improve ScentraVN — fill in the questionnaire &amp; give feedback!',
             'questionnaire.give_feedback': 'Give Feedback',
             'questionnaire.save_failed': 'Failed to save data. Check your internet connection and try again.',
 
@@ -1028,7 +1028,7 @@ const I18n = {
 
             // Onboarding Tour
             // Onboarding Tour — Common
-            'tour.welcome_title': 'Welcome to SYNAWATCH!',
+            'tour.welcome_title': 'Welcome to SCENTRAVN!',
             'tour.welcome_desc': 'Let us show you the key features to help you monitor your health better.',
             'tour.finish_title': 'All Done!',
             'tour.finish_desc': 'You now understand this page. Explore other features and connect your sensor device for the full experience.',
@@ -1100,10 +1100,10 @@ const I18n = {
             'tour.profile.intro_desc': 'View usage statistics, change language, manage your account, and access all settings from here.',
             // Academy
             'tour.academy.intro_title': 'Academy',
-            'tour.academy.intro_desc': 'Learn about mental health, relaxation techniques, and how to maximize SYNAWATCH features through interactive educational materials.',
+            'tour.academy.intro_desc': 'Learn about mental health, relaxation techniques, and how to maximize SCENTRAVN features through interactive educational materials.',
             // Research
             'tour.research.intro_title': 'Research Foundation',
-            'tour.research.intro_desc': 'All SYNAWATCH features are backed by scientific research. This page shows the references and methodology behind each feature.',
+            'tour.research.intro_desc': 'All SCENTRAVN features are backed by scientific research. This page shows the references and methodology behind each feature.',
             // Yoga
             'tour.yoga.search_title': 'Search Poses',
             'tour.yoga.search_desc': 'Type a pose name, body part, or benefit you\'re looking for. For example "relaxation" or "back".',
@@ -1131,7 +1131,7 @@ const I18n = {
 
     setLang(lang) {
         this.currentLang = lang;
-        localStorage.setItem('synawatch_lang', lang);
+        localStorage.setItem('scentravn_lang', lang);
 
         // Update global language toggle label
         const label = document.getElementById('langToggleLabel');

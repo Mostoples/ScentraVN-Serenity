@@ -195,7 +195,7 @@ firebase deploy
 
 ### Documentation (Read these first)
 ```
-SYNAWATCH/
+SCENTRAVN/
 ├── YOGA_INTEGRATION_STRATEGY.md        ← Architecture (start here)
 ├── YOGA_QUICK_START.md                 ← Implementation guide
 ├── YOGA_API_MAPPING_GUIDE.md           ← Data mapping
@@ -227,7 +227,7 @@ setup-yoga-data.js                      ← Copy-paste to start
 ```
 □ Read YOGA_INTEGRATION_STRATEGY.md (overview)
 □ Review YOGA_QUICK_START.md (weekly plan)
-□ Check all docs are in SYNAWATCH folder
+□ Check all docs are in SCENTRAVN folder
 □ Verify Firebase project set up
 □ Verify serviceAccountKey.json exists
 □ Verify Node.js v14+ installed

@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Support Hub v3.0
+ * SCENTRAVN - Support Hub v3.0
  * Bio-Signal Triggered Safety Planning
  * Based on: Melvin et al. 2024, Nuij et al. 2020 (SafePlan), McManama et al. 2023, Berrouiguet et al. 2023
  */
@@ -141,7 +141,7 @@ const SupportHub = {
             return { level: 1, label: 'Perlu Perhatian', message: 'Anda menunjukkan gejala yang dapat dikelola dengan dukungan profesional dan strategi self-care.', color: '#F59E0B', bg: '#FFFBEB', icon: 'fa-circle-info' };
         }
         if (phq9 >= 5) {
-            return { level: 0, label: 'Gejala Ringan', message: 'Gejala ringan terdeteksi. Manfaatkan fitur self-care SynaWatch untuk menjaga kondisi Anda.', color: '#3B82F6', bg: '#EFF6FF', icon: 'fa-info-circle' };
+            return { level: 0, label: 'Gejala Ringan', message: 'Gejala ringan terdeteksi. Manfaatkan fitur self-care ScentraVN untuk menjaga kondisi Anda.', color: '#3B82F6', bg: '#EFF6FF', icon: 'fa-info-circle' };
         }
         return { level: 0, label: 'Kondisi Baik', message: 'Kondisi mental Anda terpantau baik. Lanjutkan praktik self-care dan pantau secara berkala.', color: '#10B981', bg: '#ECFDF5', icon: 'fa-check-circle' };
     },

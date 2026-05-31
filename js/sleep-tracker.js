@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Sleep Tracker Module v2.0
+ * SCENTRAVN - Sleep Tracker Module v2.0
  * Dual-source sleep pattern detection:
  *   - Source A: Smartwatch IMU (via BLE) → body movement → sleep stages
  *   - Source B: Smartphone IMU (DeviceMotion API) → phone disturbance detection

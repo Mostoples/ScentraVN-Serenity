@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Header Menu (Mobile Hamburger)
+ * SCENTRAVN - Header Menu (Mobile Hamburger)
  * Responsive header menu for mobile devices
  */
 

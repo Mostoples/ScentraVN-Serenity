@@ -1,5 +1,5 @@
 /**
- * SynaWatch - Yoga Studio Module
+ * ScentraVN - Yoga Studio Module
  * Browse, search, and explore yoga poses for wellness
  * Data from: https://yoga-api-nzy4.onrender.com/v1
  */
@@ -15,9 +15,9 @@ const YogaModule = {
 
     API_BASE: 'https://yoga-api-nzy4.onrender.com/v1',
     YOGISM_API: 'https://priyangsubanerjee.github.io/yogism/yogism-api.json',
-    CACHE_KEY: 'synawatch_yoga_poses',
-    CACHE_CAT_KEY: 'synawatch_yoga_categories',
-    CACHE_YOGISM_KEY: 'synawatch_yoga_yogism',
+    CACHE_KEY: 'scentravn_yoga_poses',
+    CACHE_CAT_KEY: 'scentravn_yoga_categories',
+    CACHE_YOGISM_KEY: 'scentravn_yoga_yogism',
     CACHE_TTL: 24 * 60 * 60 * 1000, // 24 hours
     yogismPoses: [],
 

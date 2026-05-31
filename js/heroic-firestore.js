@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - HEROIC Firestore Service
+ * SCENTRAVN - HEROIC Firestore Service
  * Handles all Firestore operations for HEROIC data persistence
  */
 

@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Admin Management System
+ * SCENTRAVN - Admin Management System
  * Handles: API Keys, Users, System Monitoring
  */
 
@@ -795,6 +795,7 @@ const AdminManager = {
 };
 
 // Export for use
+if (typeof window !== 'undefined') window.AdminManager = AdminManager;
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AdminManager;
 }

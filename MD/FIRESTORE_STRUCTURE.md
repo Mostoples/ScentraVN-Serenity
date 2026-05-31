@@ -1,4 +1,4 @@
-# SynaWatch - Firestore Database Structure
+# ScentraVN - Firestore Database Structure
 
 ## Overview
 

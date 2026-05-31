@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Country Selection & Traditional Music Player
+ * SCENTRAVN - Country Selection & Traditional Music Player
  *
  * Provides country selection for ASEAN countries with traditional music playback
  * using YouTube IFrame Player API
@@ -91,17 +91,28 @@ const CountryMusic = {
             const userDoc = await db.collection('users').doc(user.uid).get();
             const userData = userDoc.data();
 
-            if (userData && userData.country) {
-                // Country already selected
-                this.currentCountry = this.ASEAN_COUNTRIES.find(c => c.code === userData.country);
-                console.log('[CountryMusic] Country already selected:', this.currentCountry?.name);
+            if (userData && (userData.country || userData.countryPromptDone)) {
+                // Sudah memilih ATAU sudah pernah skip → jangan tampilkan lagi
+                if (userData.country) {
+                    this.currentCountry = this.ASEAN_COUNTRIES.find(c => c.code === userData.country);
+                    console.log('[CountryMusic] Country already selected:', this.currentCountry?.name);
+                }
                 return;
             }
 
-            // Show country selection modal
+            // Belum pernah diputuskan → tampilkan modal (sekali per akun)
             this.showCountrySelection();
         } catch (error) {
             console.error('[CountryMusic] Error checking country:', error);
+        }
+    },
+
+    /** Tutup modal tanpa mengubah preferensi (batal). */
+    closeCountrySelection() {
+        const modal = document.getElementById('countrySelectionModal');
+        if (modal) {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => modal.remove(), 300);
         }
     },
 
@@ -109,12 +120,18 @@ const CountryMusic = {
      * Show Country Selection Modal
      */
     showCountrySelection() {
+        // Cegah modal ganda (mis. ketuk "Musik Negara" berkali-kali)
+        if (document.getElementById('countrySelectionModal')) return;
+
         const modal = document.createElement('div');
         modal.id = 'countrySelectionModal';
         modal.className = 'country-modal-overlay';
 
         modal.innerHTML = `
         <div class="country-modal">
+            <button class="country-modal-close" onclick="CountryMusic.closeCountrySelection()" aria-label="Tutup" title="Tutup">
+                <i class="fas fa-times"></i>
+            </button>
             <div class="country-modal-header">
                 <div class="modal-icon-wrapper">
                     <i class="fas fa-globe-asia"></i>
@@ -190,6 +207,32 @@ const CountryMusic = {
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25),
                         0 8px 16px rgba(0, 0, 0, 0.15);
             margin: auto;
+            position: relative;
+        }
+
+        .country-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: #F1F5F9;
+            color: #64748B;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+            z-index: 2;
+        }
+
+        .country-modal-close:hover {
+            background: #E2E8F0;
+            color: #0F172A;
+            transform: rotate(90deg);
         }
 
         .country-modal::-webkit-scrollbar {
@@ -773,6 +816,7 @@ const CountryMusic = {
                     country: country.code,
                     countryName: country.name,
                     musicPreference: 'traditional',
+                    countryPromptDone: true,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 console.log('[CountryMusic] Country saved successfully');
@@ -787,6 +831,13 @@ const CountryMusic = {
                     }
                     modal.style.animation = 'fadeOut 0.4s ease';
                     setTimeout(() => modal.remove(), 400);
+                }
+
+                // Perbarui subtitle "Musik Negara" di Profil bila sedang terbuka
+                const sub = document.getElementById('profileCountrySubtitle');
+                if (sub) {
+                    const isId = (typeof I18n !== 'undefined' && I18n.currentLang === 'id');
+                    sub.textContent = `${country.name} · ${isId ? 'ketuk untuk mengganti' : 'tap to change'}`;
                 }
 
                 // Show welcome toast
@@ -2424,7 +2475,7 @@ const CountryMusic = {
     /**
      * Skip music (don't save country)
      */
-    skipMusic() {
+    async skipMusic() {
         console.log('[CountryMusic] User skipped music');
         const modal = document.getElementById('countrySelectionModal');
         if (modal) {
@@ -2432,9 +2483,23 @@ const CountryMusic = {
             setTimeout(() => modal.remove(), 300);
         }
 
+        // Tandai prompt sudah selesai → tidak muncul lagi per akun (bisa diubah di Profil)
+        try {
+            const user = auth?.currentUser;
+            if (user) {
+                await db.collection('users').doc(user.uid).update({
+                    musicPreference: 'none',
+                    countryPromptDone: true,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch (error) {
+            console.error('[CountryMusic] Error saving skip preference:', error);
+        }
+
         // Show toast
         if (typeof Utils !== 'undefined') {
-            Utils.showToast('Musik dilewati. Kamu bisa mengaktifkannya nanti di pengaturan.', 'info', 3000);
+            Utils.showToast('Musik dilewati. Kamu bisa mengaturnya nanti di Profil → Musik Negara.', 'info', 3500);
         }
     },
 

@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - 3D Avatar Engine
+ * SCENTRAVN - 3D Avatar Engine
  * Three.js based avatar with lip sync, blinking, and head tracking
  * Ported from Synaglo Avatar.tsx
  */

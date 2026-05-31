@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Firebase Configuration
+ * SCENTRAVN - Firebase Configuration
  */
 
 // Firebase configuration using values from config.js
@@ -34,7 +34,7 @@ auth.onAuthStateChanged((user) => {
     if (user) {
         console.log('User logged in:', user.email);
         // Store user data in localStorage for quick access
-        localStorage.setItem('synawatch_user', JSON.stringify({
+        localStorage.setItem('scentravn_user', JSON.stringify({
             uid: user.uid,
             email: user.email,
             displayName: user.displayName,
@@ -42,7 +42,7 @@ auth.onAuthStateChanged((user) => {
         }));
     } else {
         console.log('User logged out');
-        localStorage.removeItem('synawatch_user');
+        localStorage.removeItem('scentravn_user');
     }
 });
 

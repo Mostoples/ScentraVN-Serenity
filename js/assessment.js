@@ -91,7 +91,7 @@ const Assessment = {
     },
 
     // Storage key for localStorage
-    STORAGE_KEY: 'synawatch_assessment_progress',
+    STORAGE_KEY: 'scentravn_assessment_progress',
 
     /**
      * Initialize Assessment - check for existing progress or completed assessment
@@ -177,7 +177,7 @@ const Assessment = {
                     <i class="fas fa-clipboard-list"></i>
                 </div>
                 <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">Selamat Datang!</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6;">Untuk mempersonalisasi SYNAWATCH sesuai dengan kondisi Anda, kami perlu menanyakan beberapa hal (PHQ-9 & UCLA Loneliness Scale). Data ini dijamin kerahasiaannya.</p>
+                <p style="color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6;">Untuk mempersonalisasi SCENTRAVN sesuai dengan kondisi Anda, kami perlu menanyakan beberapa hal (PHQ-9 & UCLA Loneliness Scale). Data ini dijamin kerahasiaannya.</p>
                 <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem;" onclick="Assessment.start()">Mulai Evaluasi</button>
             </div>
         `;
@@ -279,7 +279,7 @@ const Assessment = {
      */
     retakeAssessment() {
         this.clearProgress();
-        try { localStorage.removeItem('synawatch_assessment'); } catch (e) {}
+        try { localStorage.removeItem('scentravn_assessment'); } catch (e) {}
         this.currentStage = 'intro';
         this.currentIndex = 0;
         this.answers = { phq9: [], ucla: [], psp5: [], sees10: [] };
@@ -685,7 +685,7 @@ const Assessment = {
      */
     cacheAssessmentResults(phq9Score, phq9Category, uclaScore, uclaCategory) {
         try {
-            localStorage.setItem('synawatch_assessment', JSON.stringify({
+            localStorage.setItem('scentravn_assessment', JSON.stringify({
                 phq9Score,
                 phq9Category,
                 uclaScore,
@@ -824,7 +824,7 @@ const Assessment = {
             // Coba ambil skor tidur malam sebelumnya dari history localStorage
             let sleepScore = 50; // default jika tidak ada data
             try {
-                const sleepHistory = JSON.parse(localStorage.getItem('synawatch_sleep_history') || '[]');
+                const sleepHistory = JSON.parse(localStorage.getItem('scentravn_sleep_history') || '[]');
                 if (sleepHistory.length > 0) {
                     // Gunakan skor tidur terbaru (malam kemarin atau sesi terakhir)
                     sleepScore = sleepHistory[sleepHistory.length - 1].score || 50;
@@ -989,7 +989,7 @@ const Assessment = {
             recommendationHtml = `
                 <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--danger-500); padding: 16px; margin-top: 20px; border-radius: 0 8px 8px 0; text-align: left;">
                     <p style="color: var(--danger-700); font-weight: 600; margin-bottom: 8px;"><i class="fas fa-exclamation-circle"></i> Bantuan Tersedia Untuk Anda</p>
-                    <p style="font-size: 0.9rem; color: var(--danger-600); margin-bottom: 12px;">Skor Anda menunjukkan tingkat beban mental yang tinggi. SYNAWATCH merekomendasikan Anda untuk berbicara dengan tenaga profesional.</p>
+                    <p style="font-size: 0.9rem; color: var(--danger-600); margin-bottom: 12px;">Skor Anda menunjukkan tingkat beban mental yang tinggi. SCENTRAVN merekomendasikan Anda untuk berbicara dengan tenaga profesional.</p>
                     <button class="btn btn-primary btn-sm" onclick="Router.navigate('support')" style="background: var(--danger-500); border-color: var(--danger-500);">Buka Support Hub</button>
                 </div>
             `;
@@ -1035,7 +1035,7 @@ const Assessment = {
                     <i class="fas fa-check"></i>
                 </div>
                 <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">Evaluasi Selesai</h2>
-                <p style="color: var(--text-tertiary); margin-bottom: 24px;">Terima kasih. Sistem kami telah menyesuaikan fitur SYNAWATCH khusus untuk kondisi Anda.</p>
+                <p style="color: var(--text-tertiary); margin-bottom: 24px;">Terima kasih. Sistem kami telah menyesuaikan fitur SCENTRAVN khusus untuk kondisi Anda.</p>
 
                 ${fusionHtml}
                 ${discordanceHtml}

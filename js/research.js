@@ -1,5 +1,5 @@
 /**
- * SynaWatch Research Foundation
+ * ScentraVN Research Foundation
  * Systematic Literature Review (PRISMA) for all features
  * 50 peer-reviewed papers organized by 10 research domains
  */
@@ -91,12 +91,12 @@ const ResearchFoundation = {
   ],
 
   gaps: [
-    { id: 1, title: 'Integrated Multimodal Bio-Psycho Assessment', currentState: 'Studi yang ada menggunakan biosensor (GSR/HRV/SpO2) ATAU kuesioner (PHQ-9, UCLA) secara terpisah, belum terintegrasi.', description: 'SynaWatch secara unik menggabungkan GSR, HRV, SpO2 DENGAN PHQ-9 + UCLA dalam satu framework penilaian terpadu.', upgrade: 'Implementasi algoritma fusion scoring real-time yang menimbang anomali sensor terhadap profil psikologis baseline - mendeteksi ketidaksesuaian antara mood yang dilaporkan dan kondisi fisiologis.', priority: 'CRITICAL', domain: 1, status: 'implemented' },
+    { id: 1, title: 'Integrated Multimodal Bio-Psycho Assessment', currentState: 'Studi yang ada menggunakan biosensor (GSR/HRV/SpO2) ATAU kuesioner (PHQ-9, UCLA) secara terpisah, belum terintegrasi.', description: 'ScentraVN secara unik menggabungkan GSR, HRV, SpO2 DENGAN PHQ-9 + UCLA dalam satu framework penilaian terpadu.', upgrade: 'Implementasi algoritma fusion scoring real-time yang menimbang anomali sensor terhadap profil psikologis baseline - mendeteksi ketidaksesuaian antara mood yang dilaporkan dan kondisi fisiologis.', priority: 'CRITICAL', domain: 1, status: 'implemented' },
     { id: 2, title: 'Closed-Loop with Personalized Thresholds', currentState: 'Sebagian besar JITAI berbasis waktu atau dipicu EMA; sedikit yang dipicu ambang fisiologis.', description: 'Literatur JITAI saat ini menunjukkan protokol intervensi yang terbatas berbasis sinyal bio.', upgrade: 'Implementasi kalibrasi threshold berbasis ML per-pengguna - threshold stres menurun untuk pengguna PHQ-9 tinggi, meningkat untuk yang dalam remisi.', priority: 'HIGH', domain: 4, status: 'implemented' },
     { id: 3, title: 'Music Therapy Selection via Biofeedback', currentState: 'Belum ada studi yang menggabungkan GSR/HRV real-time untuk memilih tempo/genre musik secara dinamis.', description: 'Literatur terapi musik kaya namun statis; integrasi biofeedback belum dieksplorasi.', upgrade: 'Seleksi playlist berbasis biofeedback - musik tenang (60-80 BPM) saat GSR tinggi, upbeat (120+ BPM) saat mood rendah terdeteksi.', priority: 'HIGH', domain: 6, status: 'implemented' },
     { id: 4, title: 'Journaling + Sensor Context Auto-Tagging', currentState: 'MindScape (2024) satu-satunya studi yang mengintegrasikan behavioral sensing dengan journaling.', description: 'Entri jurnal tidak memiliki konteks fisiologis meskipun relevan untuk rekonstruksi mood.', upgrade: 'Auto-tag entri jurnal dengan status sensor saat penulisan - menampilkan tingkat stres, detak jantung, status aktivitas.', priority: 'MEDIUM', domain: 8, status: 'implemented' },
     { id: 5, title: 'Longitudinal Psychometric Tracking', currentState: 'Sedikit aplikasi digital melacak PHQ-9/UCLA selama berbulan-bulan dengan analitik tren visual.', description: 'Pelacakan penilaian longitudinal kurang dimanfaatkan meskipun terbukti untuk pemantauan penyakit kronis.', upgrade: 'Grafik riwayat assessment menampilkan tren skor PHQ-9 dan UCLA 3, 6, 12 bulan dengan marker korelasi intervensi.', priority: 'MEDIUM', domain: 2, status: 'implemented' },
-    { id: 6, title: 'AI Chatbot + Wearable Data Fusion', currentState: 'Studi chatbot tidak menunjukkan integrasi dengan data fisiologis real-time.', description: 'Sebagian besar chatbot AI beroperasi tanpa konteks wearable; SynaWatch memiliki kesempatan unik.', upgrade: 'SynaCHAT proaktif memulai percakapan saat anomali sensor terdeteksi (GSR tinggi + HR tinggi + PHQ-9 elevasi).', priority: 'HIGH', domain: 9, status: 'implemented' },
+    { id: 6, title: 'AI Chatbot + Wearable Data Fusion', currentState: 'Studi chatbot tidak menunjukkan integrasi dengan data fisiologis real-time.', description: 'Sebagian besar chatbot AI beroperasi tanpa konteks wearable; ScentraVN memiliki kesempatan unik.', upgrade: 'SynaCHAT proaktif memulai percakapan saat anomali sensor terdeteksi (GSR tinggi + HR tinggi + PHQ-9 elevasi).', priority: 'HIGH', domain: 9, status: 'implemented' },
     { id: 7, title: 'Safety Planning with Bio-Signal Triggers', currentState: 'Rencana keselamatan digital memerlukan aktivasi manual; belum ada aplikasi yang auto-trigger protokol krisis.', description: 'Timing intervensi krisis bersifat reaktif; peringatan dini fisiologis belum dieksploitasi.', upgrade: 'Auto-aktivasi protokol krisis saat stres tinggi berkelanjutan (GSR + HR) DAN PHQ-9 elevasi DAN kesepian UCLA terdeteksi.', priority: 'CRITICAL', domain: 10, status: 'implemented' }
   ],
 
@@ -122,7 +122,7 @@ const ResearchFoundation = {
             <i class="fas fa-flask" style="color:rgba(255,255,255,0.9);font-size:1.1rem;"></i>
             <span style="color:rgba(255,255,255,0.7);font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">Research Foundation</span>
           </div>
-          <h1 style="color:white;margin:0 0 6px;font-size:1.5rem;font-weight:800;line-height:1.2;">Dasar Penelitian SynaWatch</h1>
+          <h1 style="color:white;margin:0 0 6px;font-size:1.5rem;font-weight:800;line-height:1.2;">Dasar Penelitian ScentraVN</h1>
           <p style="color:rgba(255,255,255,0.8);margin:0 0 20px;font-size:0.88rem;line-height:1.5;">Systematic Literature Review mengikuti PRISMA Guidelines</p>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
             <div style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);padding:14px 12px;border-radius:14px;text-align:center;">
@@ -217,7 +217,7 @@ const ResearchFoundation = {
           </div>
         </div>
         <div style="padding:12px;background:#FFFBEB;border-left:3px solid #F59E0B;border-radius:0 10px 10px 0;font-size:0.82rem;color:#92400E;line-height:1.5;">
-          <strong>Catatan:</strong> Klik judul paper untuk membaca abstrak lengkap. Gunakan filter domain untuk melihat penelitian per fitur SynaWatch.
+          <strong>Catatan:</strong> Klik judul paper untuk membaca abstrak lengkap. Gunakan filter domain untuk melihat penelitian per fitur ScentraVN.
         </div>
       </div>
     `;
@@ -360,7 +360,7 @@ const ResearchFoundation = {
         </div>
 
         <div style="padding:12px;background:${p.bg};border-radius:10px;">
-          <div style="font-size:0.78rem;font-weight:700;color:${p.text};margin-bottom:4px;"><i class="fas fa-wand-magic-sparkles" style="margin-right:4px;"></i>Solusi SynaWatch</div>
+          <div style="font-size:0.78rem;font-weight:700;color:${p.text};margin-bottom:4px;"><i class="fas fa-wand-magic-sparkles" style="margin-right:4px;"></i>Solusi ScentraVN</div>
           <p style="margin:0;color:${p.text};font-size:0.84rem;line-height:1.55;">${gap.upgrade}</p>
         </div>
       </div>

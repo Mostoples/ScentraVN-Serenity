@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Bottom Navigation Component
+ * SCENTRAVN - Bottom Navigation Component
  */
 
 const Navbar = {

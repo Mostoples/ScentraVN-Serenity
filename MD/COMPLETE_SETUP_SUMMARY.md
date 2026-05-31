@@ -1,4 +1,4 @@
-# ✅ SYNAWATCH - Complete Firestore Setup Summary
+# ✅ SCENTRAVN - Complete Firestore Setup Summary
 
 **Date:** March 25, 2026
 **Status:** ✅ READY TO DEPLOY
@@ -29,7 +29,7 @@
 ## 🗄️ Database Structure (14 Collections)
 
 ```
-SYNAWATCH Firestore Database
+SCENTRAVN Firestore Database
 ├── users (24 docs)
 │   ├── email, displayName, role, preferences
 │   ├── healthProfile, stats
@@ -111,7 +111,7 @@ SYNAWATCH Firestore Database
 ### ✅ **Step 1: Initialize Firestore Schema** (COMPLETED)
 
 ```bash
-cd /c/Users/mosto/Desktop/SYNAWATCH
+cd /c/Users/mosto/Desktop/SCENTRAVN
 node setup-firestore-schema.js init-schema
 ```
 
@@ -121,7 +121,7 @@ node setup-firestore-schema.js init-schema
 
 **Option A - Auto (Fastest):**
 ```bash
-cd synawatch
+cd scentravn
 firebase firestore:indexes
 ```
 
@@ -143,7 +143,7 @@ firebase firestore:indexes
 ### ⏳ **Step 3: Deploy Security Rules** (TODO - 2 minutes)
 
 ```bash
-cd synawatch
+cd scentravn
 firebase deploy --only firestore:rules
 ```
 
@@ -250,7 +250,7 @@ Persistent preferences:
 
 1. ✅ Create Firestore Indexes
    ```bash
-   cd /c/Users/mosto/Desktop/SYNAWATCH/synawatch
+   cd /c/Users/mosto/Desktop/SCENTRAVN/scentravn
    firebase firestore:indexes
    ```
 
@@ -295,7 +295,7 @@ Persistent preferences:
 ### **Documentation:**
 - 📖 [Complete Setup Guide](./FIRESTORE_SETUP_GUIDE.md)
 - 📖 [Index Creation Guide](./CREATE_INDEXES_NOW.md)
-- 📖 [Admin Guide](./synawatch/ADMIN_GUIDE.md)
+- 📖 [Admin Guide](./scentravn/ADMIN_GUIDE.md)
 - 📖 [Latest Updates](./LATEST_UPDATES_SUMMARY.md)
 
 ---
@@ -340,7 +340,7 @@ Persistent preferences:
 
 ### **Source Code (Relevant Files):**
 ```
-synawatch/
+scentravn/
 ├── app.html                         (Updated with all features)
 ├── js/
 │   ├── app.js                      (Router config)

@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Audio Analyser
+ * SCENTRAVN - Audio Analyser
  * Web Audio API integration for lip sync
  * Ported from Synaglo useAudioAnalyser.ts
  */

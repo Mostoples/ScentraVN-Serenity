@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Chart.js Configurations
+ * SCENTRAVN - Chart.js Configurations
  */
 
 const ChartConfigs = {

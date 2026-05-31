@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Auth Guard
+ * SCENTRAVN - Auth Guard
  * Protects routes that require authentication
  */
 
@@ -10,7 +10,7 @@ const AuthGuard = {
     check() {
         return new Promise((resolve) => {
             // Check cached user first for quick response
-            const cachedUser = localStorage.getItem('synawatch_user');
+            const cachedUser = localStorage.getItem('scentravn_user');
 
             // Listen for auth state
             const unsubscribe = auth.onAuthStateChanged((user) => {

@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Admin UI Controller
+ * SCENTRAVN - Admin UI Controller
  * Manages UI interactions for the Admin Dashboard
  */
 
@@ -1536,7 +1536,7 @@ const AdminUI = {
             const url = URL.createObjectURL(blob);
 
             link.setAttribute('href', url);
-            link.setAttribute('download', `synawatch_patients_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `scentravn_patients_${new Date().toISOString().split('T')[0]}.csv`);
             link.style.visibility = 'hidden';
 
             document.body.appendChild(link);
@@ -2208,7 +2208,7 @@ const AdminUI = {
         // Define all questions with their data keys (matching Firestore structure)
         const questionCategories = {
             'SUS - System Usability Scale': [
-                { key: 'sus1', text: 'Q1: Saya merasa ingin sering menggunakan aplikasi SynaWatch ini' },
+                { key: 'sus1', text: 'Q1: Saya merasa ingin sering menggunakan aplikasi ScentraVN ini' },
                 { key: 'sus2', text: 'Q2: Saya merasa aplikasi ini terlalu rumit untuk digunakan' },
                 { key: 'sus3', text: 'Q3: Aplikasi ini mudah digunakan' },
                 { key: 'sus4', text: 'Q4: Saya membutuhkan bantuan orang lain untuk bisa menggunakan aplikasi ini' },
@@ -2236,13 +2236,13 @@ const AdminUI = {
                 { key: 'uiux12', text: 'Fitur Games terasa menyenangkan dan relevan dengan kesehatan mental' }
             ],
             'TAM - Perceived Usefulness': [
-                { key: 'tam1', text: 'Menggunakan SynaWatch membantu saya memantau kondisi kesehatan mental saya' },
+                { key: 'tam1', text: 'Menggunakan ScentraVN membantu saya memantau kondisi kesehatan mental saya' },
                 { key: 'tam2', text: 'Aplikasi ini meningkatkan kesadaran saya terhadap kondisi emosi dan stres saya' },
-                { key: 'tam3', text: 'SynaWatch bermanfaat dalam membantu saya mengelola kesehatan mental sehari-hari' },
+                { key: 'tam3', text: 'ScentraVN bermanfaat dalam membantu saya mengelola kesehatan mental sehari-hari' },
                 { key: 'tam4', text: 'Secara keseluruhan, aplikasi ini berguna bagi saya' }
             ],
             'TAM - Perceived Ease of Use': [
-                { key: 'tam5', text: 'Mempelajari cara menggunakan SynaWatch terasa mudah bagi saya' },
+                { key: 'tam5', text: 'Mempelajari cara menggunakan ScentraVN terasa mudah bagi saya' },
                 { key: 'tam6', text: 'Interaksi dengan aplikasi ini jelas dan mudah dipahami' },
                 { key: 'tam7', text: 'Saya dapat menggunakan aplikasi ini tanpa banyak usaha' },
                 { key: 'tam8', text: 'Secara keseluruhan, aplikasi ini mudah digunakan' }
@@ -2258,7 +2258,7 @@ const AdminUI = {
                 { key: 'ueq8', text: 'Lambat → Cepat' }
             ],
             'Trust & Privacy': [
-                { key: 'trust1', text: 'Saya percaya bahwa data kesehatan saya aman di dalam aplikasi SynaWatch' },
+                { key: 'trust1', text: 'Saya percaya bahwa data kesehatan saya aman di dalam aplikasi ScentraVN' },
                 { key: 'trust2', text: 'Saya merasa nyaman memberikan data pribadi dan kondisi emosi saya ke aplikasi ini' },
                 { key: 'trust3', text: 'Saya yakin data saya tidak akan disalahgunakan atau dibagikan tanpa izin' },
                 { key: 'trust4', text: 'Informasi tentang privasi dan keamanan data dalam aplikasi sudah cukup jelas' },
@@ -2274,7 +2274,7 @@ const AdminUI = {
                 { key: 'ther7', text: 'Fitur Journal membantu saya lebih memahami pola emosi dan suasana hati saya' }
             ],
             'Engagement & Motivation': [
-                { key: 'eng1', text: 'Saya akan menggunakan SynaWatch secara rutin jika tersedia' },
+                { key: 'eng1', text: 'Saya akan menggunakan ScentraVN secara rutin jika tersedia' },
                 { key: 'eng2', text: 'Saya merasa terdorong untuk menyelesaikan program atau latihan dalam aplikasi' },
                 { key: 'eng3', text: 'Notifikasi atau pengingat dari aplikasi ini akan memotivasi saya untuk konsisten' },
                 { key: 'eng4', text: 'Saya merasa ada kemajuan nyata saat menggunakan fitur-fitur dalam aplikasi ini' },
@@ -2904,7 +2904,7 @@ const AdminUI = {
 
     // =====================================================================
     // COMPETITION READINESS TAB
-    // Evaluasi kesiapan SynaWatch untuk kompetisi Junior Category
+    // Evaluasi kesiapan ScentraVN untuk kompetisi Junior Category
     // Kriteria: Originality(20), Usefulness(30), Creativity(15),
     //           Prototype Readiness(15), Presentation(20)
     // =====================================================================
@@ -2927,7 +2927,7 @@ const AdminUI = {
                     { id: 'o3', label: 'Framework HEROIC (psikologi positif lokal)', done: true,  impact: 'HIGH' },
                     { id: 'o4', label: 'Explainable AI (XAI) pada setiap intervensi', done: true,  impact: 'HIGH' },
                     { id: 'o5', label: 'Closed-loop JITAI (sensor → intervensi otomatis)', done: true,  impact: 'HIGH' },
-                    { id: 'o6', label: 'Dokumentasi keunikan vs produk sejenis (comparison table)', done: false, impact: 'MEDIUM', action: 'Buat slide/doc perbandingan SynaWatch vs Apple Watch vs Fitbit vs Headspace' },
+                    { id: 'o6', label: 'Dokumentasi keunikan vs produk sejenis (comparison table)', done: false, impact: 'MEDIUM', action: 'Buat slide/doc perbandingan ScentraVN vs Apple Watch vs Fitbit vs Headspace' },
                     { id: 'o7', label: 'Inovasi dual-source sleep tracking (watch + phone IMU)', done: true,  impact: 'MEDIUM' },
                 ],
                 estimatedScore: 16
@@ -2943,7 +2943,7 @@ const AdminUI = {
                     { id: 'm2', label: 'Analisis pasar Indonesia (273M penduduk, 15-20M depresif)', done: true,  impact: 'HIGH' },
                     { id: 'm3', label: 'Manfaat konkret terdokumentasi (musik terapi, yoga, JITAI)', done: true,  impact: 'HIGH' },
                     { id: 'm4', label: 'Survei calon pengguna (minimal 10 responden)', done: false, impact: 'HIGH',   action: 'Lakukan survei Google Form: masalah kesehatan mental, kebutuhan fitur, willingness to pay' },
-                    { id: 'm5', label: 'Bukti testimonial / feedback awal dari pengguna beta', done: false, impact: 'HIGH',   action: 'Kumpulkan 5-10 testimonial dari teman/keluarga yang mencoba SynaWatch' },
+                    { id: 'm5', label: 'Bukti testimonial / feedback awal dari pengguna beta', done: false, impact: 'HIGH',   action: 'Kumpulkan 5-10 testimonial dari teman/keluarga yang mencoba ScentraVN' },
                     { id: 'm6', label: 'Model bisnis freemium dijelaskan', done: true,  impact: 'MEDIUM' },
                     { id: 'm7', label: 'Potensi kolaborasi dengan klinik/psikolog disebutkan', done: false, impact: 'MEDIUM', action: 'Tambahkan rencana kemitraan dengan puskesmas / psikolog ke deck presentasi' },
                 ],
@@ -3194,7 +3194,7 @@ const AdminUI = {
                                 Buat Google Form dengan pertanyaan:<br>
                                 • Seberapa sering kamu merasa stres?<br>
                                 • Fitur apa yang kamu butuhkan?<br>
-                                • Apakah kamu mau pakai SynaWatch?
+                                • Apakah kamu mau pakai ScentraVN?
                             </div>
                             <button onclick="AdminUI.openSurveyGuide()" style="width:100%;padding:8px;background:#10b981;color:white;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">
                                 <i class="fas fa-external-link-alt"></i> Panduan Buat Survei
@@ -3350,7 +3350,7 @@ const AdminUI = {
                     </div>` : ''}
 
                     <div style="margin-top:14px;padding:12px;background:#eff6ff;border-radius:8px;font-size:0.78rem;color:#1e40af;line-height:1.5;">
-                        <strong>Untuk laporan ilmiah:</strong> Data ini menunjukkan bahwa SynaWatch menggunakan <em>crowdsourced ground truth validation</em>
+                        <strong>Untuk laporan ilmiah:</strong> Data ini menunjukkan bahwa ScentraVN menggunakan <em>crowdsourced ground truth validation</em>
                         — pengguna sendiri melaporkan kondisi sebenarnya untuk divalidasi dengan prediksi sistem.
                         Formula: <code>accuracy = 100 - (|predicted - actual| / scale) × 100</code>
                     </div>
@@ -3366,7 +3366,7 @@ const AdminUI = {
         const desc = document.getElementById('collabDescInput')?.value?.trim();
         if (!org || !desc) { alert('Isi nama organisasi dan deskripsi.'); return; }
 
-        const key = 'synawatch_collab_evidence';
+        const key = 'scentravn_collab_evidence';
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
         existing.unshift({ org, desc, date: new Date().toLocaleDateString('id-ID'), id: Date.now() });
         localStorage.setItem(key, JSON.stringify(existing));
@@ -3379,7 +3379,7 @@ const AdminUI = {
     loadCollabEvidence() {
         const el = document.getElementById('collabEvidenceList');
         if (!el) return;
-        const key = 'synawatch_collab_evidence';
+        const key = 'scentravn_collab_evidence';
         const items = JSON.parse(localStorage.getItem(key) || '[]');
         if (items.length === 0) { el.innerHTML = '<p style="font-size:0.78rem;color:var(--admin-text-tertiary);">Belum ada bukti kolaborasi tercatat.</p>'; return; }
         el.innerHTML = items.map(i => `
@@ -3394,7 +3394,7 @@ const AdminUI = {
     },
 
     _deleteCollab(id) {
-        const key = 'synawatch_collab_evidence';
+        const key = 'scentravn_collab_evidence';
         const items = JSON.parse(localStorage.getItem(key) || '[]').filter(i => i.id !== id);
         localStorage.setItem(key, JSON.stringify(items));
         this.loadCollabEvidence();
@@ -3412,7 +3412,7 @@ const AdminUI = {
                         <li>Fitur apa yang paling kamu butuhkan? (stres monitoring, sleep tracking, yoga, musik)</li>
                         <li>Apakah kamu mau memakai smartwatch untuk pantau kesehatan mental?</li>
                         <li>Berapa harga yang wajar untuk berlangganan (per bulan)?</li>
-                        <li>Setelah mencoba SynaWatch, seberapa puas? (1-10) — untuk pengguna beta</li>
+                        <li>Setelah mencoba ScentraVN, seberapa puas? (1-10) — untuk pengguna beta</li>
                     </ol>
                     <div style="background:#f0fdf4;border-radius:8px;padding:12px;font-size:0.78rem;color:#166534;margin-bottom:16px;">
                         <strong>Tips:</strong> Bagikan ke grup WhatsApp / LINE kampus, teman kuliah, atau keluarga. Target minimal 20 responden untuk kredibilitas lebih tinggi.
@@ -3430,7 +3430,7 @@ const AdminUI = {
                     <h3 style="margin-bottom:16px;font-size:1rem;font-weight:700;">📧 Template Email Kolaborasi Industri</h3>
                     <div style="background:#f8fafc;border-radius:8px;padding:16px;font-size:0.8rem;color:#374151;line-height:1.7;margin-bottom:16px;font-family:monospace;">
                         Yth. [Nama / Tim Klinik/Organisasi],<br><br>
-                        Perkenalkan, kami adalah tim SynaWatch dari [Sekolah/Universitas]. Kami sedang mengembangkan aplikasi pemantauan kesehatan mental berbasis smartwatch yang menggabungkan sensor biometrik (detak jantung, GSR, suhu) dengan kecerdasan buatan.<br><br>
+                        Perkenalkan, kami adalah tim ScentraVN dari [Sekolah/Universitas]. Kami sedang mengembangkan aplikasi pemantauan kesehatan mental berbasis smartwatch yang menggabungkan sensor biometrik (detak jantung, GSR, suhu) dengan kecerdasan buatan.<br><br>
                         Kami ingin memohon masukan dan kolaborasi dari pihak [nama organisasi] untuk:<br>
                         1. Validasi pendekatan ilmiah yang kami gunakan<br>
                         2. Saran dari perspektif klinis/profesional<br>
@@ -3438,7 +3438,7 @@ const AdminUI = {
                         Apakah kami bisa menjadwalkan pertemuan singkat (15-30 menit) untuk berdiskusi?<br><br>
                         Terima kasih atas perhatiannya.<br><br>
                         Salam,<br>
-                        Tim SynaWatch
+                        Tim ScentraVN
                     </div>
                     <div style="background:#fef3c7;border-radius:8px;padding:12px;font-size:0.78rem;color:#92400e;margin-bottom:16px;">
                         <strong>Penting:</strong> Simpan screenshot reply email atau foto pertemuan sebagai bukti untuk juri. Ini diperlukan untuk mendapat nilai penuh di kriteria Industry Collaboration.
@@ -3553,9 +3553,9 @@ const AdminUI = {
                     {id:'eeg1',kategori:'EEG',nama:'Muse-S Headband #1',brand:'InteraXon',status:'tersedia',catatan:'BT, 4ch EEG + PPG'},
                     {id:'eeg2',kategori:'EEG',nama:'Muse-S Headband #2',brand:'InteraXon',status:'tersedia',catatan:'Backup unit'},
                     {id:'eeg3',kategori:'EEG',nama:'Muse-S Headband #3',brand:'InteraXon',status:'maintenance',catatan:'Perlu kalibrasi'},
-                    {id:'eda1',kategori:'EDA',nama:'SynaWatch Prototype #1',brand:'ScentraVN',status:'tersedia',catatan:'EDA + PPG + IMU'},
-                    {id:'eda2',kategori:'EDA',nama:'SynaWatch Prototype #2',brand:'ScentraVN',status:'tersedia',catatan:'EDA + PPG + IMU'},
-                    {id:'eda3',kategori:'EDA',nama:'SynaWatch Prototype #3',brand:'ScentraVN',status:'digunakan',catatan:'Dalam pengujian'},
+                    {id:'eda1',kategori:'EDA',nama:'ScentraVN Prototype #1',brand:'ScentraVN',status:'tersedia',catatan:'EDA + PPG + IMU'},
+                    {id:'eda2',kategori:'EDA',nama:'ScentraVN Prototype #2',brand:'ScentraVN',status:'tersedia',catatan:'EDA + PPG + IMU'},
+                    {id:'eda3',kategori:'EDA',nama:'ScentraVN Prototype #3',brand:'ScentraVN',status:'digunakan',catatan:'Dalam pengujian'},
                     {id:'ppg1',kategori:'PPG',nama:'Samsung Galaxy Watch #1',brand:'Samsung',status:'tersedia',catatan:'Ref: HR, HRV, SpO2'},
                     {id:'ppg2',kategori:'PPG',nama:'Samsung Galaxy Watch #2',brand:'Samsung',status:'tersedia',catatan:'Ref: HR, HRV'},
                 ];
@@ -3620,6 +3620,7 @@ const AdminUI = {
 };
 
 // Export for use
+if (typeof window !== 'undefined') window.AdminUI = AdminUI;
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AdminUI;
 }

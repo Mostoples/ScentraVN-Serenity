@@ -1,11 +1,11 @@
 /**
- * BLE Connection Module for SYNAWATCH
+ * BLE Connection Module for SCENTRAVN
  * Handles Bluetooth Low Energy connection to ESP32 device
  */
 
 // BLE Configuration
 const BLE_CONFIG = {
-    deviceName: CONFIG.BLE_DEVICE_NAME || 'SYNAWATCH',
+    deviceName: CONFIG.BLE_DEVICE_NAME || 'SCENTRAVN',
     serviceUUID: CONFIG.BLE_SERVICE_UUID || '12345678-1234-1234-1234-123456789abc',
     characteristicUUID: CONFIG.BLE_CHARACTERISTIC_UUID || 'abcd1234-ab12-cd34-ef56-123456789abc'
 };
@@ -147,7 +147,7 @@ async function connectBLE() {
         let errorMessage = 'Gagal menghubungkan ke perangkat.';
 
         if (error.name === 'NotFoundError') {
-            errorMessage = 'Perangkat tidak ditemukan. Pastikan SYNAWATCH sudah menyala.';
+            errorMessage = 'Perangkat tidak ditemukan. Pastikan SCENTRAVN sudah menyala.';
         } else if (error.name === 'SecurityError') {
             errorMessage = 'Izin Bluetooth ditolak.';
         } else if (error.name === 'NetworkError') {

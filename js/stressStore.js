@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Stress State Store
+ * SCENTRAVN - Stress State Store
  *
  * In-memory state management for stress calculation.
  * Maintains previous stress value and rolling history for analytics.

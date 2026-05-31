@@ -1,8 +1,8 @@
-# 🛡️ SYNAWATCH Admin Dashboard Guide
+# 🛡️ SCENTRAVN Admin Dashboard Guide
 
 ## 📋 Overview
 
-Admin Dashboard adalah sistem manajemen komprehensif untuk mengelola seluruh data SYNAWATCH. Dashboard ini memberikan kontrol penuh kepada administrator untuk mengelola users, patient data, dan questionnaire responses.
+Admin Dashboard adalah sistem manajemen komprehensif untuk mengelola seluruh data SCENTRAVN. Dashboard ini memberikan kontrol penuh kepada administrator untuk mengelola users, patient data, dan questionnaire responses.
 
 ---
 
@@ -498,4 +498,4 @@ Jika ada pertanyaan atau issues:
 
 **Last Updated:** 2026-04-02
 **Version:** 1.0.0
-**Maintainer:** SYNAWATCH Development Team
+**Maintainer:** SCENTRAVN Development Team

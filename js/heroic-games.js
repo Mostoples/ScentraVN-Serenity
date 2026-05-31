@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - HEROIC Wellness Games (Sprint 4)
+ * SCENTRAVN - HEROIC Wellness Games (Sprint 4)
  *
  * 5 evidence-based gamified mental health interventions:
  * 1. Cognitive Reframing Quest    (H + O) — CBT thought challenging

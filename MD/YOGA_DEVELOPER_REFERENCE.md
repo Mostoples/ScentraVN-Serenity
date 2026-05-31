@@ -294,7 +294,7 @@ syncAllYogaData();
 
 ### 2. Yoga Main Component (Vue.js)
 
-**File:** `synawatch/components/YogaMain.vue`
+**File:** `scentravn/components/YogaMain.vue`
 
 ```vue
 <template>

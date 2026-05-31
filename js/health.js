@@ -1,522 +1,343 @@
 /**
- * ScentraVN Serenity - Health Monitoring Page Logic
- * Multi-device BLE: Muse S Gen 2 EEG, BP Smartwatch, Vitals Smartwatch
+ * ScentraVN Serenity — Health Monitoring Page (READ-ONLY)
+ *
+ * Halaman ini TIDAK menyambungkan perangkat. Penyambungan 3 perangkat
+ * (Galaxy Watch, ESP32-C3, Muse S Gen 2) dilakukan di aplikasi Android
+ * ScentraVN, yang mendorong snapshot live ke Firebase RTDB `/scentravn/live`.
+ * Web app cukup membaca via `ScentraLive` (lihat js/firebase-live.js).
  */
-
-// Recording timer state
-let healthRecordingInterval = null;
-let healthRecordingStartTime = null;
-let healthReadingCount = 0;
 
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
 
-/**
- * Main entry point — called by the SPA router after the health view is mounted.
- */
 function initHealthPage() {
-    // Register multi-device data handlers (clear first to avoid accumulation on SPA re-navigation)
-    if (typeof MultiDevice !== 'undefined') {
-        MultiDevice._callbacks.eeg = [];
-        MultiDevice._callbacks.bp = [];
-        MultiDevice._callbacks.vitals = [];
-        MultiDevice._callbacks.connection = [];
-
-        MultiDevice.onEEGData(handleEEGUpdate);
-        MultiDevice.onBPData(handleBPUpdate);
-        MultiDevice.onVitalsData(handleVitalsUpdate);
-        MultiDevice.onConnectionChange(handleDeviceConnectionChange);
-
-        // Reflect any devices that are already connected
-        const statuses = MultiDevice.getConnectionStatuses?.() || {};
-        ['muse', 'bp', 'vitals'].forEach((device) => {
-            if (statuses[device]) {
-                handleDeviceConnectionChange({ device, status: statuses[device] });
-            }
-        });
-    }
-
-    // Build the EEG chart
     initEEGChart();
 
-    // Initialise gauges / indicators at neutral state
-    updateStressGauge(0);
+    // Status awal netral
+    setHealthBadge('healthLiveBadge', 'waiting', 'Menunggu data…');
+    setHealthBadge('liveIndicator', 'waiting', t('metric.live') || 'live');
+    setHealthBadge('eegLive', 'off', 'Muse mati');
 
-    const liveIndicator = document.getElementById('liveIndicator');
-    if (liveIndicator) liveIndicator.classList.add('offline');
-
-    const eegLiveIndicator = document.getElementById('eegLiveIndicator');
-    if (eegLiveIndicator) eegLiveIndicator.style.display = 'none';
-
-    showAutoRecordStatus(false);
+    // Berlangganan data live dari App ScentraVN (Firebase RTDB)
+    wireHealthLiveBridge();
 }
 
 // ─────────────────────────────────────────────
-// EEG CHART
+// LIVE BRIDGE
 // ─────────────────────────────────────────────
 
-/**
- * Create (or recreate) the Chart.js EEG line chart on #eegChart canvas.
- */
-function initEEGChart() {
-    const canvas = document.getElementById('eegChart');
-    if (!canvas) return;
+let _healthLiveUnsub = null;
 
-    // Destroy previous instance if it exists
-    if (window._eegChart) {
-        window._eegChart.destroy();
-        window._eegChart = null;
+function wireHealthLiveBridge() {
+    if (typeof ScentraLive === 'undefined') return;
+    ScentraLive.start();
+    if (_healthLiveUnsub) { _healthLiveUnsub(); _healthLiveUnsub = null; }
+    _healthLiveUnsub = ScentraLive.onUpdate(applyHealthLiveSnapshot);
+}
+
+function unwireHealthLiveBridge() {
+    if (_healthLiveUnsub) { _healthLiveUnsub(); _healthLiveUnsub = null; }
+}
+
+/**
+ * Render snapshot kontrak (galaxyWatch/esp32/muse) ke halaman health.
+ * Jujur sesuai skema: HR dari Watch (fallback ESP32), SpO₂ HANYA ESP32,
+ * Stres = kategori dari Watch, EEG dari Muse. BP/EKG tidak ada.
+ */
+function applyHealthLiveSnapshot(live) {
+    if (!document.getElementById('eegChart')) { unwireHealthLiveBridge(); return; }
+    if (!live) return;
+
+    const gw = live.galaxyWatch, esp = live.esp32, muse = live.muse;
+
+    // ── Badge global ──
+    const avail = (typeof ScentraLive !== 'undefined') && ScentraLive.available;
+    const anyOn = gw.connected || esp.connected || muse.connected;
+    if (!avail)       setHealthBadge('healthLiveBadge', 'off', 'SDK belum siap');
+    else if (anyOn)   setHealthBadge('healthLiveBadge', 'live', 'LIVE — app tersambung');
+    else              setHealthBadge('healthLiveBadge', 'waiting', 'App belum mengirim data');
+
+    // ── Kartu perangkat (read-only) ──
+    renderDeviceCard('gw', gw);
+    renderDeviceCard('esp', esp);
+    renderDeviceCard('muse', muse);
+
+    // ── Detak jantung: Watch → fallback ESP32 ──
+    let hr = 0, hrSrc = '—';
+    if (gw.connected && gw.bpm > 0)       { hr = gw.bpm;  hrSrc = 'Galaxy Watch'; }
+    else if (esp.connected && esp.bpm > 0) { hr = esp.bpm; hrSrc = 'ESP32'; }
+    renderHeartRate(hr, hrSrc);
+
+    // ── SpO₂: HANYA ESP32 ──
+    const spo2 = (esp.connected && esp.spo2 != null && esp.spo2 > 0) ? esp.spo2 : 0;
+    renderSpO2(spo2);
+
+    // ── Indikator vital live ──
+    setHealthBadge('liveIndicator', (hr > 0 || spo2 > 0) ? 'live' : 'waiting', t('metric.live') || 'live');
+
+    // ── Stres (kategori, dari Watch) ──
+    renderStress(gw.connected ? gw.stress.level : null);
+
+    // ── EEG (Muse) ──
+    renderEEG(muse);
+}
+
+// ─────────────────────────────────────────────
+// DEVICE CARDS
+// ─────────────────────────────────────────────
+
+function renderDeviceCard(key, dev) {
+    const dot  = document.getElementById(`dev-${key}-dot`);
+    const stat = document.getElementById(`dev-${key}-status`);
+    const batt = document.getElementById(`dev-${key}-batt`);
+    const upd  = document.getElementById(`dev-${key}-updated`);
+
+    const age = (typeof ScentraLive !== 'undefined') ? ScentraLive.ageMs(dev.updatedAt) : null;
+    const stale = dev.connected && age != null && age > 8000;
+
+    if (dot) {
+        dot.classList.remove('on', 'stale');
+        if (dev.connected && !stale) dot.classList.add('on');
+        else if (stale)              dot.classList.add('stale');
+    }
+    if (stat) stat.textContent = !dev.connected ? 'Tidak terhubung' : (stale ? 'Sinyal tertunda' : 'Terhubung');
+    if (batt) batt.textContent = dev.battery != null ? `${Math.round(dev.battery)}%` : '—';
+    if (upd)  upd.textContent  = dev.updatedAt ? `diperbarui ${agoText(age)}` : 'belum ada data';
+}
+
+// ─────────────────────────────────────────────
+// VITALS
+// ─────────────────────────────────────────────
+
+function renderHeartRate(hr, source) {
+    const valEl = document.getElementById('hrValue');
+    const stEl  = document.getElementById('hrStatus');
+    const srcEl = document.getElementById('hrSource');
+
+    if (valEl) valEl.textContent = hr > 0 ? hr : '--';
+    if (srcEl) srcEl.textContent = source;
+    if (stEl) {
+        if (hr > 0 && typeof Utils !== 'undefined' && Utils.getHeartRateStatus) {
+            const s = Utils.getHeartRateStatus(hr);
+            stEl.textContent = s.status;
+            stEl.style.color = statusHex(s.color);
+        } else {
+            stEl.textContent = '—';
+            stEl.style.color = '';
+        }
+    }
+}
+
+function renderSpO2(spo2) {
+    const valEl = document.getElementById('spo2Value');
+    const stEl  = document.getElementById('spo2Status');
+    if (valEl) valEl.textContent = spo2 > 0 ? spo2 : '--';
+    if (stEl) {
+        if (spo2 > 0 && typeof Utils !== 'undefined' && Utils.getSpO2Status) {
+            const s = Utils.getSpO2Status(spo2);
+            stEl.textContent = s.status;
+            stEl.style.color = statusHex(s.color);
+        } else {
+            stEl.textContent = '—';
+            stEl.style.color = '';
+        }
+    }
+}
+
+function renderStress(level) {
+    const catEl = document.getElementById('stressCategory');
+    if (!catEl) return;
+    const map = {
+        rileks:      { t: 'Rileks',  c: '#4ade80' },
+        rendah:      { t: 'Rendah',  c: '#34d399' },
+        sedang:      { t: 'Sedang',  c: '#fbbf24' },
+        tinggi:      { t: 'Tinggi',  c: '#f87171' },
+        unavailable: { t: 'Belum dikalibrasi', c: '#94a3b8' },
+    };
+    const m = level ? (map[level] || map.unavailable) : { t: '—', c: '#94a3b8' };
+    catEl.textContent = m.t;
+    catEl.style.color = m.c;
+}
+
+// ─────────────────────────────────────────────
+// EEG
+// ─────────────────────────────────────────────
+
+const EEG_BANDS = ['delta', 'theta', 'alpha', 'beta', 'gamma'];
+
+/**
+ * Proses & tampilkan EEG secara AKURAT:
+ *  - daya pita absolut Muse → daya pita RELATIF (%) ternormalisasi (interpretable,
+ *    bebas dari skala amplitudo/kontak elektroda),
+ *  - indeks rasio tervalidasi: Engagement β/(α+θ) (Pope dkk.) & Relaksasi (α+θ)/(β+γ),
+ *  - validasi input ketat (semua 5 pita ada, finite, ≥0, total>0) sebelum menghitung.
+ */
+function renderEEG(muse) {
+    const setBand = (b, txt, pct) => {
+        const el = document.getElementById('eeg' + b.charAt(0).toUpperCase() + b.slice(1));
+        if (el) el.textContent = txt;
+        const bar = document.getElementById('eegBar-' + b);
+        if (bar) bar.style.width = (pct == null ? 0 : Math.min(100, pct)) + '%';
+    };
+
+    const eeg = muse.eeg || {};
+    const vals = EEG_BANDS.map((b) => eeg[b]);
+    const valid = muse.connected && vals.every((v) => v != null && isFinite(v) && v >= 0);
+    const sum = valid ? vals.reduce((a, v) => a + v, 0) : 0;
+
+    if (valid && sum > 0) {
+        setHealthBadge('eegLive', 'live', 'LIVE');
+        const rel = {};
+        EEG_BANDS.forEach((b) => {
+            const pct = (eeg[b] / sum) * 100;
+            rel[b] = pct;
+            setBand(b, `${pct.toFixed(0)}%`, pct);
+        });
+        updateEEGChart(rel);                 // chart memplot daya RELATIF (%)
+        renderEEGIndices(eeg);
+    } else {
+        setHealthBadge('eegLive', 'off', 'Muse mati');
+        EEG_BANDS.forEach((b) => setBand(b, '--', 0));
+        renderEEGIndices(null);
     }
 
-    const emptyData = Array(60).fill(null);
+    const bat = document.getElementById('eegBattery');
+    if (bat) bat.textContent = muse.battery != null ? `${Math.round(muse.battery)}%` : '--';
+}
+
+/** Hitung indeks kognitif tervalidasi + label status mental heuristik. */
+function renderEEGIndices(eeg) {
+    const focusEl = document.getElementById('eegFocusState');
+    const relaxEl = document.getElementById('eegArousal');
+    const chip = document.getElementById('eegMentalChip');
+
+    if (!eeg) {
+        if (focusEl) focusEl.textContent = '--';
+        if (relaxEl) relaxEl.textContent = '--';
+        if (chip) chip.style.display = 'none';
+        return;
+    }
+
+    const a = eeg.alpha, b = eeg.beta, th = eeg.theta, g = eeg.gamma, d = eeg.delta;
+    const EF = (typeof EEGFeatures !== 'undefined') ? EEGFeatures : null;
+
+    // Engagement (Pope dkk.): β/(α+θ) — tinggi = konsentrasi aktif
+    const eng = EF && EF.engagementIndex
+        ? EF.engagementIndex({ alpha: a, beta: b, theta: th })
+        : ((a + th) > 0 ? +(b / (a + th)).toFixed(3) : null);
+    // Relaksasi/meditasi: (α+θ)/(β+γ) — tinggi = lebih rileks
+    const med = EF && EF.meditationIndex
+        ? EF.meditationIndex({ alpha: a, theta: th, beta: b, gamma: g })
+        : ((b + g) > 0 ? +(((a + th) / (b + g))).toFixed(3) : null);
+
+    if (focusEl) focusEl.textContent = eng != null
+        ? `${eng < 0.6 ? 'Rendah' : eng <= 1.2 ? 'Sedang' : 'Tinggi'} (${eng.toFixed(2)})` : '--';
+    if (relaxEl) relaxEl.textContent = med != null
+        ? `${med < 1 ? 'Rendah' : med <= 2 ? 'Sedang' : 'Tinggi'} (${med.toFixed(2)})` : '--';
+
+    // Status mental heuristik dari proporsi pita + indeks
+    const total = a + b + th + g + d;
+    const pAlpha = total > 0 ? a / total : 0;
+    const pTheta = total > 0 ? th / total : 0;
+    let label = 'Netral', color = '#475569', bg = '#f1f5f9';
+    if (pTheta > 0.45 && eng != null && eng < 0.6)    { label = 'Mengantuk';    color = '#a16207'; bg = '#fef9c3'; }
+    else if (eng != null && eng > 1.3)                { label = 'Fokus tinggi'; color = '#b45309'; bg = '#ffedd5'; }
+    else if (med != null && med > 2 && pAlpha > 0.30) { label = 'Rileks';       color = '#15803d'; bg = '#dcfce7'; }
+    else if (eng != null && eng >= 0.6)               { label = 'Fokus';        color = '#047857'; bg = '#d1fae5'; }
+    if (chip) { chip.textContent = label; chip.style.display = ''; chip.style.background = bg; chip.style.color = color; }
+}
+
+function initEEGChart() {
+    const canvas = document.getElementById('eegChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    if (window._eegChart) { window._eegChart.destroy(); window._eegChart = null; }
+
+    const empty = Array(60).fill(null);
+    const ds = (label, color) => ({
+        label, data: [...empty], borderColor: color,
+        backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.3,
+    });
 
     window._eegChart = new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: {
             labels: Array(60).fill(''),
             datasets: [
-                {
-                    label: 'Delta',
-                    data: [...emptyData],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.3,
-                },
-                {
-                    label: 'Theta',
-                    data: [...emptyData],
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.3,
-                },
-                {
-                    label: 'Alpha',
-                    data: [...emptyData],
-                    borderColor: '#10b981',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.3,
-                },
-                {
-                    label: 'Beta',
-                    data: [...emptyData],
-                    borderColor: '#f59e0b',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.3,
-                },
-                {
-                    label: 'Gamma',
-                    data: [...emptyData],
-                    borderColor: '#ef4444',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.3,
-                },
+                ds('Delta', '#3b82f6'), ds('Theta', '#8b5cf6'), ds('Alpha', '#10b981'),
+                ds('Beta', '#f59e0b'), ds('Gamma', '#ef4444'),
             ],
         },
         options: {
-            responsive: true,
-            animation: false,
+            responsive: true, animation: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: { boxWidth: 12, padding: 10, font: { size: 11 } },
-                },
+                legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } },
                 tooltip: { enabled: true },
             },
             scales: {
-                x: {
-                    display: false,
-                    grid: { display: false },
-                },
+                x: { display: false, grid: { display: false } },
                 y: {
-                    display: true,
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { maxTicksLimit: 5, font: { size: 10 } },
+                    display: true, beginAtZero: true, suggestedMax: 60,
+                    grid: { color: 'rgba(124,58,237,0.08)' },
+                    ticks: { maxTicksLimit: 5, color: '#94a3b8', font: { size: 10 }, callback: (v) => v + '%' },
                 },
             },
         },
     });
 }
 
-/**
- * Push a new EEG sample into the chart, keeping only the last 60 points.
- * @param {object} data - EEG data object with delta, theta, alpha, beta, gamma
- */
-function updateEEGChart(data) {
+function updateEEGChart(eeg) {
     const chart = window._eegChart;
     if (!chart) return;
-
-    const MAX_POINTS = 60;
+    const MAX = 60;
     const bands = ['delta', 'theta', 'alpha', 'beta', 'gamma'];
 
     chart.data.labels.push('');
-    if (chart.data.labels.length > MAX_POINTS) chart.data.labels.shift();
+    if (chart.data.labels.length > MAX) chart.data.labels.shift();
 
     bands.forEach((band, i) => {
-        const value = data[band] ?? null;
-        chart.data.datasets[i].data.push(value);
-        if (chart.data.datasets[i].data.length > MAX_POINTS) {
-            chart.data.datasets[i].data.shift();
-        }
+        chart.data.datasets[i].data.push(eeg[band] ?? null);
+        if (chart.data.datasets[i].data.length > MAX) chart.data.datasets[i].data.shift();
     });
-
     chart.update('none');
 }
 
 // ─────────────────────────────────────────────
-// DEVICE DATA HANDLERS
+// HELPERS
 // ─────────────────────────────────────────────
 
-/**
- * Receive EEG data from the Muse S Gen 2 and update the display.
- * @param {object} data - { delta, theta, alpha, beta, gamma, stressLevel, focusState, battery }
- */
-function handleEEGUpdate(data) {
-    if (!data) return;
-
-    // Band power values (integers)
-    const bands = ['delta', 'theta', 'alpha', 'beta', 'gamma'];
-    bands.forEach((band) => {
-        const el = document.getElementById(`eeg${band.charAt(0).toUpperCase() + band.slice(1)}`);
-        if (el) el.textContent = data[band] != null ? Math.round(data[band]) : '--';
-    });
-
-    // Stress level text
-    const stressMap = { low: 'Rendah 🟢', medium: 'Sedang 🟡', high: 'Tinggi 🔴' };
-    const stressEl = document.getElementById('eegStressLevel');
-    if (stressEl) stressEl.textContent = stressMap[data.stressLevel] ?? '--';
-
-    // Focus state text
-    const focusMap = { low: 'Rendah', moderate: 'Sedang', good: 'Baik ✓' };
-    const focusEl = document.getElementById('eegFocusState');
-    if (focusEl) focusEl.textContent = focusMap[data.focusState] ?? '--';
-
-    // Battery
-    const batteryEl = document.getElementById('eegBattery');
-    if (batteryEl) {
-        batteryEl.textContent = data.battery != null ? `${Math.round(data.battery)}%` : '--';
-    }
-
-    // Show live indicator
-    const eegLiveIndicator = document.getElementById('eegLiveIndicator');
-    if (eegLiveIndicator) eegLiveIndicator.style.display = '';
-
-    // Push to chart
-    updateEEGChart(data);
+function setHealthBadge(id, state, text) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('live', 'waiting', 'off');
+    el.classList.add(state);
+    const txt = el.querySelector('.txt');
+    if (txt) txt.textContent = text; else el.textContent = text;
 }
 
-/**
- * Receive blood pressure data from the BP smartwatch.
- * @param {object} data - { sys, dia }
- */
-function handleBPUpdate(data) {
-    if (!data) return;
-
-    const bpSys = document.getElementById('bpSys');
-    const bpDia = document.getElementById('bpDia');
-    const bpStatusBadge = document.getElementById('bpStatusBadge');
-
-    if (bpSys) bpSys.textContent = data.sys ?? '--';
-    if (bpDia) bpDia.textContent = data.dia ?? '--';
-
-    if (bpStatusBadge && data.sys != null && data.dia != null) {
-        let label, cls;
-        if (data.sys < 120 && data.dia < 80) {
-            label = 'Normal';
-            cls = 'vital-badge success';
-        } else if (data.sys < 130 && data.dia < 80) {
-            label = 'Meningkat';
-            cls = 'vital-badge warning';
-        } else {
-            label = 'Tinggi';
-            cls = 'vital-badge danger';
-        }
-        bpStatusBadge.textContent = label;
-        bpStatusBadge.className = cls;
-    }
-
-    // Show live indicator
-    const liveIndicator = document.getElementById('liveIndicator');
-    if (liveIndicator) liveIndicator.classList.remove('offline');
+function statusHex(colorClass) {
+    const map = { success: '#10b981', warning: '#f59e0b', danger: '#ef4444', info: '#3b82f6', gray: '#94a3b8' };
+    return map[colorClass] || map.gray;
 }
 
-/**
- * Receive HR / SpO2 data from the vitals smartwatch.
- * @param {object} data - { hr, spo2, finger }
- */
-function handleVitalsUpdate(data) {
-    if (!data) return;
-
-    healthReadingCount++;
-
-    updateHeartRateDisplay(data);
-    updateSpO2Display(data);
-
-    // Finger status
-    const fingerStatus = document.getElementById('fingerStatus');
-    if (fingerStatus) {
-        if (data.finger) {
-            fingerStatus.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i> ${t('ble.finger_detected')}`;
-        } else {
-            fingerStatus.textContent = t('ble.place_finger');
-        }
-    }
-
-    // Reading count
-    const countEl = document.getElementById('recordingCount');
-    if (countEl) {
-        countEl.textContent = `${healthReadingCount} readings`;
-    }
-
-    // Show live indicator
-    const liveIndicator = document.getElementById('liveIndicator');
-    if (liveIndicator) liveIndicator.classList.remove('offline');
+function agoText(ms) {
+    if (ms == null) return '—';
+    const s = Math.round(ms / 1000);
+    if (s < 2) return 'baru saja';
+    if (s < 60) return `${s} dtk lalu`;
+    return `${Math.round(s / 60)} mnt lalu`;
 }
 
 // ─────────────────────────────────────────────
-// DEVICE CONNECTION CHANGE HANDLER
-// ─────────────────────────────────────────────
-
-/**
- * Update the device card UI when any device connection state changes.
- * @param {object} param0 - { device: 'muse'|'bp'|'vitals', status: 'disconnected'|'connecting'|'connected' }
- */
-function handleDeviceConnectionChange({ device, status }) {
-    const dotEl = document.getElementById(`${device}Dot`);
-    const statusTextEl = document.getElementById(`${device}Status`);
-    const btnEl = document.getElementById(`${device}ConnectBtn`);
-
-    // Dot colour
-    if (dotEl) {
-        dotEl.style.backgroundColor =
-            status === 'connected'   ? '#10b981' :
-            status === 'connecting'  ? '#f59e0b' :
-                                       '#ef4444';
-    }
-
-    // Status text
-    if (statusTextEl) {
-        statusTextEl.textContent =
-            status === 'connected'   ? t('status.connected') :
-            status === 'connecting'  ? t('status.connecting') :
-                                       t('status.disconnected');
-    }
-
-    // Button label
-    if (btnEl) {
-        btnEl.textContent =
-            status === 'connected'   ? 'Putuskan' :
-            status === 'connecting'  ? 'Menghubungkan...' :
-                                       'Sambungkan';
-        btnEl.disabled = status === 'connecting';
-    }
-
-    // Vitals-specific side effects
-    if (device === 'vitals') {
-        if (status === 'connected') {
-            showAutoRecordStatus(true);
-            startHealthRecordingTimer();
-        } else if (status === 'disconnected') {
-            showAutoRecordStatus(false);
-            stopHealthRecordingTimer();
-
-            // Reset live indicator
-            const liveIndicator = document.getElementById('liveIndicator');
-            if (liveIndicator) liveIndicator.classList.add('offline');
-        }
-    }
-
-    // Muse-specific side effects
-    if (device === 'muse' && status === 'disconnected') {
-        const eegLiveIndicator = document.getElementById('eegLiveIndicator');
-        if (eegLiveIndicator) eegLiveIndicator.style.display = 'none';
-    }
-}
-
-// ─────────────────────────────────────────────
-// VITALS DISPLAY HELPERS
-// ─────────────────────────────────────────────
-
-/**
- * Update Heart Rate display and the SVG ring progress.
- * @param {object} data - { hr, finger }
- */
-function updateHeartRateDisplay(data) {
-    const hrValue = document.getElementById('hrValue');
-    const hrStatus = document.getElementById('hrStatus');
-    const hrRing = document.getElementById('hrRingProgress');
-
-    const circumference = 175.93; // 2π × 28 (matches SVG ring r=28)
-
-    if (data.finger && data.hr > 0) {
-        if (hrValue) hrValue.textContent = data.hr;
-
-        if (hrRing) {
-            const percentage = Math.min(data.hr / 200, 1);
-            const offset = circumference - percentage * circumference;
-            hrRing.style.strokeDashoffset = offset;
-
-            hrRing.style.stroke =
-                data.hr < 60  ? '#3b82f6' :
-                data.hr <= 100 ? '#10b981' :
-                data.hr <= 140 ? '#f59e0b' :
-                                 '#ef4444';
-        }
-
-        if (hrStatus) {
-            const statusInfo = Utils.getHeartRateStatus(data.hr);
-            hrStatus.innerHTML = `<span class="status-dot" style="background:${getStatusColor(statusInfo.color)}"></span><span>${statusInfo.status}</span>`;
-            hrStatus.className = 'hr-status ' + statusInfo.color;
-        }
-    } else {
-        if (hrValue) hrValue.textContent = '--';
-        if (hrRing) hrRing.style.strokeDashoffset = circumference;
-        if (hrStatus) {
-            hrStatus.innerHTML = `<span class="status-dot"></span><span>${t('status.waiting_data')}</span>`;
-            hrStatus.className = 'hr-status';
-        }
-    }
-}
-
-/**
- * Update SpO2 display.
- * @param {object} data - { spo2, finger }
- */
-function updateSpO2Display(data) {
-    const spo2Value = document.getElementById('spo2Value');
-    const spo2Status = document.getElementById('spo2Status');
-
-    if (data.finger && data.spo2 > 0) {
-        if (spo2Value) spo2Value.textContent = data.spo2;
-
-        if (spo2Status) {
-            const statusInfo = Utils.getSpO2Status(data.spo2);
-            spo2Status.textContent = statusInfo.status;
-            spo2Status.className = 'vital-badge ' + statusInfo.color;
-        }
-    } else {
-        if (spo2Value) spo2Value.textContent = '--';
-        if (spo2Status) {
-            spo2Status.textContent = '--';
-            spo2Status.className = 'vital-badge';
-        }
-    }
-}
-
-// ─────────────────────────────────────────────
-// GAUGE HELPERS
-// ─────────────────────────────────────────────
-
-/**
- * Update the stress SVG gauge arc.
- * @param {number} value - 0–100
- */
-function updateStressGauge(value) {
-    const gauge = document.getElementById('stressGauge');
-    if (!gauge) return;
-
-    const circumference = 2 * Math.PI * 54;
-    const percentage = Math.min(value / 100, 1);
-    gauge.style.strokeDashoffset = circumference - percentage * circumference;
-
-    gauge.style.stroke =
-        value <= 30 ? '#10b981' :
-        value <= 60 ? '#f59e0b' :
-                      '#ef4444';
-}
-
-/**
- * Map a CSS colour class name to a hex colour string.
- * @param {string} colorClass
- * @returns {string}
- */
-function getStatusColor(colorClass) {
-    const map = {
-        success : '#10b981',
-        warning : '#f59e0b',
-        danger  : '#ef4444',
-        info    : '#3b82f6',
-        gray    : '#94a3b8',
-    };
-    return map[colorClass] ?? map.gray;
-}
-
-// ─────────────────────────────────────────────
-// AUTO-RECORD STATUS / TIMER
-// ─────────────────────────────────────────────
-
-/**
- * Show or hide the auto-record status card.
- * @param {boolean} show
- */
-function showAutoRecordStatus(show) {
-    const statusCard = document.getElementById('autoRecordStatus');
-    if (statusCard) statusCard.style.display = show ? 'flex' : 'none';
-}
-
-/**
- * Start the elapsed-time recording timer.
- */
-function startHealthRecordingTimer() {
-    healthRecordingStartTime = Date.now();
-    healthReadingCount = 0;
-
-    if (healthRecordingInterval) clearInterval(healthRecordingInterval);
-
-    healthRecordingInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - healthRecordingStartTime) / 1000);
-        const mm = Math.floor(elapsed / 60).toString().padStart(2, '0');
-        const ss = (elapsed % 60).toString().padStart(2, '0');
-
-        const timerEl = document.getElementById('recordingTimer');
-        if (timerEl) timerEl.textContent = `${mm}:${ss}`;
-    }, 1000);
-}
-
-/**
- * Stop the recording timer and reset display.
- */
-function stopHealthRecordingTimer() {
-    if (healthRecordingInterval) {
-        clearInterval(healthRecordingInterval);
-        healthRecordingInterval = null;
-    }
-
-    const timerEl = document.getElementById('recordingTimer');
-    if (timerEl) timerEl.textContent = '00:00';
-
-    const countEl = document.getElementById('recordingCount');
-    if (countEl) countEl.textContent = t('health.readings_count', { count: '0' });
-
-    healthReadingCount = 0;
-}
-
-// ─────────────────────────────────────────────
-// CLEANUP
+// CLEANUP / EXPORT
 // ─────────────────────────────────────────────
 
 window.addEventListener('beforeunload', () => {
-    if (healthRecordingInterval) clearInterval(healthRecordingInterval);
-    if (window._eegChart) {
-        window._eegChart.destroy();
-        window._eegChart = null;
-    }
+    unwireHealthLiveBridge();
+    if (window._eegChart) { window._eegChart.destroy(); window._eegChart = null; }
 });
 
-// ─────────────────────────────────────────────
-// EXPORT
-// ─────────────────────────────────────────────
-
 window.initHealthPage = initHealthPage;
+window.unwireHealthLiveBridge = unwireHealthLiveBridge;

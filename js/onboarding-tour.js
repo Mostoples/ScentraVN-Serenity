@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Onboarding Tour (Multi-Page)
+ * SCENTRAVN - Onboarding Tour (Multi-Page)
  * Guided walkthrough & coach marks for new users
  * Each page has its own mini-tour, triggered on first visit
  * Tour completion tracked per-page in Firestore
@@ -333,7 +333,7 @@ const OnboardingTour = {
                 const firestoreTours = data.toursCompleted || {};
                 let localTours = {};
                 try {
-                    localTours = JSON.parse(localStorage.getItem('synawatch_tours_completed') || '{}');
+                    localTours = JSON.parse(localStorage.getItem('scentravn_tours_completed') || '{}');
                 } catch (_) {}
 
                 // Combine both sources — if either says completed, it's completed
@@ -688,7 +688,7 @@ const OnboardingTour = {
         // Also persist to localStorage as backup (survives refresh even if Firestore fails)
         if (pageName) {
             try {
-                const lsKey = 'synawatch_tours_completed';
+                const lsKey = 'scentravn_tours_completed';
                 const stored = JSON.parse(localStorage.getItem(lsKey) || '{}');
                 stored[pageName] = true;
                 localStorage.setItem(lsKey, JSON.stringify(stored));

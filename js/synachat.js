@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Synachat AI Assistant
+ * SCENTRAVN - Synachat AI Assistant
  * Powered by Google Gemini API
  */
 
@@ -68,7 +68,7 @@ const GeminiKeyManager = {
 };
 
 // System prompt for Dr. Synachat
-const SYSTEM_PROMPT = `You are Dr. Synachat, an empathetic, professional, and knowledgeable AI assistant who acts as both a psychologist and a medical advisor. You are part of a smartwatch health monitoring app called SYNAWATCH.
+const SYSTEM_PROMPT = `You are Dr. Synachat, an empathetic, professional, and knowledgeable AI assistant who acts as both a psychologist and a medical advisor. You are part of a smartwatch health monitoring app called SCENTRAVN.
 
 Your role:
 1. Provide emotional support and mental health guidance
@@ -76,7 +76,7 @@ Your role:
 3. Offer wellness tips and lifestyle recommendations
 4. Be empathetic and supportive, especially when users express stress or anxiety
 
-You have access to the user's real-time health data from their SYNAWATCH smartwatch:
+You have access to the user's real-time health data from their SCENTRAVN smartwatch:
 - Heart Rate (HR) - Normal range: 60-100 BPM at rest
 - SpO2 (Blood Oxygen) - Normal range: 95-100%
 - Body Temperature - Normal range: 36.1-37.2°C
@@ -529,7 +529,7 @@ async function sendToGemini(userMessage) {
             const data = BLEConnection.getSensorData();
             if (data && data.lastUpdate) {
                 healthContext = `
-[Current Health Data from SYNAWATCH:]
+[Current Health Data from SCENTRAVN:]
 - Heart Rate: ${data.finger ? data.hr : 'Not detected'} BPM
 - SpO2: ${data.finger ? data.spo2 : 'Not detected'}%
 - Body Temperature: ${data.bt ? data.bt.toFixed(1) : '--'}°C
@@ -560,7 +560,7 @@ async function sendToGemini(userMessage) {
             },
             {
                 role: 'model',
-                parts: [{ text: 'Understood. I am Dr. Synachat, your AI health assistant from SYNAWATCH. I will provide empathetic support, help you understand your health data, and offer wellness guidance. How can I help you today?' }]
+                parts: [{ text: 'Understood. I am Dr. Synachat, your AI health assistant from SCENTRAVN. I will provide empathetic support, help you understand your health data, and offer wellness guidance. How can I help you today?' }]
             },
             ...conversationHistory,
             {
@@ -931,11 +931,12 @@ function toggleHealthContext() {
 function updateHealthContext(data) {
     if (!showHealthContext) return;
 
-    document.getElementById('contextHr').textContent = data.finger ? data.hr : '--';
-    document.getElementById('contextSpo2').textContent = data.finger ? data.spo2 : '--';
-    document.getElementById('contextStress').textContent = data.stress;
-    document.getElementById('contextGsr').textContent = data.gsr;
-    document.getElementById('contextTemp').textContent = data.bt ? data.bt.toFixed(1) : '--';
+    const _setCtx = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    _setCtx('contextHr', data.finger ? data.hr : '--');
+    _setCtx('contextSpo2', data.finger ? data.spo2 : '--');
+    _setCtx('contextStress', data.stress);
+    _setCtx('contextGsr', data.gsr);
+    _setCtx('contextTemp', data.bt ? data.bt.toFixed(1) : '--');
 
     // Gap 6: Proactive AI Chat Triggers - check realtime inside chat
     checkRealtimeProactiveTriggers(data);

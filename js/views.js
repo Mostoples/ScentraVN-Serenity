@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - SPA Views
+ * SCENTRAVN - SPA Views
  * Contains all view templates for the application
  */
 
@@ -160,16 +160,16 @@ const Views = {
                 ═══════════════════════════════════════════════ -->
                 <div class="aura-section">
                     <span class="aura-section-title">${t('dashboard.devices') || 'Devices'}</span>
-                    <button class="aura-section-link" onclick="document.getElementById('bleConnectBtn')?.click()" type="button">${t('ble.connect') || 'Connect'}</button>
+                    <button class="aura-section-link" onclick="Router.navigate('live')" type="button"><i class="fas fa-tower-broadcast"></i> Live Monitor</button>
                 </div>
                 <div class="device-grid">
-                    <div class="device-card">
+                    <div class="device-card" onclick="Router.navigate('live')">
                         <div class="device-card-head">
                             <div class="icon"><i class="fas fa-watch"></i></div>
                             <span class="device-card-status off" id="watchStatus">OFF</span>
                         </div>
-                        <div class="device-card-name">SmartWatch</div>
-                        <div class="device-card-room">BLE Sensor</div>
+                        <div class="device-card-name">Galaxy Watch</div>
+                        <div class="device-card-room">App ScentraVN</div>
                     </div>
                     <div class="device-card" onclick="Router.navigate('biolab')">
                         <div class="device-card-head">
@@ -503,305 +503,181 @@ const Views = {
     health() {
         return `
             <div class="health-page">
-                <!-- Page Header -->
+                <style>
+                    .health-body{padding:32px 16px 28px;display:flex;flex-direction:column;gap:22px;}
+                    .health-page .hsec{margin:0;}
+                    .health-page .hsec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;flex-wrap:wrap;}
+                    .health-page .hsec-head h2{display:flex;align-items:center;gap:9px;font-size:1rem;font-weight:800;color:#4c1d95;margin:0;}
+                    .health-page .hsec-head h2 i{color:#7c3aed;}
+                    .health-page .hsec-note{font-size:0.7rem;color:#94a3b8;display:inline-flex;align-items:center;gap:5px;}
+                    .hcard{background:#fff;border:1px solid rgba(124,58,237,0.10);border-radius:18px;box-shadow:0 4px 18px rgba(76,29,149,0.06);}
+                    .health-live-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;font-size:0.72rem;font-weight:700;white-space:nowrap;}
+                    .health-live-badge .dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex-shrink:0;}
+                    .health-live-badge.live{background:#dcfce7;color:#15803d;} .health-live-badge.live .dot{background:#22c55e;}
+                    .health-live-badge.waiting{background:#fef9c3;color:#a16207;} .health-live-badge.waiting .dot{background:#f59e0b;}
+                    .health-live-badge.off{background:#fee2e2;color:#b91c1c;} .health-live-badge.off .dot{background:#ef4444;}
+                    .hdev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+                    .hdev-card{padding:16px;display:flex;flex-direction:column;}
+                    .hdev-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+                    .hdev-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;box-shadow:0 4px 12px rgba(124,58,237,0.30);}
+                    .hdev-dot{width:11px;height:11px;border-radius:50%;background:#cbd5e1;box-shadow:0 0 0 4px rgba(203,213,225,0.22);margin-top:5px;}
+                    .hdev-dot.on{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,0.18);}
+                    .hdev-dot.stale{background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,0.18);}
+                    .hdev-name{font-weight:800;font-size:0.95rem;color:#1e293b;}
+                    .hdev-role{font-size:0.72rem;color:#94a3b8;margin-top:2px;}
+                    .hdev-meta{display:flex;align-items:center;gap:8px;font-size:0.76rem;color:#475569;font-weight:600;margin-top:10px;}
+                    .hdev-meta .hdev-sep{color:#cbd5e1;}
+                    .hdev-updated{font-size:0.66rem;color:#a78bfa;font-weight:600;margin-top:5px;}
+                    .hvit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+                    .hvit{padding:18px;display:flex;flex-direction:column;gap:9px;}
+                    .hvit-top{display:flex;align-items:center;justify-content:space-between;}
+                    .hvit-ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
+                    .hvit-badge{font-size:0.66rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#f1f5f9;color:#64748b;}
+                    .hvit-num{display:flex;align-items:baseline;gap:6px;}
+                    .hvit-num .n{font-size:2.2rem;font-weight:800;color:#1e293b;line-height:1;}
+                    .hvit-num .u{font-size:0.85rem;font-weight:700;color:#94a3b8;}
+                    .hvit-label{font-size:0.82rem;font-weight:700;color:#334155;}
+                    .hvit-foot{font-size:0.66rem;color:#94a3b8;line-height:1.4;}
+                    .heeg-card{padding:18px;}
+                    .heeg-cw{background:#faf8ff;border:1px solid rgba(124,58,237,0.08);border-radius:14px;padding:12px;margin:14px 0;}
+                    .heeg-bands{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:14px;}
+                    .heeg-band{background:#faf8ff;border:1px solid rgba(124,58,237,0.08);border-radius:12px;padding:12px 6px;text-align:center;}
+                    .heeg-band .v{font-size:1.3rem;font-weight:800;line-height:1;}
+                    .heeg-band .n{font-size:0.68rem;font-weight:700;color:#334155;margin-top:5px;}
+                    .heeg-band .h{font-size:0.58rem;color:#94a3b8;margin-top:1px;}
+                    .heeg-bar{height:5px;background:rgba(124,58,237,0.10);border-radius:99px;margin-top:8px;overflow:hidden;}
+                    .heeg-bar span{display:block;height:100%;width:0;border-radius:99px;transition:width .35s ease;}
+                    .heeg-status{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+                    .heeg-stat{background:#faf8ff;border:1px solid rgba(124,58,237,0.08);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;}
+                    .heeg-stat i{font-size:1.05rem;flex-shrink:0;}
+                    .heeg-stat .lbl{font-size:0.66rem;color:#94a3b8;}
+                    .heeg-stat .val{font-size:0.85rem;font-weight:800;color:#1e293b;}
+                    .health-page .health-actions{display:flex;gap:12px;flex-wrap:wrap;}
+                    @media(max-width:640px){
+                        .hdev-grid,.hvit-grid{grid-template-columns:1fr;}
+                        .heeg-bands{gap:6px;} .heeg-band{padding:10px 3px;} .heeg-band .v{font-size:1.05rem;}
+                        .heeg-status{grid-template-columns:1fr;}
+                    }
+                </style>
+
+                <!-- Header -->
                 <div class="health-header">
                     <div class="health-header-content">
                         <div class="health-header-left">
                             <h1 class="health-title">${t('health.title')}</h1>
                             <p class="health-subtitle">${t('health.subtitle')}</p>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Device Connection Panel -->
-                <div style="margin-bottom: var(--space-5, 20px);">
-                    <div class="section-header" style="margin-bottom: var(--space-4, 16px);">
-                        <h2 style="display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;color:var(--text-primary);">
-                            <i class="fas fa-bluetooth-b" style="color:var(--primary-400);"></i>
-                            Perangkat BLE
-                        </h2>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4, 16px);">
-
-                        <!-- Muse S Gen 2 Card -->
-                        <div id="deviceCard-muse" style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-xl,16px);padding:var(--space-5,20px);display:flex;flex-direction:column;align-items:center;gap:var(--space-3,12px);border:1px solid rgba(139,92,246,0.2);position:relative;overflow:hidden;">
-                            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:var(--radius-xl,16px) var(--radius-xl,16px) 0 0;"></div>
-                            <div style="width:56px;height:56px;border-radius:var(--radius-lg,12px);background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,58,237,0.4);">
-                                <i class="fas fa-brain" style="font-size:1.4rem;color:#fff;"></i>
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:2px;">Muse S Gen 2</div>
-                                <div style="font-size:0.75rem;color:var(--text-tertiary);">EEG Headband</div>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-                                <span id="museDot" style="width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;transition:background 0.3s;"></span>
-                                <span id="museStatus" style="font-size:0.75rem;color:var(--text-secondary);">Tidak Terhubung</span>
-                            </div>
-                            <button id="museConnectBtn" onclick="MultiDevice.toggle('muse')" style="width:100%;margin-top:auto;padding:8px 12px;border-radius:var(--radius-lg,12px);border:1px solid rgba(139,92,246,0.4);background:rgba(124,58,237,0.15);color:#a78bfa;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='rgba(124,58,237,0.3)'" onmouseout="this.style.background='rgba(124,58,237,0.15)'">
-                                <i class="fas fa-bluetooth-b"></i>
-                                Hubungkan
-                            </button>
-                        </div>
-
-                        <!-- Watch BP Card -->
-                        <div id="deviceCard-bp" style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-xl,16px);padding:var(--space-5,20px);display:flex;flex-direction:column;align-items:center;gap:var(--space-3,12px);border:1px solid rgba(239,68,68,0.2);position:relative;overflow:hidden;">
-                            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#dc2626,#f87171);border-radius:var(--radius-xl,16px) var(--radius-xl,16px) 0 0;"></div>
-                            <div style="width:56px;height:56px;border-radius:var(--radius-lg,12px);background:linear-gradient(135deg,#dc2626,#f87171);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(220,38,38,0.4);">
-                                <i class="fas fa-heart-pulse" style="font-size:1.4rem;color:#fff;"></i>
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:2px;">Watch BP</div>
-                                <div style="font-size:0.75rem;color:var(--text-tertiary);">Blood Pressure Monitor</div>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-                                <span id="bpDot" style="width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;transition:background 0.3s;"></span>
-                                <span id="bpStatus" style="font-size:0.75rem;color:var(--text-secondary);">Tidak Terhubung</span>
-                            </div>
-                            <button id="bpConnectBtn" onclick="MultiDevice.toggle('bp')" style="width:100%;margin-top:auto;padding:8px 12px;border-radius:var(--radius-lg,12px);border:1px solid rgba(239,68,68,0.4);background:rgba(220,38,38,0.15);color:#f87171;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='rgba(220,38,38,0.3)'" onmouseout="this.style.background='rgba(220,38,38,0.15)'">
-                                <i class="fas fa-bluetooth-b"></i>
-                                Hubungkan
-                            </button>
-                        </div>
-
-                        <!-- Watch Vitals Card -->
-                        <div id="deviceCard-vitals" style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-xl,16px);padding:var(--space-5,20px);display:flex;flex-direction:column;align-items:center;gap:var(--space-3,12px);border:1px solid rgba(6,182,212,0.2);position:relative;overflow:hidden;">
-                            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#0891b2,#22d3ee);border-radius:var(--radius-xl,16px) var(--radius-xl,16px) 0 0;"></div>
-                            <div style="width:56px;height:56px;border-radius:var(--radius-lg,12px);background:linear-gradient(135deg,#0891b2,#22d3ee);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(8,145,178,0.4);">
-                                <i class="fas fa-watch" style="font-size:1.4rem;color:#fff;"></i>
-                            </div>
-                            <div style="text-align:center;">
-                                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:2px;">Watch Vitals</div>
-                                <div style="font-size:0.75rem;color:var(--text-tertiary);">HR &amp; SpO2 Monitor</div>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-                                <span id="vitalsDot" style="width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;transition:background 0.3s;"></span>
-                                <span id="vitalsStatus" style="font-size:0.75rem;color:var(--text-secondary);">Tidak Terhubung</span>
-                            </div>
-                            <button id="vitalsConnectBtn" onclick="MultiDevice.toggle('vitals')" style="width:100%;margin-top:auto;padding:8px 12px;border-radius:var(--radius-lg,12px);border:1px solid rgba(6,182,212,0.4);background:rgba(8,145,178,0.15);color:#22d3ee;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='rgba(8,145,178,0.3)'" onmouseout="this.style.background='rgba(8,145,178,0.15)'">
-                                <i class="fas fa-bluetooth-b"></i>
-                                Hubungkan
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- EEG Brainwave Section -->
-                <div style="background:var(--bg-secondary,#1e293b);border-radius:var(--radius-2xl,20px);padding:var(--space-5,20px);margin-bottom:var(--space-5,20px);border:1px solid rgba(139,92,246,0.15);">
-                    <div class="section-header" style="margin-bottom:var(--space-4,16px);">
-                        <h2 style="display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;color:var(--text-primary);">
-                            <i class="fas fa-brain" style="color:#a78bfa;"></i>
-                            Gelombang Otak EEG
-                        </h2>
-                        <span id="eegLiveIndicator" class="live-badge" style="display:none;">
-                            <span class="live-dot"></span> LIVE
+                        <span id="healthLiveBadge" class="health-live-badge waiting">
+                            <span class="dot"></span><span class="txt">Menunggu data…</span>
                         </span>
                     </div>
-
-                    <!-- EEG Chart -->
-                    <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);margin-bottom:var(--space-4,16px);border:1px solid rgba(255,255,255,0.05);">
-                        <canvas id="eegChart" style="width:100%;height:180px;display:block;"></canvas>
-                    </div>
-
-                    <!-- EEG Band Cards -->
-                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-3,12px);margin-bottom:var(--space-4,16px);">
-
-                        <!-- Delta -->
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(59,130,246,0.2);">
-                            <div id="eegDelta" style="font-size:1.4rem;font-weight:700;color:#60a5fa;line-height:1;">--</div>
-                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Delta</div>
-                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">0.5-4Hz</div>
-                            <div style="font-size:0.65rem;color:#60a5fa;margin-top:4px;font-weight:500;">Tidur Dalam</div>
-                        </div>
-
-                        <!-- Theta -->
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(139,92,246,0.2);">
-                            <div id="eegTheta" style="font-size:1.4rem;font-weight:700;color:#a78bfa;line-height:1;">--</div>
-                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Theta</div>
-                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">4-8Hz</div>
-                            <div style="font-size:0.65rem;color:#a78bfa;margin-top:4px;font-weight:500;">Relaksasi</div>
-                        </div>
-
-                        <!-- Alpha -->
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(34,197,94,0.2);">
-                            <div id="eegAlpha" style="font-size:1.4rem;font-weight:700;color:#4ade80;line-height:1;">--</div>
-                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Alpha</div>
-                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">8-13Hz</div>
-                            <div style="font-size:0.65rem;color:#4ade80;margin-top:4px;font-weight:500;">Tenang</div>
-                        </div>
-
-                        <!-- Beta -->
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(251,146,60,0.2);">
-                            <div id="eegBeta" style="font-size:1.4rem;font-weight:700;color:#fb923c;line-height:1;">--</div>
-                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Beta</div>
-                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">13-30Hz</div>
-                            <div style="font-size:0.65rem;color:#fb923c;margin-top:4px;font-weight:500;">Fokus</div>
-                        </div>
-
-                        <!-- Gamma -->
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);text-align:center;border:1px solid rgba(239,68,68,0.2);">
-                            <div id="eegGamma" style="font-size:1.4rem;font-weight:700;color:#f87171;line-height:1;">--</div>
-                            <div style="font-size:0.7rem;font-weight:600;color:var(--text-primary);margin-top:4px;">Gamma</div>
-                            <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:2px;">30-100Hz</div>
-                            <div style="font-size:0.65rem;color:#f87171;margin-top:4px;font-weight:500;">Aktif</div>
-                        </div>
-
-                    </div>
-
-                    <!-- EEG Status Row -->
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3,12px);">
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.05);">
-                            <i class="fas fa-brain" style="color:#a78bfa;font-size:1.1rem;flex-shrink:0;"></i>
-                            <div>
-                                <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:2px;">Status Mental</div>
-                                <div id="eegStressLevel" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">--</div>
-                            </div>
-                        </div>
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.05);">
-                            <i class="fas fa-bullseye" style="color:#4ade80;font-size:1.1rem;flex-shrink:0;"></i>
-                            <div>
-                                <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:2px;">Fokus</div>
-                                <div id="eegFocusState" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">--</div>
-                            </div>
-                        </div>
-                        <div style="background:var(--bg-primary,#0f172a);border-radius:var(--radius-lg,12px);padding:var(--space-3,12px);display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.05);">
-                            <i class="fas fa-battery-half" style="color:#60a5fa;font-size:1.1rem;flex-shrink:0;"></i>
-                            <div>
-                                <div style="font-size:0.7rem;color:var(--text-tertiary);margin-bottom:2px;">Baterai Muse</div>
-                                <div id="eegBattery" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">--</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Vital Signs Section -->
-                <div class="vitals-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-wave-square"></i> ${t('health.vital_signs')}</h2>
-                        <span class="live-badge" id="liveIndicator">
-                            <span class="live-dot"></span> ${t('metric.live')}
-                        </span>
-                    </div>
+                <div class="health-body">
+                    <!-- Perangkat -->
+                    <section class="hsec">
+                        <div class="hsec-head">
+                            <h2><i class="fas fa-tower-broadcast"></i> Perangkat</h2>
+                            <span class="hsec-note"><i class="fas fa-circle-info"></i> Diatur dari aplikasi Android ScentraVN</span>
+                        </div>
+                        <div class="hdev-grid">
+                            ${[
+                                ['gw','fa-watch','Galaxy Watch','Detak jantung · Stres'],
+                                ['esp','fa-microchip','ESP32-C3','Detak jantung · SpO₂'],
+                                ['muse','fa-brain','Muse S Gen 2','Gelombang otak (EEG)']
+                            ].map(([k,ic,nm,role]) => `
+                                <div class="hcard hdev-card">
+                                    <div class="hdev-top">
+                                        <div class="hdev-icon"><i class="fas ${ic}"></i></div>
+                                        <span class="hdev-dot" id="dev-${k}-dot"></span>
+                                    </div>
+                                    <div class="hdev-name">${nm}</div>
+                                    <div class="hdev-role">${role}</div>
+                                    <div class="hdev-meta">
+                                        <span id="dev-${k}-status">Tidak terhubung</span>
+                                        <span class="hdev-sep">·</span>
+                                        <span><i class="fas fa-battery-half" style="color:#7c3aed;"></i> <span id="dev-${k}-batt">—</span></span>
+                                    </div>
+                                    <div class="hdev-updated" id="dev-${k}-updated">—</div>
+                                </div>`).join('')}
+                        </div>
+                    </section>
 
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4,16px);">
-
-                        <!-- Blood Pressure Card -->
-                        <div class="vital-card" style="border:1px solid rgba(239,68,68,0.15);">
-                            <div class="vital-card-header">
-                                <div class="vital-icon" style="background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(248,113,113,0.1));color:#f87171;">
-                                    <i class="fas fa-heart-pulse"></i>
+                    <!-- Tanda Vital -->
+                    <section class="hsec">
+                        <div class="hsec-head">
+                            <h2><i class="fas fa-wave-square"></i> ${t('health.vital_signs')}</h2>
+                            <span id="liveIndicator" class="health-live-badge waiting"><span class="dot"></span><span class="txt">${t('metric.live') || 'live'}</span></span>
+                        </div>
+                        <div class="hvit-grid">
+                            <div class="hcard hvit">
+                                <div class="hvit-top">
+                                    <div class="hvit-ic" style="background:rgba(239,68,68,0.12);color:#ef4444;"><i class="fas fa-heart-pulse"></i></div>
+                                    <span class="hvit-badge" id="hrStatus">—</span>
                                 </div>
-                                <span class="vital-badge" id="bpStatusBadge">--</span>
+                                <div class="hvit-num"><span class="n" id="hrValue">--</span><span class="u">BPM</span></div>
+                                <div class="hvit-label">${t('health.heart_rate') || 'Detak Jantung'}</div>
+                                <div class="hvit-foot">Sumber: <span id="hrSource">—</span> · Normal 60–100</div>
                             </div>
-                            <div class="vital-card-body">
-                                <div class="vital-value">
-                                    <span class="vital-number" id="bpSys" style="color:#f87171;">--</span>
-                                    <span class="vital-unit">/</span>
-                                    <span class="vital-number" id="bpDia" style="font-size:1.5rem;color:#f87171;">--</span>
-                                    <span class="vital-unit">mmHg</span>
+                            <div class="hcard hvit">
+                                <div class="hvit-top">
+                                    <div class="hvit-ic" style="background:rgba(6,182,212,0.12);color:#0891b2;"><i class="fas fa-lungs"></i></div>
+                                    <span class="hvit-badge" id="spo2Status">—</span>
                                 </div>
-                                <div class="vital-label">Tekanan Darah</div>
+                                <div class="hvit-num"><span class="n" id="spo2Value">--</span><span class="u">%</span></div>
+                                <div class="hvit-label">${t('health.blood_oxygen') || 'Saturasi Oksigen'}</div>
+                                <div class="hvit-foot">Hanya ESP32 (MAX30102) · Normal 95–100</div>
                             </div>
-                            <div class="vital-card-footer">
-                                <div class="vital-range">
-                                    <span>${t('metric.normal')}: &lt;120/80 mmHg</span>
+                            <div class="hcard hvit">
+                                <div class="hvit-top">
+                                    <div class="hvit-ic" style="background:rgba(124,58,237,0.12);color:#7c3aed;"><i class="fas fa-brain"></i></div>
+                                    <span class="hvit-badge" id="stressSource">Watch</span>
                                 </div>
+                                <div class="hvit-num"><span class="n" id="stressCategory" style="font-size:1.6rem;">—</span></div>
+                                <div class="hvit-label">Tingkat Stres</div>
+                                <div class="hvit-foot">Kategori dari Galaxy Watch (kalibrasi 3-titik)</div>
                             </div>
                         </div>
+                    </section>
 
-                        <!-- Heart Rate Card -->
-                        <div class="vital-card" style="border:1px solid rgba(239,68,68,0.15);">
-                            <div class="vital-card-header">
-                                <div class="vital-icon" style="background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(248,113,113,0.1));color:var(--danger-400);">
-                                    <i class="fas fa-heartbeat"></i>
-                                </div>
-                                <span class="vital-badge" id="hrStatus">--</span>
-                            </div>
-                            <div class="vital-card-body">
-                                <div style="display:flex;align-items:center;gap:12px;">
-                                    <div style="position:relative;width:64px;height:64px;flex-shrink:0;">
-                                        <svg viewBox="0 0 64 64" style="width:64px;height:64px;transform:rotate(-90deg);">
-                                            <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(239,68,68,0.15)" stroke-width="5"/>
-                                            <circle id="hrRingProgress" cx="32" cy="32" r="28" fill="none" stroke="var(--danger-400,#f87171)" stroke-width="5" stroke-linecap="round" stroke-dasharray="176" stroke-dashoffset="176" style="transition:stroke-dashoffset 0.5s ease;"/>
-                                        </svg>
-                                        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-                                            <i class="fas fa-heartbeat" style="color:var(--danger-400,#f87171);font-size:1rem;"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="vital-value">
-                                            <span class="vital-number" id="hrValue">--</span>
-                                            <span class="vital-unit">BPM</span>
-                                        </div>
-                                        <div class="vital-label">${t('health.heart_rate', 'Detak Jantung')}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="vital-card-footer">
-                                <div style="display:flex;align-items:center;justify-content:space-between;">
-                                    <div class="vital-range"><span>${t('metric.normal')}: 60-100 BPM</span></div>
-                                    <div style="display:flex;align-items:center;gap:4px;font-size:0.7rem;color:var(--text-tertiary);">
-                                        <i class="fas fa-fingerprint" style="font-size:0.75rem;"></i>
-                                        <span id="fingerStatus">${t('health.place_finger')}</span>
-                                    </div>
-                                </div>
-                                <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:4px;">
-                                    <i class="fas fa-watch" style="margin-right:3px;"></i>Watch Vitals
-                                </div>
+                    <!-- EEG -->
+                    <section class="hsec hcard heeg-card">
+                        <div class="hsec-head">
+                            <h2><i class="fas fa-brain"></i> Gelombang Otak EEG</h2>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span id="eegMentalChip" class="hvit-badge" style="display:none;">—</span>
+                                <span id="eegLive" class="health-live-badge off"><span class="dot"></span><span class="txt">Muse mati</span></span>
                             </div>
                         </div>
-
-                        <!-- SpO2 Card -->
-                        <div class="vital-card spo2-card" style="border:1px solid rgba(6,182,212,0.15);">
-                            <div class="vital-card-header">
-                                <div class="vital-icon spo2">
-                                    <i class="fas fa-lungs"></i>
-                                </div>
-                                <span class="vital-badge" id="spo2Status">--</span>
-                            </div>
-                            <div class="vital-card-body">
-                                <div class="vital-value">
-                                    <span class="vital-number" id="spo2Value">--</span>
-                                    <span class="vital-unit">%</span>
-                                </div>
-                                <div class="vital-label">${t('health.blood_oxygen')}</div>
-                            </div>
-                            <div class="vital-card-footer">
-                                <div class="vital-range">
-                                    <span>${t('metric.normal')}: 95-100%</span>
-                                </div>
-                                <div style="font-size:0.65rem;color:var(--text-tertiary);margin-top:4px;">
-                                    <i class="fas fa-watch" style="margin-right:3px;"></i>Watch Vitals
-                                </div>
-                            </div>
+                        <div class="heeg-cw">
+                            <canvas id="eegChart" style="width:100%;height:180px;display:block;"></canvas>
+                            <div style="font-size:0.62rem;color:#94a3b8;text-align:right;margin-top:4px;">Daya pita relatif (%) · ternormalisasi</div>
                         </div>
+                        <div class="heeg-bands">
+                            <div class="heeg-band"><div class="v" id="eegDelta" style="color:#3b82f6;">--</div><div class="n">Delta</div><div class="h">0.5–4Hz</div><div class="heeg-bar"><span id="eegBar-delta" style="background:#3b82f6;"></span></div></div>
+                            <div class="heeg-band"><div class="v" id="eegTheta" style="color:#8b5cf6;">--</div><div class="n">Theta</div><div class="h">4–8Hz</div><div class="heeg-bar"><span id="eegBar-theta" style="background:#8b5cf6;"></span></div></div>
+                            <div class="heeg-band"><div class="v" id="eegAlpha" style="color:#10b981;">--</div><div class="n">Alpha</div><div class="h">8–13Hz</div><div class="heeg-bar"><span id="eegBar-alpha" style="background:#10b981;"></span></div></div>
+                            <div class="heeg-band"><div class="v" id="eegBeta" style="color:#f59e0b;">--</div><div class="n">Beta</div><div class="h">13–30Hz</div><div class="heeg-bar"><span id="eegBar-beta" style="background:#f59e0b;"></span></div></div>
+                            <div class="heeg-band"><div class="v" id="eegGamma" style="color:#ef4444;">--</div><div class="n">Gamma</div><div class="h">30–100Hz</div><div class="heeg-bar"><span id="eegBar-gamma" style="background:#ef4444;"></span></div></div>
+                        </div>
+                        <div class="heeg-status">
+                            <div class="heeg-stat"><i class="fas fa-bullseye" style="color:#10b981;"></i><div><div class="lbl">Fokus / Engagement</div><div class="val" id="eegFocusState">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-spa" style="color:#7c3aed;"></i><div><div class="lbl">Relaksasi</div><div class="val" id="eegArousal">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-battery-half" style="color:#3b82f6;"></i><div><div class="lbl">Baterai Muse</div><div class="val" id="eegBattery">--</div></div></div>
+                        </div>
+                    </section>
 
+                    <!-- Quick Actions -->
+                    <div class="health-actions">
+                        <button class="health-action-btn primary" onclick="Router.navigate('analytics')">
+                            <i class="fas fa-chart-line"></i>
+                            <span>${t('health.view_analytics')}</span>
+                        </button>
+                        <button class="health-action-btn secondary" onclick="Router.navigate('synachat')">
+                            <i class="fas fa-robot"></i>
+                            <span>${t('health.ask_synachat')}</span>
+                        </button>
                     </div>
-                </div>
-
-                <!-- Recording Status -->
-                <div id="autoRecordStatus" class="recording-banner" style="display: none;">
-                    <div class="recording-indicator">
-                        <span class="recording-dot"></span>
-                        <span>${t('health.recording')}</span>
-                    </div>
-                    <div class="recording-info">
-                        <span id="recordingTimer">00:00</span>
-                        <span class="recording-divider">•</span>
-                        <span id="recordingCount">0 ${t('health.readings')}</span>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="health-actions">
-                    <button class="health-action-btn primary" onclick="Router.navigate('analytics')">
-                        <i class="fas fa-chart-line"></i>
-                        <span>${t('health.view_analytics')}</span>
-                    </button>
-                    <button class="health-action-btn secondary" onclick="Router.navigate('synachat')">
-                        <i class="fas fa-robot"></i>
-                        <span>${t('health.ask_synachat')}</span>
-                    </button>
                 </div>
             </div>
         `;
@@ -1026,6 +902,16 @@ const Views = {
                         </div>
                         <i class="fas fa-chevron-right list-item-action"></i>
                     </div>
+                    <div class="list-item" onclick="CountryMusic.changeCountry()">
+                        <div class="list-item-icon" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">${I18n.currentLang === 'id' ? 'Musik Negara' : 'Country Music'}</div>
+                            <div class="list-item-subtitle" id="profileCountrySubtitle">${I18n.currentLang === 'id' ? 'Pilih atau ganti musik tradisional' : 'Choose or change traditional music'}</div>
+                        </div>
+                        <i class="fas fa-chevron-right list-item-action"></i>
+                    </div>
                     <div class="list-item" style="border-bottom: none;">
                         <div class="list-item-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
                             <i class="fas fa-globe"></i>
@@ -1087,7 +973,7 @@ const Views = {
 
                 <!-- Version -->
                 <div style="text-align: center; padding: var(--space-5); color: var(--text-muted); font-size: var(--text-xs);">
-                    <p>SYNAWATCH v1.0.0</p>
+                    <p>SCENTRAVN v1.0.0</p>
                 </div>
             </div>
         `;
@@ -1350,24 +1236,12 @@ const Views = {
      * Journal View
      */
     journal() {
+        // UI lengkap (badge sensor + mood selector + daftar) dirender oleh
+        // Journal.renderJournalUI() ke dalam #journalContent (lihat js/journal.js).
         return `
-            <div class="view-container" style="margin: 0 auto;">
-                <div style="margin-bottom: 24px;">
-                    <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;"><i class="fas fa-book-open" style="color: var(--primary-500);"></i> ${t('journal.title')}</h2>
-                    <p style="color: var(--text-tertiary);">${t('journal.desc')}</p>
-                </div>
-
-                <div class="card" style="margin-bottom: 24px;">
-                    <textarea id="journalInput" rows="5" placeholder="${t('journal.placeholder')}" style="width: 100%; border: none; background: #f8fafc; padding: 16px; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 1rem; color: var(--text-primary); resize: vertical; margin-bottom: 16px; outline: none;"></textarea>
-                    <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="Journal.save()">
-                        <i class="fas fa-save"></i> ${t('journal.save')}
-                    </button>
-                </div>
-
-                <h3 class="section-title">${t('journal.previous')}</h3>
-                <div id="journalList">
-                    <!-- Loaded dynamically -->
-                    <div style="text-align: center; padding: 20px;"><div class="loading-spinner"></div></div>
+            <div class="view-container" style="max-width: 700px; margin: 0 auto;">
+                <div id="journalContent">
+                    <div style="text-align: center; padding: 40px;"><div class="loading-spinner" style="margin:0 auto;"></div></div>
                 </div>
             </div>
         `;
@@ -1645,9 +1519,9 @@ const Views = {
 
                     <!-- Header -->
                     <div class="q-header-card">
-                        <div class="q-header-logo">SYNAWATCH</div>
+                        <div class="q-header-logo">SCENTRAVN</div>
                         <div class="q-header-title">Kuesioner Pengujian Aplikasi</div>
-                        <div class="q-header-subtitle">Bantu kami tingkatkan SynaWatch dengan mengisi kuesioner ini. Jawaban Anda sangat berharga!</div>
+                        <div class="q-header-subtitle">Bantu kami tingkatkan ScentraVN dengan mengisi kuesioner ini. Jawaban Anda sangat berharga!</div>
                     </div>
 
                     <!-- Progress -->
@@ -1725,7 +1599,7 @@ const Views = {
                     <div class="q-page" id="qpage-1">
                         <div class="q-badge"><i class="fas fa-chart-simple"></i> BAGIAN A — HALAMAN 2 DARI 9</div>
                         <div class="q-page-title">System Usability Scale (SUS)</div>
-                        <div class="q-page-desc">Berikan penilaian Anda terhadap kegunaan umum aplikasi SynaWatch. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-desc">Berikan penilaian Anda terhadap kegunaan umum aplikasi ScentraVN. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
                         <div class="q-page-error" id="qerror-1"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         <div id="sus-questions"></div>
                         <div class="q-btn-row">
@@ -1738,7 +1612,7 @@ const Views = {
                     <div class="q-page" id="qpage-2">
                         <div class="q-badge"><i class="fas fa-palette"></i> BAGIAN B — HALAMAN 3 DARI 9</div>
                         <div class="q-page-title">Kepuasan UI/UX & Fitur</div>
-                        <div class="q-page-desc">Nilai pengalaman Anda terhadap tampilan dan fitur-fitur SynaWatch. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-desc">Nilai pengalaman Anda terhadap tampilan dan fitur-fitur ScentraVN. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
                         <div class="q-page-error" id="qerror-2"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         <div id="uiux-questions"></div>
                         <div class="q-btn-row">
@@ -1751,7 +1625,7 @@ const Views = {
                     <div class="q-page" id="qpage-3">
                         <div class="q-badge"><i class="fas fa-brain"></i> BAGIAN C — HALAMAN 4 DARI 9</div>
                         <div class="q-page-title">Technology Acceptance Model (TAM)</div>
-                        <div class="q-page-desc">Nilai persepsi kegunaan dan kemudahan penggunaan SynaWatch. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-desc">Nilai persepsi kegunaan dan kemudahan penggunaan ScentraVN. Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
                         <div class="q-page-error" id="qerror-3"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         <div id="tam-questions"></div>
                         <div class="q-btn-row">
@@ -1777,7 +1651,7 @@ const Views = {
                     <div class="q-page" id="qpage-5">
                         <div class="q-badge"><i class="fas fa-shield-halved"></i> BAGIAN E — HALAMAN 6 DARI 9</div>
                         <div class="q-page-title">Kepercayaan & Privasi Data</div>
-                        <div class="q-page-desc">Seberapa percaya Anda terhadap keamanan data di SynaWatch? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-desc">Seberapa percaya Anda terhadap keamanan data di ScentraVN? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
                         <div class="q-page-error" id="qerror-5"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         <div id="trust-questions"></div>
                         <div class="q-btn-row">
@@ -1790,7 +1664,7 @@ const Views = {
                     <div class="q-page" id="qpage-6">
                         <div class="q-badge"><i class="fas fa-heart-pulse"></i> BAGIAN F — HALAMAN 7 DARI 9</div>
                         <div class="q-page-title">Nilai Terapeutik & Relevansi Konten</div>
-                        <div class="q-page-desc">Seberapa bermanfaat konten dan fitur terapeutik SynaWatch? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-desc">Seberapa bermanfaat konten dan fitur terapeutik ScentraVN? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
                         <div class="q-page-error" id="qerror-6"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         <div id="therapeutic-questions"></div>
                         <div class="q-btn-row">
@@ -1803,7 +1677,7 @@ const Views = {
                     <div class="q-page" id="qpage-7">
                         <div class="q-badge"><i class="fas fa-fire"></i> BAGIAN G — HALAMAN 8 DARI 9</div>
                         <div class="q-page-title">Keterlibatan & Motivasi Pengguna</div>
-                        <div class="q-page-desc">Seberapa besar motivasi Anda untuk terus menggunakan SynaWatch? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
+                        <div class="q-page-desc">Seberapa besar motivasi Anda untuk terus menggunakan ScentraVN? Skala: 1 = Sangat Tidak Setuju, 5 = Sangat Setuju.</div>
                         <div class="q-page-error" id="qerror-7"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         <div id="engagement-questions"></div>
                         <div class="q-btn-row">
@@ -1821,7 +1695,7 @@ const Views = {
 
                         <div class="q-divider">NET PROMOTER SCORE</div>
                         <div class="q-item" id="nps-item">
-                            <div class="q-item-text">Seberapa besar kemungkinan Anda merekomendasikan SynaWatch kepada teman atau orang yang Anda kenal?</div>
+                            <div class="q-item-text">Seberapa besar kemungkinan Anda merekomendasikan ScentraVN kepada teman atau orang yang Anda kenal?</div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <span class="q-nps-hint">Sangat tidak mungkin</span>
                                 <span class="q-nps-hint">Sangat mungkin</span>
@@ -1847,7 +1721,7 @@ const Views = {
                             <textarea class="q-form-textarea" id="open-smartwatch" placeholder="Tulis jawaban Anda..." rows="3"></textarea>
                         </div>
                         <div class="q-form-group">
-                            <label class="q-form-label">Saran atau masukan lain untuk pengembangan SynaWatch?</label>
+                            <label class="q-form-label">Saran atau masukan lain untuk pengembangan ScentraVN?</label>
                             <textarea class="q-form-textarea" id="open-suggestion" placeholder="Tulis jawaban Anda..." rows="3"></textarea>
                         </div>
 
@@ -1865,7 +1739,7 @@ const Views = {
                         <div class="q-success-icon"><i class="fas fa-check"></i></div>
                         <div class="q-success-title">Terima Kasih!</div>
                         <div class="q-success-desc">
-                            Jawaban Anda telah berhasil disimpan. Kontribusi Anda sangat berarti untuk pengembangan SynaWatch ke depannya.
+                            Jawaban Anda telah berhasil disimpan. Kontribusi Anda sangat berarti untuk pengembangan ScentraVN ke depannya.
                         </div>
                         <div class="q-success-id" id="qSuccessDocId"></div>
                         <br><br>
@@ -1885,7 +1759,7 @@ const Views = {
             <div class="view-container">
                 <div class="rq-container">
                     <div class="rq-header">
-                        <div class="rq-header-logo">SYNAWATCH RESEARCH</div>
+                        <div class="rq-header-logo">SCENTRAVN RESEARCH</div>
                         <div class="rq-header-title">Kuesioner Penelitian Ground Truth</div>
                         <div class="rq-header-sub">PSP-5 · Hunger Scale · SEES-10 — Data untuk pengembangan model AI</div>
                     </div>
@@ -2279,7 +2153,7 @@ const Views = {
                                 <i class="fas fa-shield-halved"></i>
                             </div>
                             <div class="admin-logo-text">
-                                <h1>SYNAWATCH</h1>
+                                <h1>SCENTRAVN</h1>
                                 <p>Admin Dashboard</p>
                             </div>
                         </div>

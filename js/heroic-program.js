@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - HEROIC Program Module (Sprint 2)
+ * SCENTRAVN - HEROIC Program Module (Sprint 2)
  *
  * Implements the 36-activity HEROIC psychoeducation program across 6 dimensions.
  * Scientific grounding:

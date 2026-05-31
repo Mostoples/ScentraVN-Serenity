@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Syna Academy Module
+ * SCENTRAVN - Syna Academy Module
  * Educational content about health monitoring, mental wellness, and biosensors
  */
 
@@ -39,8 +39,8 @@ Atlet terlatih: 40–60 BPM
 <li><strong>Dehidrasi</strong> — Kurang cairan membuat jantung bekerja lebih keras</li>
 </ul>
 
-<h4>Yang SYNAWATCH Ukur</h4>
-<p>Sensor PPG (Photoplethysmography) di SYNAWATCH menggunakan cahaya LED untuk mendeteksi perubahan volume darah di pembuluh kapiler jarimu, lalu menghitung BPM secara real-time.</p>
+<h4>Yang SCENTRAVN Ukur</h4>
+<p>Sensor PPG (Photoplethysmography) di SCENTRAVN menggunakan cahaya LED untuk mendeteksi perubahan volume darah di pembuluh kapiler jarimu, lalu menghitung BPM secara real-time.</p>
 
 <div class="lesson-tip">
 <strong>Tips:</strong> Pastikan jarimu menempel dengan tenang di sensor saat pengukuran. Gerakan akan mengganggu akurasi pembacaan.
@@ -72,7 +72,7 @@ Sulit kembali ke HR normal setelah episode stres
 </ul>
 
 <div class="lesson-tip">
-<strong>Di SYNAWATCH:</strong> Gunakan fitur Mindful Breathing di menu utama untuk latihan pernapasan terpandu yang bisa menurunkan HR-mu.
+<strong>Di SCENTRAVN:</strong> Gunakan fitur Mindful Breathing di menu utama untuk latihan pernapasan terpandu yang bisa menurunkan HR-mu.
 </div>`
                 },
                 {
@@ -136,7 +136,7 @@ Contoh: Usia 25 → HR Max = 195 BPM
 </ul>
 
 <div class="lesson-tip">
-<strong>Di SYNAWATCH:</strong> Sensor PPG mengukur SpO2 dengan mendeteksi perbedaan warna darah beroksigen (merah cerah) dan tanpa oksigen (merah gelap).
+<strong>Di SCENTRAVN:</strong> Sensor PPG mengukur SpO2 dengan mendeteksi perbedaan warna darah beroksigen (merah cerah) dan tanpa oksigen (merah gelap).
 </div>`
                 },
                 {
@@ -164,7 +164,7 @@ Kantuk berlebihan di siang hari
 </ul>
 
 <div class="lesson-tip">
-<strong>Tips:</strong> Gunakan fitur Sleep Tracker di SYNAWATCH untuk memantau SpO2 sepanjang malam.
+<strong>Tips:</strong> Gunakan fitur Sleep Tracker di SCENTRAVN untuk memantau SpO2 sepanjang malam.
 </div>`
                 }
             ]
@@ -185,7 +185,7 @@ Kantuk berlebihan di siang hari
 <p>GSR mengukur konduktivitas listrik kulit yang berubah saat kelenjar keringat aktif. Saat stres, cemas, atau excited, kelenjar keringat di telapak tangan aktif — bahkan sebelum kamu menyadarinya.</p>
 
 <div class="lesson-highlight">
-<strong>Level GSR di SYNAWATCH:</strong><br>
+<strong>Level GSR di SCENTRAVN:</strong><br>
 0-30% — Relax, tenang<br>
 31-60% — Normal, aktif<br>
 61-80% — Terangsang/excited<br>
@@ -201,7 +201,7 @@ Kantuk berlebihan di siang hari
 </ul>
 
 <div class="lesson-tip">
-<strong>Menarik:</strong> GSR bereaksi 1-3 detik sebelum kamu secara sadar merasa stres. SYNAWATCH menggunakan ini untuk deteksi dini stres.
+<strong>Menarik:</strong> GSR bereaksi 1-3 detik sebelum kamu secara sadar merasa stres. SCENTRAVN menggunakan ini untuk deteksi dini stres.
 </div>`
                 },
                 {
@@ -210,7 +210,7 @@ Kantuk berlebihan di siang hari
                     duration: '5 menit',
                     content: `
 <h3>Mengelola Stres dengan Data</h3>
-<p>Dengan SYNAWATCH, kamu bisa melihat pola stresmu secara objektif. Berikut teknik berbasis bukti untuk mengelolanya.</p>
+<p>Dengan SCENTRAVN, kamu bisa melihat pola stresmu secara objektif. Berikut teknik berbasis bukti untuk mengelolanya.</p>
 
 <h4>Teknik Jangka Pendek (saat stres melonjak)</h4>
 <ul>
@@ -229,7 +229,7 @@ Kantuk berlebihan di siang hari
 </ul>
 
 <div class="lesson-tip">
-<strong>Di SYNAWATCH:</strong> Gunakan fitur Journal untuk mencatat pemicu stres dan Mindful Breathing untuk latihan harian.
+<strong>Di SCENTRAVN:</strong> Gunakan fitur Journal untuk mencatat pemicu stres dan Mindful Breathing untuk latihan harian.
 </div>`
                 }
             ]
@@ -273,7 +273,7 @@ Jika gejala berlangsung > 2 minggu, mengganggu aktivitas sehari-hari, atau kamu 
 </div>
 
 <div class="lesson-tip">
-<strong>Di SYNAWATCH:</strong> Fitur Assessment (PHQ-9) membantu mengukur tingkat depresimu secara berkala. Gunakan fitur Support Hub untuk akses ke helpline.
+<strong>Di SCENTRAVN:</strong> Fitur Assessment (PHQ-9) membantu mengukur tingkat depresimu secara berkala. Gunakan fitur Support Hub untuk akses ke helpline.
 </div>`
                 },
                 {
@@ -301,7 +301,7 @@ Deep sleep paling banyak di awal malam, REM di akhir
 </div>
 
 <div class="lesson-tip">
-<strong>Di SYNAWATCH:</strong> Gunakan Sleep Tracker untuk memantau durasi dan kualitas tidurmu, serta lihat korelasi dengan data HR dan SpO2.
+<strong>Di SCENTRAVN:</strong> Gunakan Sleep Tracker untuk memantau durasi dan kualitas tidurmu, serta lihat korelasi dengan data HR dan SpO2.
 </div>`
                 }
             ]

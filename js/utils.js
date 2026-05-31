@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH Utility Functions
+ * SCENTRAVN Utility Functions
  */
 
 const Utils = {

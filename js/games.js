@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Wellness Games Module
+ * SCENTRAVN - Wellness Games Module
  * Modern design with Firestore integration
  */
 
@@ -67,7 +67,7 @@ const GamesModule = {
      */
     loadStatsFromLocal() {
         try {
-            const saved = localStorage.getItem('synawatch_game_stats');
+            const saved = localStorage.getItem('scentravn_game_stats');
             if (saved) {
                 this.stats = { ...this.stats, ...JSON.parse(saved) };
             }
@@ -81,7 +81,7 @@ const GamesModule = {
      */
     async saveStats() {
         // Save to localStorage first
-        localStorage.setItem('synawatch_game_stats', JSON.stringify(this.stats));
+        localStorage.setItem('scentravn_game_stats', JSON.stringify(this.stats));
 
         if (!this.userId) return;
 

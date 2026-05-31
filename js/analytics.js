@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Analytics Module
+ * SCENTRAVN - Analytics Module
  * Handles health data visualization from Firebase
  * Data is auto-saved by BLEConnection when device is connected
  */

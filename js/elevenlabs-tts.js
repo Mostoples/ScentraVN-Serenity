@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - ElevenLabs TTS Integration
+ * SCENTRAVN - ElevenLabs TTS Integration
  * Text-to-Speech using ElevenLabs API
  * Supports language-aware voice switching (Indonesian & English)
  */

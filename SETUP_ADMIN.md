@@ -1,8 +1,8 @@
-# 🔐 Panduan Setup Admin User - SYNAWATCH
+# 🔐 Panduan Setup Admin User - SCENTRAVN
 
 ## 🎯 Ringkasan
 
-Ada **4 metode** untuk menambahkan admin ke sistem SYNAWATCH. Pilih yang paling sesuai dengan kebutuhan Anda.
+Ada **4 metode** untuk menambahkan admin ke sistem SCENTRAVN. Pilih yang paling sesuai dengan kebutuhan Anda.
 
 ---
 
@@ -19,7 +19,7 @@ Ada **4 metode** untuk menambahkan admin ke sistem SYNAWATCH. Pilih yang paling 
 
    **Opsi A: Buat Admin Baru**
    - Isi form:
-     - Email admin (contoh: `admin@synawatch.com`)
+     - Email admin (contoh: `admin@scentravn.com`)
      - Password (minimal 6 karakter)
      - Nama admin
    - Klik **"Buat Admin Baru"**
@@ -92,7 +92,7 @@ Firestore Database
 
 ### Langkah:
 
-1. **Login** ke SYNAWATCH terlebih dahulu:
+1. **Login** ke SCENTRAVN terlebih dahulu:
    ```
    http://localhost:3000/auth.html
    ```

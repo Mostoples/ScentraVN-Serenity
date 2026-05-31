@@ -2,10 +2,50 @@
   "rules": {
     ".read": false,
     ".write": false,
-    "users": {
-      "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid"
+    "scentravn": {
+      ".read": false,
+      ".write": false,
+
+      "live": {
+        ".read": true,
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['galaxyWatch', 'esp32', 'muse'])",
+
+        "$device": {
+          ".validate": "newData.hasChildren(['source', 'connected', 'updatedAt'])",
+          "source":    { ".validate": "newData.isString()" },
+          "connected": { ".validate": "newData.isBoolean()" },
+          "bpm":       { ".validate": "newData.isNumber()" },
+          "battery":   { ".validate": "newData.isNumber()" },
+          "spo2":      { ".validate": "newData.isNumber()" },
+          "betaAlpha": { ".validate": "newData.isNumber()" },
+          "updatedAt": { ".validate": "newData.isNumber()" },
+
+          "eeg": {
+            ".validate": "newData.hasChildren()",
+            "$band": { ".validate": "newData.isNumber()" }
+          },
+
+          "stress": {
+            ".validate": "newData.hasChildren(['updatedAt'])",
+            "value":     { ".validate": "newData.isNumber()" },
+            "level":     { ".validate": "newData.isString()" },
+            "source":    { ".validate": "newData.isString()" },
+            "updatedAt": { ".validate": "newData.isNumber()" },
+            "$other":    { ".validate": false }
+          },
+
+          "$other": { ".validate": false }
+        }
+      },
+
+      "sessions": {
+        ".read": true,
+        ".write": "auth != null",
+        "$sessionId": {
+          ".validate": "newData.hasChildren(['startedAt'])",
+          "startedAt": { ".validate": "newData.isNumber()" }
+        }
       }
     }
   }

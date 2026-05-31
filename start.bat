@@ -1,10 +1,10 @@
 @echo off
-title SYNAWATCH Server
+title SCENTRAVN Server
 color 0A
 
 echo.
 echo  ====================================
-echo     SYNAWATCH - Smart Health Monitor
+echo     SCENTRAVN - Smart Health Monitor
 echo  ====================================
 echo.
 echo  Starting local server...

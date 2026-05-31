@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Authentication Logic
+ * SCENTRAVN - Authentication Logic
  */
 
 const Auth = {
@@ -122,7 +122,7 @@ const Auth = {
     async logout() {
         try {
             await auth.signOut();
-            localStorage.removeItem('synawatch_user');
+            localStorage.removeItem('scentravn_user');
             return { success: true };
         } catch (error) {
             console.error('Logout error:', error);
@@ -211,7 +211,7 @@ const Auth = {
      * Get cached user from localStorage
      */
     getCachedUser() {
-        const userData = localStorage.getItem('synawatch_user');
+        const userData = localStorage.getItem('scentravn_user');
         return userData ? JSON.parse(userData) : null;
     },
 

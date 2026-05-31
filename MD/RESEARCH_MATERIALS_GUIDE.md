@@ -1,4 +1,4 @@
-# 📚 SynaWatch Research Materials - Complete Guide
+# 📚 ScentraVN Research Materials - Complete Guide
 
 ## Overview
 
@@ -18,11 +18,11 @@ Saya telah membuat **halaman Research Materials yang komprehensif dan visual** b
   - Print-friendly layout
 
 ### 2. **Integrated SPA Route** (Dalam Aplikasi)
-- **Route**: `/synawatch/#/research`
+- **Route**: `/scentravn/#/research`
 - **Navigation**: Menu "More" → "Research"
 - **Fitur**:
   - Loaded inside iframe untuk isolation
-  - Full integration dengan SynaWatch navigation
+  - Full integration dengan ScentraVN navigation
   - Seamless user experience
 
 ---
@@ -30,7 +30,7 @@ Saya telah membuat **halaman Research Materials yang komprehensif dan visual** b
 ## 📋 Struktur Halaman Research Materials
 
 ### Header Section
-- **Title**: "SynaWatch Research Materials"
+- **Title**: "ScentraVN Research Materials"
 - **Subtitle**: "Landasan Ilmiah Fitur-Fitur Berdasarkan Systematic Literature Review 50 Peer-Reviewed Papers"
 - **Statistics Cards**:
   - 50 Peer-Reviewed Papers
@@ -145,7 +145,7 @@ Features:
 - DOI links (clickable)
 ```
 
-### Option 2: Within SynaWatch SPA
+### Option 2: Within ScentraVN SPA
 ```
 Navigation: More Menu → Research
 URL: http://localhost:8080/#/research (or your server)
@@ -347,22 +347,22 @@ Features: Full integration with app navigation
 
 ### For Users
 1. **Standalone Access**: Download or bookmark `research-materials.html`
-2. **In-App Access**: Navigate to "More → Research" in SynaWatch
+2. **In-App Access**: Navigate to "More → Research" in ScentraVN
 3. **Print/Export**: Use browser print function to create PDF
 4. **Share**: Copy URL of standalone page to share with colleagues
 
 ### For Developers
-1. **Research Module**: `synawatch/js/research.js` - Contains all 50 papers + gap analysis
-2. **Views Integration**: `synawatch/js/views.js` - Research view template
-3. **App Routing**: `synawatch/js/app.js` - Research route registered
+1. **Research Module**: `scentravn/js/research.js` - Contains all 50 papers + gap analysis
+2. **Views Integration**: `scentravn/js/views.js` - Research view template
+3. **App Routing**: `scentravn/js/app.js` - Research route registered
 4. **Fallback Rendering**: If HTML load fails, displays basic research summary from research.js data
 
 ### For Citations
 ```
-SynaWatch Research Materials (2026).
+ScentraVN Research Materials (2026).
 Systematic Literature Review of 50 Peer-Reviewed Papers
 across 10 Mental Health Research Domains (2019-2025).
-Publisher: SynaWatch Foundation
+Publisher: ScentraVN Foundation
 Journal Quality Filter: Q1-Q2 (SJR ≤ 2)
 ```
 
@@ -384,7 +384,7 @@ For questions about:
 - **Research Content**: Check the relevant Gap section (1-7)
 - **Paper Details**: Click DOI link to view full paper
 - **Technical Issues**: File issue on GitHub
-- **Feature Requests**: Contact SynaWatch development team
+- **Feature Requests**: Contact ScentraVN development team
 
 ---
 

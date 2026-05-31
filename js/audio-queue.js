@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Audio Queue Manager
+ * SCENTRAVN - Audio Queue Manager
  * Handles sequential playback of TTS audio
  * Ported from Synaglo audioQueue.ts
  */

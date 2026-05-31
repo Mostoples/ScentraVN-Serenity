@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Mindful Moment
+ * SCENTRAVN - Mindful Moment
  * 4-7-8 Breathing Exercise with live countdown timer
  */
 

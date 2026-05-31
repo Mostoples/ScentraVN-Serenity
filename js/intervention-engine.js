@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Closed-Loop Intervention Engine
+ * SCENTRAVN - Closed-Loop Intervention Engine
  * Processes real-time sensor data against baseline psychological states
  * to trigger automated dynamic interventions.
  */
@@ -50,7 +50,7 @@ const InterventionEngine = {
 
         // [GAP 2] Load personal baseline from localStorage if available
         try {
-            const saved = localStorage.getItem('synawatch_personal_baseline');
+            const saved = localStorage.getItem('scentravn_personal_baseline');
             if (saved) this.personalBaseline = JSON.parse(saved);
         } catch (e) {}
 
@@ -262,7 +262,7 @@ const InterventionEngine = {
 
             // Persist for future sessions
             try {
-                localStorage.setItem('synawatch_personal_baseline', JSON.stringify(this.personalBaseline));
+                localStorage.setItem('scentravn_personal_baseline', JSON.stringify(this.personalBaseline));
             } catch (e) {}
         }
     },

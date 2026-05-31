@@ -1,4 +1,4 @@
-# SynaWatch Admin Dashboard - Complete Guide
+# ScentraVN Admin Dashboard - Complete Guide
 
 ## 📊 Overview
 

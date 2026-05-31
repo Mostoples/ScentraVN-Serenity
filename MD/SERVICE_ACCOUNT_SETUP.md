@@ -21,7 +21,7 @@ Menggunakan **Firebase Service Account** untuk:
 
 3. **Simpan file dengan aman:**
    ```bash
-   mv ~/Downloads/synawacth-id-*.json /c/Users/mosto/Desktop/SYNAWATCH/serviceAccountKey.json
+   mv ~/Downloads/synawacth-id-*.json /c/Users/mosto/Desktop/SCENTRAVN/serviceAccountKey.json
    ```
 
 ### 1.2 Security
@@ -34,7 +34,7 @@ Menggunakan **Firebase Service Account** untuk:
 
 ```bash
 # Add to .gitignore
-echo "serviceAccountKey.json" >> /c/Users/mosto/Desktop/SYNAWATCH/.gitignore
+echo "serviceAccountKey.json" >> /c/Users/mosto/Desktop/SCENTRAVN/.gitignore
 ```
 
 ---
@@ -42,7 +42,7 @@ echo "serviceAccountKey.json" >> /c/Users/mosto/Desktop/SYNAWATCH/.gitignore
 ## 🚀 Step 2: Install Dependencies
 
 ```bash
-cd /c/Users/mosto/Desktop/SYNAWATCH
+cd /c/Users/mosto/Desktop/SCENTRAVN
 
 # Install firebase-admin
 npm install
@@ -59,17 +59,17 @@ node setup-admin.js setup-admin your-email@example.com
 
 ### Example:
 ```bash
-node setup-admin.js setup-admin mosto@synawatch.dev
+node setup-admin.js setup-admin mosto@scentravn.dev
 ```
 
 ### Output:
 ```
-✓ Found user: mosto@synawatch.dev (UID: abc123...)
+✓ Found user: mosto@scentravn.dev (UID: abc123...)
 ✓ Added admin role to Firestore
 ✓ Set custom auth claim: admin=true
 
 ✅ Admin setup complete!
-   Email: mosto@synawatch.dev
+   Email: mosto@scentravn.dev
    UID: abc123...
    Role: admin
 ```
@@ -262,7 +262,7 @@ https://console.firebase.google.com/project/synawacth-id/settings/serviceaccount
 ### Can't find setup-admin.js
 ```bash
 # Make sure you're in project root
-cd /c/Users/mosto/Desktop/SYNAWATCH
+cd /c/Users/mosto/Desktop/SCENTRAVN
 ls -la setup-admin.js
 ```
 

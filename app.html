@@ -196,6 +196,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 
     <!-- Three.js for 3D Avatar (r128 - stable legacy version) -->
     <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
@@ -211,6 +212,7 @@
     <script src="js/utils.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-live.js"></script>
     <script src="js/auth-guard.js"></script>
     <!-- Stress Calculator (must load before BLE connection) -->
     <script src="js/stressCalculator.js"></script>
@@ -242,9 +244,6 @@
 
     <!-- EEG Muse Sleep Module -->
     <script src="js/eeg-muse.js"></script>
-
-    <!-- Sleep Session Recorder (uses MuseEEG metrics, persists to Firestore) -->
-    <script src="js/sleep-session.js"></script>
 
     <!-- Sleep Timeline + Detail Modal (vanilla SVG, no chart libs) -->
     <script src="js/sleep-timeline.js"></script>
@@ -339,12 +338,12 @@
                                 db.collection('users').doc(auth.currentUser.uid).get()
                                     .then(userDoc => {
                                         const userData = userDoc.data();
-                                        if (userData && userData.country) {
-                                            // Country already set - just store it for reference
+                                        if (userData && (userData.country || userData.countryPromptDone)) {
+                                            // Sudah memilih ATAU sudah pernah skip → jangan tampilkan lagi
                                             const country = CountryMusic.ASEAN_COUNTRIES.find(c => c.code === userData.country);
                                             if (country) CountryMusic.currentCountry = country;
                                         } else {
-                                            // First time - show country selection for personalization
+                                            // Pertama kali (belum pernah diputuskan) - tampilkan pemilihan negara, sekali saja
                                             CountryMusic.showCountrySelection();
                                         }
                                     })

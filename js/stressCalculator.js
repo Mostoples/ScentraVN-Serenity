@@ -1,5 +1,5 @@
 /**
- * SYNAWATCH - Stress Level Calculator
+ * SCENTRAVN - Stress Level Calculator
  *
  * Client-side stress calculation based on physiological sensor data.
  * Implements weighted scoring from HR, SpO2, GSR, and skin temperature.

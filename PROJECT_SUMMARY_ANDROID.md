@@ -209,7 +209,7 @@ Aplikasi kesehatan mental dan fisik berbasis AI yang menggabungkan:
 - Rekomendasi audio relaksasi + music player
 - Grafik histori tidur (durasi & skor)
 - Analisis gelombang otak saat tidur (theta/delta ratio, dari data perangkat)
-**Data:** LocalStorage `synawatch_sleep_history` + Firestore
+**Data:** LocalStorage `scentravn_sleep_history` + Firestore
 
 ---
 
@@ -487,15 +487,15 @@ system/stats          ← statistik sistem
 
 | State Web | Variabel | Android Equivalent |
 |---|---|---|
-| User session | `synawatch_user` (LocalStorage) | DataStore / SharedPreferences |
+| User session | `scentravn_user` (LocalStorage) | DataStore / SharedPreferences |
 | Data perangkat | `BLEConnection` singleton | BLE Service (Bound Service) |
 | Multi-perangkat | `MultiDevice` manager | BLE Service dengan multiple koneksi |
-| Stress baseline | `synawatch_personal_baseline` | DataStore + Room DB |
-| Assessment progress | `synawatch_assessment_progress` | ViewModel SavedStateHandle |
-| Yoga cache (24h) | `synawatch_yoga_poses` | Room DB + timestamp TTL |
-| Sleep history | `synawatch_sleep_history` | Room DB |
-| Mood log date | `synawatch_mood_date` | DataStore |
-| Game stats | `synawatch_game_stats` | Room DB + Firestore sync |
+| Stress baseline | `scentravn_personal_baseline` | DataStore + Room DB |
+| Assessment progress | `scentravn_assessment_progress` | ViewModel SavedStateHandle |
+| Yoga cache (24h) | `scentravn_yoga_poses` | Room DB + timestamp TTL |
+| Sleep history | `scentravn_sleep_history` | Room DB |
+| Mood log date | `scentravn_mood_date` | DataStore |
+| Game stats | `scentravn_game_stats` | Room DB + Firestore sync |
 | Chat history | Firestore `chatHistory/main` | Firestore live listener |
 
 ---

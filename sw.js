@@ -1,12 +1,12 @@
 /**
- * SYNAWATCH - Service Worker
+ * SCENTRAVN - Service Worker
  * PWA Offline Support & Caching Strategy
  */
 
 const APP_VERSION = '1.7.0';
-const CACHE_NAME = `synawatch-v${APP_VERSION}`;
-const STATIC_CACHE = `synawatch-static-v${APP_VERSION}`;
-const DYNAMIC_CACHE = `synawatch-dynamic-v${APP_VERSION}`;
+const CACHE_NAME = `scentravn-v${APP_VERSION}`;
+const STATIC_CACHE = `scentravn-static-v${APP_VERSION}`;
+const DYNAMIC_CACHE = `scentravn-dynamic-v${APP_VERSION}`;
 
 // Assets to cache immediately on install
 const STATIC_ASSETS = [
@@ -37,7 +37,7 @@ const STATIC_ASSETS = [
     '/js/elevenlabs-tts.js',
     '/js/synachat-avatar.js',
     '/js/synachat.js',
-    '/images/logo.svg',
+    '/images/logo.png',
     '/models/avatar.glb',
     '/models/Idle.fbx',
     '/manifest.json'
@@ -94,7 +94,7 @@ self.addEventListener('activate', (event) => {
                 return Promise.all(
                     cacheNames
                         .filter((name) => {
-                            return name.startsWith('synawatch-') &&
+                            return name.startsWith('scentravn-') &&
                                    name !== STATIC_CACHE &&
                                    name !== DYNAMIC_CACHE;
                         })
@@ -217,8 +217,8 @@ self.addEventListener('push', (event) => {
 
     const options = {
         body: event.data ? event.data.text() : 'New health update available',
-        icon: '/images/icons/icon-192x192.png',
-        badge: '/images/icons/badge-72x72.png',
+        icon: '/images/logo.png',
+        badge: '/images/logo.png',
         vibrate: [100, 50, 100],
         data: {
             dateOfArrival: Date.now(),
@@ -231,7 +231,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-        self.registration.showNotification('SYNAWATCH', options)
+        self.registration.showNotification('SCENTRAVN', options)
     );
 });
 
