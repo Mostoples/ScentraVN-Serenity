@@ -1,8 +1,8 @@
 /**
  * ScentraVN Serenity — Theme System
  *
- * Three modes: Light · Dark · Aura (default)
- * Toggle via JS: ThemeManager.set('light'|'dark'|'aura')
+ * Two modes: Light (default) · Dark
+ * Toggle via JS: ThemeManager.set('light'|'dark')
  * Stored in localStorage as 'scentravn_theme'.
  *
  * Implementation: data-theme attribute on <html> overrides CSS variables.
@@ -57,50 +57,65 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * 2. THEME TOGGLE BUTTON
+ * 2. HEADER TOGGLE BUTTONS — single, square, tidy (theme + language)
+ *    Each is ONE button that flips state on click:
+ *      · theme: sun  ⇄ moon
+ *      · lang:  ID   ⇄ EN
  * ═══════════════════════════════════════════════════════════════ */
 
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(124, 58, 237, 0.18);
-  border-radius: 999px;
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.10);
-  transition: all 0.25s ease;
-}
-
-.theme-toggle button {
-  background: transparent;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  color: #6d28d9;
-  cursor: pointer;
+.theme-toggle-btn,
+.header-toggle-btn,
+.lang-toggle-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s ease;
-  font-size: 0.85rem;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  color: #6d28d9;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.10);
+  transition: all 0.2s ease;
 }
 
-.theme-toggle button:hover {
-  background: rgba(124, 58, 237, 0.10);
+.theme-toggle-btn:hover,
+.header-toggle-btn:hover,
+.lang-toggle-btn:hover {
+  background: rgba(124, 58, 237, 0.12);
+  transform: translateY(-1px);
+}
+.theme-toggle-btn:active,
+.header-toggle-btn:active,
+.lang-toggle-btn:active { transform: scale(0.93); }
+
+.theme-toggle-btn i { transition: transform 0.3s ease; }
+.lang-toggle-btn #langToggleLabel,
+.lang-toggle-btn span { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.03em; }
+
+/* Placement: theme first/leftmost among header controls */
+.app-header .header-right .theme-toggle-btn { order: -1; flex: 0 0 auto; }
+.app-header .header-right .lang-toggle-btn  { flex: 0 0 auto; }
+
+/* Floating instance on standalone pages (no header) */
+body > .theme-toggle-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 500;
 }
 
-.theme-toggle button.active {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(124, 58, 237, 0.30);
-}
-
-.theme-toggle button.active i {
-  animation: anim-pulse 2.4s ease-in-out infinite;
+@media (max-width: 768px) {
+  .theme-toggle-btn,
+  .header-toggle-btn,
+  .lang-toggle-btn { width: 38px; height: 38px; border-radius: 11px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -137,8 +152,9 @@ html[data-theme="light"] .chart-container {
 
 html[data-theme="dark"] {
   --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #a78bfa;
+  --text-muted: #94a3b8;
 }
 
 html[data-theme="dark"] body {
@@ -210,17 +226,17 @@ html[data-theme="dark"] .bottom-nav .nav-item {
   color: #a78bfa;
 }
 
-html[data-theme="dark"] .ble-button,
 html[data-theme="dark"] .lang-toggle-btn,
-html[data-theme="dark"] .theme-toggle {
+html[data-theme="dark"] .theme-toggle-btn,
+html[data-theme="dark"] .header-toggle-btn {
   background: rgba(40, 25, 80, 0.7) !important;
   border-color: rgba(139, 92, 246, 0.30) !important;
   color: #c4b5fd !important;
 }
 
-html[data-theme="dark"] .ble-button i,
 html[data-theme="dark"] .lang-toggle-btn i,
-html[data-theme="dark"] .theme-toggle button {
+html[data-theme="dark"] .lang-toggle-btn span,
+html[data-theme="dark"] .theme-toggle-btn i {
   color: #c4b5fd !important;
 }
 
@@ -244,12 +260,58 @@ html[data-theme="dark"] .loading-screen {
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * 5. AURA THEME (default — already wired in theme-aura.css)
- *    No overrides needed. This block exists for symmetry.
+ * 5. LIGHT THEME — TEXT READABILITY SAFETY NET
+ *    theme-aura.css supplies the base look (glass + dark-purple text).
+ *    These rules guarantee text never lands on a same-colour surface
+ *    once the page is forced to the light palette.
  * ═══════════════════════════════════════════════════════════════ */
 
-html[data-theme="aura"] {
-  /* uses defaults from theme-aura.css */
+html[data-theme="light"] {
+  --text-primary: #1e1b4b;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+}
+
+html[data-theme="light"] body {
+  color: #1e1b4b;
+}
+
+/* Headings & section titles — keep a strong dark-purple on light bg */
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4,
+html[data-theme="light"] .section-title,
+html[data-theme="light"] .aura-section-title,
+html[data-theme="light"] .card-title,
+html[data-theme="light"] .script-card-title,
+html[data-theme="light"] .device-card-name,
+html[data-theme="light"] .pill-value {
+  color: #4c1d95 !important;
+}
+
+/* Secondary / muted text — readable grey, never white-on-white */
+html[data-theme="light"] .card-subtitle,
+html[data-theme="light"] .script-card-desc,
+html[data-theme="light"] .device-card-room,
+html[data-theme="light"] .pill-label,
+html[data-theme="light"] .pill-sub,
+html[data-theme="light"] .header-date {
+  color: #64748b !important;
+}
+
+/* Inputs sit on solid white cards — force dark text + visible border */
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select {
+  background: #ffffff !important;
+  color: #1e1b4b !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: #94a3b8 !important;
 }
 
 

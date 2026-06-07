@@ -26,7 +26,7 @@ const Questionnaire = {
         { code: 'uiux2',  text: 'Ikon dan tombol mudah saya kenali fungsinya.', group: 'nav' },
         { code: 'uiux3',  text: 'Saya dapat berpindah antar fitur dengan mudah dan intuitif.', group: 'nav' },
         { code: 'uiux4',  text: 'Teks dan informasi dalam aplikasi mudah dibaca.', group: 'nav' },
-        { code: 'uiux5',  text: 'Fitur SynaChat membantu saya mengekspresikan perasaan saya.', group: 'feature' },
+        { code: 'uiux5',  text: 'Fitur ScentraVN Chat membantu saya mengekspresikan perasaan saya.', group: 'feature' },
         { code: 'uiux6',  text: 'Fitur Journal mudah saya gunakan untuk mencatat emosi harian.', group: 'feature' },
         { code: 'uiux7',  text: 'Konten di Academy relevan dan bermanfaat untuk kesehatan mental saya.', group: 'feature' },
         { code: 'uiux8',  text: 'Latihan di fitur Yoga/Mindful terasa terarah dan mudah diikuti.', group: 'feature' },
@@ -63,12 +63,12 @@ const Questionnaire = {
         { code: 'trust2', text: 'Saya merasa nyaman memberikan data pribadi dan kondisi emosi saya ke aplikasi ini.' },
         { code: 'trust3', text: 'Saya yakin data saya tidak akan disalahgunakan atau dibagikan tanpa izin.' },
         { code: 'trust4', text: 'Informasi tentang privasi dan keamanan data dalam aplikasi sudah cukup jelas.' },
-        { code: 'trust5', text: 'Saya percaya pada AI (SynaChat) untuk menyimpan percakapan saya dengan aman.' }
+        { code: 'trust5', text: 'Saya percaya pada AI (ScentraVN Chat) untuk menyimpan percakapan saya dengan aman.' }
     ],
 
     THERAPEUTIC_QUESTIONS: [
         { code: 'ther1', text: 'Konten dalam aplikasi ini relevan dengan kebutuhan kesehatan mental saya.' },
-        { code: 'ther2', text: 'Fitur SynaChat terasa seperti berbicara dengan pendamping yang memahami saya.' },
+        { code: 'ther2', text: 'Fitur ScentraVN Chat terasa seperti berbicara dengan pendamping yang memahami saya.' },
         { code: 'ther3', text: 'Latihan Yoga dan Mindful dalam aplikasi ini terasa efektif untuk menenangkan pikiran.' },
         { code: 'ther4', text: 'Konten Academy memberikan pengetahuan baru yang berguna tentang kesehatan mental.' },
         { code: 'ther5', text: 'Saya merasa lebih baik secara emosional setelah menggunakan aplikasi ini.' },

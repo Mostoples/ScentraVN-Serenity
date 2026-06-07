@@ -170,17 +170,11 @@
                 </div>
             </div>
             <div class="header-right">
-                <button id="langToggleBtn" class="lang-toggle-btn" onclick="I18n.setLang(I18n.currentLang === 'id' ? 'en' : 'id')" aria-label="Switch language">
-                    <i class="fas fa-globe" aria-hidden="true"></i>
+                <!-- Theme toggle (sun ⇄ moon) is injected here by js/theme-manager.js -->
+                <!-- Language toggle: single button that flips ID ⇄ EN on click -->
+                <button id="langToggleBtn" class="lang-toggle-btn" onclick="toggleLanguage()" aria-label="Switch language" title="Bahasa / Language">
                     <span id="langToggleLabel">ID</span>
                 </button>
-                <button id="bleConnectBtn" class="ble-button" aria-label="Connect device">
-                    <i class="fas fa-link" aria-hidden="true"></i>
-                    <span class="ble-status">Connect</span>
-                </button>
-                <div id="bleIndicator" class="ble-indicator disconnected">
-                    <span class="indicator-dot"></span>
-                </div>
             </div>
         </header>
 
@@ -203,6 +197,8 @@
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
     <script src="https://unpkg.com/fflate@0.7.3/umd/index.js"></script>
+    <!-- SheetJS (xlsx) — export RAW recordings to Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <!-- App Scripts -->
     <script src="js/theme-manager.js"></script>
@@ -263,6 +259,7 @@
     <!-- RAW multi-device recorder -->
     <script src="js/raw-recorder.js"></script>
     <script src="js/raw-recorder-view.js"></script>
+    <script src="js/record-history.js"></script>
 
     <!-- Sleep Session Recorder + UI -->
     <script src="js/sleep-session.js"></script>

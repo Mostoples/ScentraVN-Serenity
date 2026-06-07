@@ -265,7 +265,7 @@
 
       btn.addEventListener('click', async () => {
         if (!MuseEEG.isSupported()) {
-          alert('Web Bluetooth tidak didukung di browser ini. Gunakan Chrome/Edge desktop.');
+          alert('Bluetooth tidak didukung di browser ini. Gunakan Chrome atau Edge.');
           return;
         }
         if (MuseEEG.isConnected) {

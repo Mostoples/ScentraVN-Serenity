@@ -58,7 +58,7 @@ const SupportHub = {
         { label: 'Latihan Pernapasan 4-7-8', desc: 'Tarik 4 detik, tahan 7 detik, buang 8 detik. Ulangi 4x.', icon: 'fa-wind', route: 'mindful', color: '#10B981' },
         { label: 'Refleksi Harian (Journaling)', desc: 'Tulis pikiran Anda untuk identifikasi pola emosi.', icon: 'fa-book-open', route: 'journal', color: '#F97316' },
         { label: 'Terapi Musik', desc: 'Dengarkan musik yang disesuaikan sensor tubuh Anda.', icon: 'fa-music', route: 'moodbooster', color: '#F59E0B' },
-        { label: 'Bicara dengan AI', desc: 'Dr. Synachat siap menemani Anda kapan saja.', icon: 'fa-robot', route: 'synachat', color: '#3B82F6' }
+        { label: 'Bicara dengan AI', desc: 'Dr. ScentraVN Chat siap menemani Anda kapan saja.', icon: 'fa-robot', route: 'synachat', color: '#3B82F6' }
     ],
 
     cachedAssessment: null,

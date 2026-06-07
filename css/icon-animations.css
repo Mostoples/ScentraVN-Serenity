@@ -382,12 +382,12 @@ i.fa-magnifying-glass {
   animation: anim-rock 2.4s ease-in-out infinite;
 }
 
-/* —— DOWNLOAD / UPLOAD —— */
+/* —— DOWNLOAD / UPLOAD —— (static, no animation) */
 i.fa-download {
-  animation: anim-bounce 1.8s ease-in-out infinite;
+  animation: none;
 }
 i.fa-upload {
-  animation: anim-bounce 1.8s ease-in-out infinite reverse;
+  animation: none;
 }
 
 /* —— SUCCESS —— */

@@ -211,8 +211,8 @@
             <canvas id="gwSpark" height="40" style="width:100%;margin-top:12px;display:block;"></canvas>
           `)}
 
-          <!-- ESP32 -->
-          ${this._deviceCardShell('esp', 'fa-microchip', 'ESP32-C3 (MAX30102)', `
+          <!-- Scentravn Watch (ESP32 + MAX30102) -->
+          ${this._deviceCardShell('esp', 'fa-microchip', 'Scentravn Watch (MAX30102)', `
             <div style="display:flex;gap:24px;flex-wrap:wrap;">
               <div>
                 <div class="live-metric-big"><span id="espBpm">—</span><sup style="font-size:0.5em;color:#94a3b8;"> bpm</sup></div>

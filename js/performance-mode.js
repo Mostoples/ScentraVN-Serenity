@@ -69,30 +69,20 @@
       } catch (e) { return false; }
     },
 
-    /* ── Toggle button in header ──────────────────────────────────── */
+    /* ── Toggle button intentionally NOT rendered ─────────────────────
+     * Performance mode still runs (auto-detected on low-end devices and
+     * controllable via ScentraPerf.set()), but no floating button is
+     * shown — the header keeps only the Light/Dark theme toggle.
+     * Any pre-existing button from an older cached build is removed. */
     _mount() {
-      const insert = () => {
-        if (document.querySelector('.perf-toggle-btn')) { this._refreshBtn(); return; }
-        const btn = document.createElement('button');
-        btn.className = 'perf-toggle-btn';
-        btn.setAttribute('aria-label', 'Performance mode');
-        btn.title = 'Mode Ringan / Normal';
-        btn.addEventListener('click', () => this.toggle());
-
-        const headerRight = document.querySelector('.app-header .header-right');
-        if (headerRight) {
-          headerRight.prepend(btn);
-        } else {
-          btn.style.cssText = 'position:fixed;top:16px;right:104px;z-index:500;';
-          document.body.appendChild(btn);
-        }
-        this._refreshBtn();
+      const cleanup = () => {
+        document.querySelectorAll('.perf-toggle-btn').forEach(b => b.remove());
       };
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', insert);
-      } else { insert(); }
-      setTimeout(insert, 700);
-      setTimeout(insert, 1600);
+        document.addEventListener('DOMContentLoaded', cleanup);
+      } else { cleanup(); }
+      setTimeout(cleanup, 700);
+      setTimeout(cleanup, 1600);
     },
 
     _refreshBtn() {

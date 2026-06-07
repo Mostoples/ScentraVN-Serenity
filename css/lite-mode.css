@@ -74,7 +74,8 @@ html.lite-mode[data-theme="dark"] .card,
 html.lite-mode[data-theme="dark"] .chart-container,
 html.lite-mode[data-theme="dark"] .app-header,
 html.lite-mode[data-theme="dark"] .bottom-nav,
-html.lite-mode[data-theme="dark"] .theme-toggle {
+html.lite-mode[data-theme="dark"] .theme-toggle-btn,
+html.lite-mode[data-theme="dark"] .lang-toggle-btn {
   background: #1a1230 !important;
   border: 1px solid rgba(139, 92, 246, 0.18) !important;
   box-shadow: none !important;

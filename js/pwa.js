@@ -130,17 +130,8 @@ const PWA = {
      * Check if app is eligible for install
      */
     checkInstallEligibility() {
-        // Check if already shown recently
-        const lastShown = localStorage.getItem('pwa_install_shown');
-        if (lastShown) {
-            const daysSinceShown = (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60 * 24);
-            if (daysSinceShown < 7) {
-                console.log('[PWA] Install prompt recently shown, skipping');
-                return false;
-            }
-        }
-
-        return !this.isStandalone;
+        // Auto-prompt is shown at most once per account (see _autoSuppressed)
+        return !this._autoSuppressed();
     },
 
     /**
@@ -218,7 +209,7 @@ const PWA = {
         miniBtn.className = 'pwa-mini-install';
         miniBtn.innerHTML = '<i class="fas fa-download"></i>';
         miniBtn.setAttribute('aria-label', 'Install App');
-        miniBtn.onclick = () => this.showInstallPrompt();
+        miniBtn.onclick = () => this.showInstallPrompt(true);  // manual: always allowed
 
         // Add mini button to header if not standalone
         if (!this.isStandalone) {
@@ -635,16 +626,116 @@ const PWA = {
                     font-size: 1.375rem;
                 }
             }
+
+            /* ── Mobile tidy-up ─────────────────────────────────────────
+             * Keep the 3 feature chips on a single row, respect the iOS
+             * home-indicator safe area, and tighten spacing so the sheet
+             * never overflows on small screens. */
+            @media (max-width: 480px) {
+                .pwa-install-banner {
+                    padding: 12px;
+                    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+                }
+                .pwa-banner-content {
+                    padding: 20px 18px;
+                    border-radius: 22px;
+                }
+                .pwa-banner-header {
+                    gap: 12px;
+                    margin-bottom: 16px;
+                    padding-right: 28px;   /* clear the close button */
+                }
+                .pwa-app-icon {
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 14px;
+                }
+                .pwa-app-info h3 { font-size: 1.05rem; }
+                .pwa-app-info p  { font-size: 0.8rem; }
+                .pwa-features {
+                    gap: 8px;
+                    margin-bottom: 18px;
+                    flex-wrap: nowrap;     /* always one row */
+                }
+                .pwa-feature {
+                    min-width: 0;          /* let chips shrink to fit */
+                    padding: 10px 6px;
+                    gap: 6px;
+                }
+                .pwa-feature i { font-size: 1.1rem; }
+                .pwa-feature span {
+                    font-size: 0.66rem;
+                    line-height: 1.2;
+                }
+                .pwa-actions { gap: 10px; }
+                .pwa-btn-primary,
+                .pwa-btn-secondary {
+                    padding: 13px 12px;
+                    font-size: 0.875rem;
+                }
+                .pwa-ios-step {
+                    font-size: 0.82rem;
+                    gap: 10px;
+                }
+            }
+
+            /* Extra-narrow phones (≤340px): stack the action buttons */
+            @media (max-width: 340px) {
+                .pwa-actions { flex-direction: column-reverse; }
+                .pwa-feature span { font-size: 0.6rem; }
+            }
         `;
         document.head.appendChild(styles);
     },
 
     /**
-     * Show install prompt
+     * Identify the signed-in account so the prompt can be shown
+     * once PER ACCOUNT (not once per device).
      */
-    showInstallPrompt() {
+    _accountId() {
+        try {
+            const raw = localStorage.getItem('scentravn_user');
+            if (raw) {
+                const u = JSON.parse(raw);
+                if (u && u.uid) return u.uid;
+            }
+        } catch (e) {}
+        return 'guest';
+    },
+
+    _seenKey() {
+        return 'pwa_install_seen_' + this._accountId();
+    },
+
+    /** True if the auto-prompt has already been shown for this account. */
+    _autoSuppressed() {
+        if (this.isStandalone) return true;
+        try {
+            return localStorage.getItem(this._seenKey()) === '1';
+        } catch (e) {
+            return false;
+        }
+    },
+
+    _markSeen() {
+        try { localStorage.setItem(this._seenKey(), '1'); } catch (e) {}
+    },
+
+    /**
+     * Show install prompt.
+     * @param {boolean} manual - true when triggered by the user tapping the
+     *   mini install button (always allowed). Auto-triggers are shown at most
+     *   once per account.
+     */
+    showInstallPrompt(manual = false) {
         const banner = document.getElementById('pwa-install-banner');
         if (!banner || this.isStandalone) return;
+
+        // Auto-prompt: only once per account
+        if (!manual && this._autoSuppressed()) {
+            console.log('[PWA] Install prompt already shown for this account, skipping');
+            return;
+        }
 
         // Show iOS-specific instructions
         if (this.isIOS) {
@@ -656,6 +747,8 @@ const PWA = {
 
         banner.classList.add('visible');
         localStorage.setItem('pwa_install_shown', Date.now().toString());
+        // NOTE: "seen" is recorded only once the user actually clicks
+        // (Install / Not now / ✕) — see hideInstallPrompt() & installApp().
     },
 
     /**
@@ -666,6 +759,10 @@ const PWA = {
         if (banner) {
             banner.classList.remove('visible');
         }
+
+        // User clicked something (✕ / Not now / install completed) →
+        // record "seen" so the auto-prompt never appears again for this account.
+        this._markSeen();
 
         if (remember) {
             localStorage.setItem('pwa_install_dismissed', 'true');
@@ -679,11 +776,14 @@ const PWA = {
      * Trigger app installation
      */
     async installApp() {
+        // User clicked "Install" → count as interaction (won't auto-prompt again)
+        this._markSeen();
+
         if (!this.deferredPrompt) {
             console.log('[PWA] No install prompt available');
             // Show iOS instructions if on iOS
             if (this.isIOS) {
-                this.showInstallPrompt();
+                this.showInstallPrompt(true);  // manual: user tapped Install
             }
             return;
         }

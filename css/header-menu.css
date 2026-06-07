@@ -256,32 +256,14 @@
 
     /* Hide these header buttons on mobile — they move into hamburger dropdown */
     .header-right > #headerMusicBtn,
-    .header-right > #langToggleBtn,
     .header-right > .pwa-mini-install {
         display: none !important;
     }
 
-    /* BLE button stays visible in header on mobile — compact icon-only style */
-    .header-right > #bleConnectBtn {
-        padding: 7px 10px;
-        font-size: 0.75rem;
-        gap: 5px;
-        border-radius: 10px;
-        order: 1;
-    }
-
-    .header-right > #bleConnectBtn .ble-status {
-        display: none;
-    }
-
-    .header-right > #bleConnectBtn i {
-        font-size: 1rem;
-    }
-
-    /* BLE indicator stays visible next to button */
-    .header-right > #bleIndicator {
-        width: 10px;
-        height: 10px;
+    /* Theme + language toggles stay visible on mobile as single buttons */
+    .header-right > .theme-toggle-btn { order: 1; }
+    .header-right > #langToggleBtn {
+        display: inline-flex !important;
         order: 2;
     }
 
@@ -291,7 +273,6 @@
     }
 
     /* Hidden items get high order so they don't affect layout */
-    .header-right > #langToggleBtn,
     .header-right > .pwa-mini-install {
         order: 99;
     }

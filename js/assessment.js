@@ -5,81 +5,143 @@
  */
 
 const Assessment = {
-    // PHQ-9 Questions (Over the last 2 weeks, how often have you been bothered by any of the following problems?)
-    phq9: [
-        "Little interest or pleasure in doing things",
-        "Feeling down, depressed, or hopeless",
-        "Trouble falling or staying asleep, or sleeping too much",
-        "Feeling tired or having little energy",
-        "Poor appetite or overeating",
-        "Feeling bad about yourself - or that you are a failure or have let yourself or your family down",
-        "Trouble concentrating on things, such as reading the newspaper or watching television",
-        "Moving or speaking so slowly that other people could have noticed. Or the opposite - being so fidgety or restless that you have been moving around a lot more than usual",
-        "Thoughts that you would be better off dead, or of hurting yourself"
-    ],
-    // UCLA Loneliness Scale V3 (20 items)
-    ucla: [
-        "How often do you feel that you are 'in tune' with the people around you?", // *Reversed
-        "How often do you feel that you lack companionship?",
-        "How often do you feel that there is no one you can turn to?",
-        "How often do you feel alone?",
-        "How often do you feel part of a group of friends?", // *Reversed
-        "How often do you feel that you have a lot in common with the people around you?", // *Reversed
-        "How often do you feel that you are no longer close to anyone?",
-        "How often do you feel that your interests and ideas are not shared by those around you?",
-        "How often do you feel outgoing and friendly?", // *Reversed
-        "How often do you feel close to people?", // *Reversed
-        "How often do you feel left out?",
-        "How often do you feel that your relationships with others are not meaningful?",
-        "How often do you feel that no one really knows you well?",
-        "How often do you feel isolated from others?",
-        "How often do you feel you can find companionship when you want it?", // *Reversed
-        "How often do you feel that there are people who really understand you?", // *Reversed
-        "How often do you feel shy?",
-        "How often do you feel that people are around you but not with you?",
-        "How often do you feel that there are people you can talk to?", // *Reversed
-        "How often do you feel that there are people you can turn to?" // *Reversed
-    ],
+    // PHQ-9 Questions — bilingual (id · en)
+    _phq9: {
+        en: [
+            "Little interest or pleasure in doing things",
+            "Feeling down, depressed, or hopeless",
+            "Trouble falling or staying asleep, or sleeping too much",
+            "Feeling tired or having little energy",
+            "Poor appetite or overeating",
+            "Feeling bad about yourself - or that you are a failure or have let yourself or your family down",
+            "Trouble concentrating on things, such as reading the newspaper or watching television",
+            "Moving or speaking so slowly that other people could have noticed. Or the opposite - being so fidgety or restless that you have been moving around a lot more than usual",
+            "Thoughts that you would be better off dead, or of hurting yourself"
+        ],
+        id: [
+            "Kurang berminat atau bergairah dalam melakukan sesuatu",
+            "Merasa murung, sedih, atau putus asa",
+            "Sulit tidur atau mudah terbangun, atau terlalu banyak tidur",
+            "Merasa lelah atau kurang berenergi",
+            "Kurang nafsu makan atau makan berlebihan",
+            "Merasa buruk tentang diri sendiri — merasa gagal atau telah mengecewakan diri sendiri atau keluarga",
+            "Sulit berkonsentrasi pada sesuatu, seperti membaca koran atau menonton televisi",
+            "Bergerak atau berbicara sangat lambat sampai diperhatikan orang lain. Atau sebaliknya — merasa gelisah atau resah sehingga lebih banyak bergerak dari biasanya",
+            "Berpikir bahwa Anda lebih baik mati, atau ingin menyakiti diri sendiri"
+        ]
+    },
+    // UCLA Loneliness Scale V3 (20 items) — bilingual
+    _ucla: {
+        en: [
+            "How often do you feel that you are 'in tune' with the people around you?", // *Reversed
+            "How often do you feel that you lack companionship?",
+            "How often do you feel that there is no one you can turn to?",
+            "How often do you feel alone?",
+            "How often do you feel part of a group of friends?", // *Reversed
+            "How often do you feel that you have a lot in common with the people around you?", // *Reversed
+            "How often do you feel that you are no longer close to anyone?",
+            "How often do you feel that your interests and ideas are not shared by those around you?",
+            "How often do you feel outgoing and friendly?", // *Reversed
+            "How often do you feel close to people?", // *Reversed
+            "How often do you feel left out?",
+            "How often do you feel that your relationships with others are not meaningful?",
+            "How often do you feel that no one really knows you well?",
+            "How often do you feel isolated from others?",
+            "How often do you feel you can find companionship when you want it?", // *Reversed
+            "How often do you feel that there are people who really understand you?", // *Reversed
+            "How often do you feel shy?",
+            "How often do you feel that people are around you but not with you?",
+            "How often do you feel that there are people you can talk to?", // *Reversed
+            "How often do you feel that there are people you can turn to?" // *Reversed
+        ],
+        id: [
+            "Seberapa sering Anda merasa \"sejalan\" dengan orang-orang di sekitar Anda?", // *Reversed
+            "Seberapa sering Anda merasa kekurangan teman?",
+            "Seberapa sering Anda merasa tidak ada orang yang bisa Anda andalkan?",
+            "Seberapa sering Anda merasa sendirian?",
+            "Seberapa sering Anda merasa menjadi bagian dari sekelompok teman?", // *Reversed
+            "Seberapa sering Anda merasa memiliki banyak kesamaan dengan orang di sekitar Anda?", // *Reversed
+            "Seberapa sering Anda merasa tidak lagi dekat dengan siapa pun?",
+            "Seberapa sering Anda merasa minat dan gagasan Anda tidak dibagikan oleh orang di sekitar Anda?",
+            "Seberapa sering Anda merasa mudah bergaul dan ramah?", // *Reversed
+            "Seberapa sering Anda merasa dekat dengan orang lain?", // *Reversed
+            "Seberapa sering Anda merasa tersisihkan?",
+            "Seberapa sering Anda merasa hubungan Anda dengan orang lain tidak bermakna?",
+            "Seberapa sering Anda merasa tidak ada yang benar-benar mengenal Anda dengan baik?",
+            "Seberapa sering Anda merasa terisolasi dari orang lain?",
+            "Seberapa sering Anda merasa bisa menemukan teman saat Anda menginginkannya?", // *Reversed
+            "Seberapa sering Anda merasa ada orang yang benar-benar memahami Anda?", // *Reversed
+            "Seberapa sering Anda merasa malu?",
+            "Seberapa sering Anda merasa orang-orang ada di sekitar Anda tetapi tidak bersama Anda?",
+            "Seberapa sering Anda merasa ada orang yang bisa Anda ajak bicara?", // *Reversed
+            "Seberapa sering Anda merasa ada orang yang bisa Anda andalkan?" // *Reversed
+        ]
+    },
     uclaReversedIndices: [0, 4, 5, 8, 9, 14, 15, 18, 19],
 
-    // PSP-5 — Perceived Stress Scale (5-item, skala 1–6)
-    psp5: [
-        "Seberapa sering Anda merasa terganggu secara tiba-tiba oleh sesuatu yang tidak terduga?",
-        "Seberapa sering Anda merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda?",
-        "Seberapa sering Anda merasa gugup dan penuh tekanan?",
-        "Seberapa sering Anda berhasil mengatasi berbagai kesulitan yang Anda hadapi?",  // reversed
-        "Seberapa sering Anda merasa percaya diri dalam menghadapi masalah pribadi Anda?" // reversed
-    ],
+    // PSP-5 — Perceived Stress Scale (5-item, scale 1–6) — bilingual
+    _psp5: {
+        en: [
+            "How often have you felt suddenly disturbed by something unexpected?",
+            "How often have you felt unable to control the important things in your life?",
+            "How often have you felt nervous and under pressure?",
+            "How often have you successfully coped with the difficulties you faced?",  // reversed
+            "How often have you felt confident in handling your personal problems?" // reversed
+        ],
+        id: [
+            "Seberapa sering Anda merasa terganggu secara tiba-tiba oleh sesuatu yang tidak terduga?",
+            "Seberapa sering Anda merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda?",
+            "Seberapa sering Anda merasa gugup dan penuh tekanan?",
+            "Seberapa sering Anda berhasil mengatasi berbagai kesulitan yang Anda hadapi?",  // reversed
+            "Seberapa sering Anda merasa percaya diri dalam menghadapi masalah pribadi Anda?" // reversed
+        ]
+    },
     psp5ReversedIndices: [3, 4], // item 4 & 5 di-reverse (7 - nilai)
-    psp5Labels: [
-        '1 — Tidak Pernah',
-        '2 — Hampir Tidak Pernah',
-        '3 — Kadang-kadang',
-        '4 — Cukup Sering',
-        '5 — Sering',
-        '6 — Hampir Selalu',
-    ],
+    _psp5Labels: {
+        en: ['1 — Never', '2 — Almost Never', '3 — Sometimes', '4 — Fairly Often', '5 — Often', '6 — Almost Always'],
+        id: ['1 — Tidak Pernah', '2 — Hampir Tidak Pernah', '3 — Kadang-kadang', '4 — Cukup Sering', '5 — Sering', '6 — Hampir Selalu'],
+    },
 
-    // SEES-10 — Salzburg Emotional Eating Scale (10-item, skala 1–5)
-    sees10: [
-        "Saat saya sedang cemas, saya makan lebih banyak dari biasanya",
-        "Saat saya merasa marah, saya cenderung langsung makan",
-        "Saat saya sedang merasa depresi, saya makan lebih banyak",
-        "Saat saya merasa kecewa, saya makan berlebihan",
-        "Saat saya merasa takut, saya makan lebih banyak",
-        "Saat saya sedang merasa senang, saya juga makan lebih banyak",
-        "Saat saya merasa bosan, saya cenderung ngemil berlebihan",
-        "Saat saya merasa tertekan oleh tekanan hidup, saya makan lebih banyak",
-        "Makanan adalah cara utama saya mengatasi emosi negatif",
-        "Saya makan sebagai respons terhadap suasana hati, bukan karena benar-benar lapar",
-    ],
-    sees10Labels: [
-        '1 — Tidak Pernah',
-        '2 — Jarang',
-        '3 — Kadang-kadang',
-        '4 — Sering',
-        '5 — Selalu',
-    ],
+    // SEES-10 — Salzburg Emotional Eating Scale (10-item, scale 1–5) — bilingual
+    _sees10: {
+        en: [
+            "When I am anxious, I eat more than usual",
+            "When I feel angry, I tend to eat right away",
+            "When I feel depressed, I eat more",
+            "When I feel disappointed, I overeat",
+            "When I feel afraid, I eat more",
+            "When I feel happy, I also eat more",
+            "When I feel bored, I tend to snack excessively",
+            "When I feel pressured by life's stress, I eat more",
+            "Food is my main way of coping with negative emotions",
+            "I eat in response to my mood, not because I'm truly hungry",
+        ],
+        id: [
+            "Saat saya sedang cemas, saya makan lebih banyak dari biasanya",
+            "Saat saya merasa marah, saya cenderung langsung makan",
+            "Saat saya sedang merasa depresi, saya makan lebih banyak",
+            "Saat saya merasa kecewa, saya makan berlebihan",
+            "Saat saya merasa takut, saya makan lebih banyak",
+            "Saat saya sedang merasa senang, saya juga makan lebih banyak",
+            "Saat saya merasa bosan, saya cenderung ngemil berlebihan",
+            "Saat saya merasa tertekan oleh tekanan hidup, saya makan lebih banyak",
+            "Makanan adalah cara utama saya mengatasi emosi negatif",
+            "Saya makan sebagai respons terhadap suasana hati, bukan karena benar-benar lapar",
+        ]
+    },
+    _sees10Labels: {
+        en: ['1 — Never', '2 — Rarely', '3 — Sometimes', '4 — Often', '5 — Always'],
+        id: ['1 — Tidak Pernah', '2 — Jarang', '3 — Kadang-kadang', '4 — Sering', '5 — Selalu'],
+    },
+
+    // ── Active-language helpers (length identical across languages) ──
+    lang() { try { return (window.I18n && I18n.getLang && I18n.getLang() === 'en') ? 'en' : 'id'; } catch (e) { return 'id'; } },
+    get phq9()        { return this._phq9[this.lang()]        || this._phq9.id; },
+    get ucla()        { return this._ucla[this.lang()]        || this._ucla.id; },
+    get psp5()        { return this._psp5[this.lang()]        || this._psp5.id; },
+    get sees10()      { return this._sees10[this.lang()]      || this._sees10.id; },
+    get psp5Labels()  { return this._psp5Labels[this.lang()]  || this._psp5Labels.id; },
+    get sees10Labels(){ return this._sees10Labels[this.lang()]|| this._sees10Labels.id; },
 
     currentStage: 'intro', // intro, phq9, ucla, psp5, sees10, result
     currentIndex: 0,
@@ -93,10 +155,127 @@ const Assessment = {
     // Storage key for localStorage
     STORAGE_KEY: 'scentravn_assessment_progress',
 
+    // ── Bilingual UI strings ─────────────────────────────────────
+    _ui: {
+        intro_title:   { id: 'Selamat Datang!', en: 'Welcome!' },
+        intro_body:    { id: 'Untuk mempersonalisasi SCENTRAVN sesuai kondisi Anda, kami perlu menanyakan beberapa hal (PHQ-9 & UCLA Loneliness Scale). Kerahasiaan data Anda terjamin.', en: 'To personalize SCENTRAVN for your condition, we need to ask you a few questions (PHQ-9 & UCLA Loneliness Scale). Your data is kept confidential.' },
+        intro_start:   { id: 'Mulai Evaluasi', en: 'Start Assessment' },
+
+        badge_phq9:    { id: 'Bagian 1: Kesejahteraan Mental', en: 'Part 1: Mental Well-being' },
+        badge_ucla:    { id: 'Bagian 2: Interaksi Sosial', en: 'Part 2: Social Interaction' },
+        badge_psp5:    { id: 'Bagian 3: Tingkat Stres — PSP-5', en: 'Part 3: Stress Level — PSP-5' },
+        badge_sees10:  { id: 'Bagian 4: Respons Makan — SEES-10', en: 'Part 4: Eating Response — SEES-10' },
+
+        prompt_phq9:   { id: 'Dalam 2 minggu terakhir, seberapa sering Anda terganggu oleh masalah berikut?', en: 'Over the last 2 weeks, how often have you been bothered by the following problems?' },
+        prompt_ucla:   { id: 'Seberapa sering Anda merasakan hal berikut?', en: 'How often do you feel the following?' },
+        prompt_psp5:   { id: 'Dalam sebulan terakhir, pilih yang paling sesuai dengan kondisi Anda.', en: 'Over the last month, choose what best fits your situation.' },
+        prompt_sees10: { id: 'Secara umum, seberapa sering Anda mengalami hal berikut?', en: 'In general, how often do you experience the following?' },
+
+        opt_phq9:      { id: ['Tidak pernah sama sekali', 'Beberapa hari', 'Lebih dari separuh waktu', 'Hampir setiap hari'],
+                         en: ['Not at all', 'Several days', 'More than half the days', 'Nearly every day'] },
+        opt_ucla:      { id: ['Tidak pernah', 'Jarang', 'Kadang-kadang', 'Sering'],
+                         en: ['Never', 'Rarely', 'Sometimes', 'Often'] },
+
+        prev:          { id: 'Pertanyaan Sebelumnya', en: 'Previous Question' },
+        saving:        { id: 'Menyimpan hasil evaluasi Anda...', en: 'Saving your assessment results...' },
+
+        saved_title:   { id: 'Hasil Evaluasi Terakhir', en: 'Latest Assessment Result' },
+        saved_redo:    { id: 'Ulangi Evaluasi', en: 'Retake Assessment' },
+        to_dashboard:  { id: 'Ke Dashboard', en: 'To Dashboard' },
+        skip_dashboard:{ id: 'Lewati ke Dashboard', en: 'Skip to Dashboard' },
+
+        result_title:  { id: 'Evaluasi Selesai', en: 'Assessment Complete' },
+        result_thanks: { id: 'Terima kasih. Sistem kami telah menyesuaikan fitur SCENTRAVN khusus untuk kondisi Anda.', en: 'Thank you. Our system has tailored SCENTRAVN features specifically for your condition.' },
+        mental_score:  { id: 'Skor Mental', en: 'Mental Score' },
+        social_link:   { id: 'Koneksi Sosial', en: 'Social Link' },
+
+        rec_severe_title: { id: 'Bantuan Tersedia Untuk Anda', en: 'Help Is Available For You' },
+        rec_severe_body:  { id: 'Skor Anda menunjukkan tingkat beban mental yang tinggi. SCENTRAVN menyarankan Anda berbicara dengan tenaga profesional.', en: 'Your score indicates a high level of mental burden. SCENTRAVN recommends speaking with a professional.' },
+        rec_severe_btn:   { id: 'Buka Support Hub', en: 'Open Support Hub' },
+        rec_mod_title:    { id: 'Rekomendasi Fitur', en: 'Feature Recommendation' },
+        rec_mod_body:     { id: 'ScentraVN Chat AI siap menemani Anda mengobrol dan meringankan beban pikiran Anda hari ini.', en: 'ScentraVN Chat AI is ready to chat with you and ease your mind today.' },
+        rec_mod_btn:      { id: 'Mulai Percakapan AI', en: 'Start AI Conversation' },
+        rec_good_title:   { id: 'Pertahankan Kondisi Anda!', en: 'Keep It Up!' },
+        rec_good_body:    { id: 'Kondisi mental Anda terpantau baik. Gunakan fitur Sleep Lab dan Meditasi untuk menjaga kualitas istirahat Anda.', en: 'Your mental condition looks good. Use the Sleep Lab and Meditation features to maintain your rest quality.' },
+        rec_good_btn:     { id: 'Lanjutkan ke Dashboard', en: 'Continue to Dashboard' },
+
+        synascore:        { id: 'SynaScore (Perpaduan Bio-Psiko)', en: 'SynaScore (Bio-Psycho Fusion)' },
+        fusion_sensor:    { id: 'Sensor + Psikometrik', en: 'Sensor + Psychometric' },
+        fusion_psy_only:  { id: 'Psikometrik saja (hubungkan sensor untuk akurasi lebih)', en: 'Psychometric only (connect a sensor for better accuracy)' },
+        discordance_title:{ id: 'Deteksi Diskordan', en: 'Discordance Detected' },
+
+        fail_title:    { id: 'Gagal Menyimpan', en: 'Failed to Save' },
+        fail_body:     { id: 'Data tersimpan lokal. Coba simpan ulang atau lihat hasil.', en: 'Data saved locally. Try saving again or view results.' },
+        fail_retry:    { id: 'Coba Simpan Ulang', en: 'Try Saving Again' },
+        fail_viewonly: { id: 'Lihat Hasil Saja', en: 'View Results Only' },
+    },
+
+    // Localized category labels (canonical id-string -> bilingual display)
+    _cat: {
+        'Minimal': { id: 'Minimal', en: 'Minimal' },
+        'Ringan': { id: 'Ringan', en: 'Mild' },
+        'Sedang': { id: 'Sedang', en: 'Moderate' },
+        'Sedang-Berat': { id: 'Sedang-Berat', en: 'Moderately Severe' },
+        'Berat': { id: 'Berat', en: 'Severe' },
+        'Low': { id: 'Rendah', en: 'Low' },
+        'Moderate': { id: 'Sedang', en: 'Moderate' },
+        'Moderately High': { id: 'Cukup Tinggi', en: 'Moderately High' },
+        'High': { id: 'Tinggi', en: 'High' },
+        'Stres Rendah': { id: 'Stres Rendah', en: 'Low Stress' },
+        'Stres Sedang': { id: 'Stres Sedang', en: 'Moderate Stress' },
+        'Stres Tinggi': { id: 'Stres Tinggi', en: 'High Stress' },
+        'Under Eating': { id: 'Makan Kurang', en: 'Under Eating' },
+        'Normal': { id: 'Normal', en: 'Normal' },
+        'Over Eating / Emotional Eating': { id: 'Makan Berlebih / Emosional', en: 'Over Eating / Emotional Eating' },
+    },
+
+    /** Get a localized UI string by key. */
+    ui(key) { const e = this._ui[key]; return e ? (e[this.lang()] ?? e.id) : key; },
+    /** Localize a stored category value for display. */
+    catLabel(cat) { const e = this._cat[cat]; return e ? (e[this.lang()] ?? e.id) : cat; },
+
+    /** Switch language without leaving the assessment, then re-render in place. */
+    setLang(lang) {
+        lang = (lang === 'en') ? 'en' : 'id';
+        try {
+            if (window.I18n) {
+                I18n.currentLang = lang;
+                localStorage.setItem('scentravn_lang', lang);
+                const label = document.getElementById('langToggleLabel');
+                if (label) label.textContent = lang.toUpperCase();
+            }
+        } catch (e) {}
+        this._renderLangToggle();
+        this._rerender();
+    },
+
+    /** Re-render whatever stage is currently active (preserves progress). */
+    _rerender() {
+        switch (this.currentStage) {
+            case 'intro':  this.renderIntro(); break;
+            case 'result':
+                if (this._resultArgs) this.showResults(...this._resultArgs);
+                else if (this._savedArgs) this.showSavedResults(this._savedArgs);
+                break;
+            default: this.renderQuestion();
+        }
+    },
+
+    /** Paint the ID/EN toggle pill into its slot in the view. */
+    _renderLangToggle() {
+        const el = document.getElementById('assessmentLangToggle');
+        if (!el) return;
+        const l = this.lang();
+        el.innerHTML =
+            `<button type="button" class="assess-lang-btn ${l === 'id' ? 'active' : ''}" onclick="Assessment.setLang('id')">ID</button>` +
+            `<button type="button" class="assess-lang-btn ${l === 'en' ? 'active' : ''}" onclick="Assessment.setLang('en')">EN</button>`;
+    },
+
     /**
      * Initialize Assessment - check for existing progress or completed assessment
      */
     async init() {
+        this._renderLangToggle();
         const user = auth?.currentUser;
         if (!user) {
             this.renderIntro();
@@ -160,6 +339,7 @@ const Assessment = {
      * Render intro screen
      */
     renderIntro() {
+        this.currentStage = 'intro';
         const container = document.getElementById('assessmentContent');
         if (!container) return;
 
@@ -176,9 +356,9 @@ const Assessment = {
                 <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 2.5rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
                     <i class="fas fa-clipboard-list"></i>
                 </div>
-                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">Selamat Datang!</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6;">Untuk mempersonalisasi SCENTRAVN sesuai dengan kondisi Anda, kami perlu menanyakan beberapa hal (PHQ-9 & UCLA Loneliness Scale). Data ini dijamin kerahasiaannya.</p>
-                <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem;" onclick="Assessment.start()">Mulai Evaluasi</button>
+                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">${this.ui('intro_title')}</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6;">${this.ui('intro_body')}</p>
+                <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem;" onclick="Assessment.start()">${this.ui('intro_start')}</button>
             </div>
         `;
     },
@@ -187,21 +367,27 @@ const Assessment = {
      * Show saved results from Firestore
      */
     showSavedResults(assessment) {
+        // Remember stage + payload so language toggle can re-render this screen
+        this.currentStage = 'result';
+        this._savedArgs = assessment;
+        this._resultArgs = null;
+
         const phq9Score = assessment.phq9?.score ?? 0;
         const phq9Category = assessment.phq9?.category ?? 'Unknown';
         const uclaScore = assessment.ucla?.score ?? 0;
         const uclaCategory = assessment.ucla?.category ?? 'Unknown';
 
-        // Format date
+        // Format date in the active language
+        const locale = this.lang() === 'en' ? 'en-US' : 'id-ID';
         let dateStr = 'Unknown';
         if (assessment.timestamp?.toDate) {
-            dateStr = assessment.timestamp.toDate().toLocaleDateString('id-ID', {
+            dateStr = assessment.timestamp.toDate().toLocaleDateString(locale, {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
             });
         } else if (assessment.date) {
-            dateStr = new Date(assessment.date).toLocaleDateString('id-ID', {
+            dateStr = new Date(assessment.date).toLocaleDateString(locale, {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
@@ -226,14 +412,14 @@ const Assessment = {
                 <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-400), var(--primary-600)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 2.5rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
                     <i class="fas fa-chart-pie"></i>
                 </div>
-                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 8px;">Hasil Evaluasi Terakhir</h2>
+                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 8px;">${this.ui('saved_title')}</h2>
                 <p style="color: var(--text-tertiary); margin-bottom: 24px; font-size: 0.9rem;">
                     <i class="fas fa-calendar-alt"></i> ${dateStr}
                 </p>
 
                 <!-- Fusion Score -->
                 <div style="background: linear-gradient(135deg, ${fusion.fusionColor}15, ${fusion.fusionColor}08); padding: 20px; border-radius: 16px; border: 2px solid ${fusion.fusionColor}30; margin-bottom: 16px;">
-                    <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">SynaScore</p>
+                    <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">${this.ui('synascore')}</p>
                     <p style="font-size: 3rem; font-weight: 800; color: ${fusion.fusionColor}; margin-bottom: 4px;">${fusion.fusionScore}</p>
                     <p style="font-size: var(--text-sm); font-weight: 600; color: ${fusion.fusionColor};">${fusion.fusionCategory}</p>
                 </div>
@@ -243,12 +429,12 @@ const Assessment = {
                     <div style="background: var(--bg-secondary); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
                         <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">PHQ-9</p>
                         <p style="font-size: var(--text-3xl); font-weight: 800; color: var(--primary-600); margin-bottom: 4px;">${phq9Score}</p>
-                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${phq9Category}</p>
+                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${this.catLabel(phq9Category)}</p>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
                         <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">UCLA</p>
                         <p style="font-size: var(--text-3xl); font-weight: 800; color: var(--info-600); margin-bottom: 4px;">${uclaScore}</p>
-                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${uclaCategory}</p>
+                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${this.catLabel(uclaCategory)}</p>
                     </div>
                 </div>
 
@@ -258,10 +444,10 @@ const Assessment = {
                 <!-- Actions -->
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
                     <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="Assessment.retakeAssessment()">
-                        <i class="fas fa-redo"></i> Ulangi Evaluasi
+                        <i class="fas fa-redo"></i> ${this.ui('saved_redo')}
                     </button>
                     <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="Router.navigate('dashboard')">
-                        <i class="fas fa-home"></i> Ke Dashboard
+                        <i class="fas fa-home"></i> ${this.ui('to_dashboard')}
                     </button>
                 </div>
             </div>
@@ -448,57 +634,41 @@ const Assessment = {
         if (this.currentStage === 'phq9') {
             html = `
                 <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
-                    <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: var(--primary-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">Bagian 1: Kesejahteraan Mental (${this.currentIndex + 1}/${this.phq9.length})</span>
-                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Dalam 2 minggu terakhir, seberapa sering Anda terganggu oleh masalah berikut?</p>
+                    <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: var(--primary-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">${this.ui('badge_phq9')} (${this.currentIndex + 1}/${this.phq9.length})</span>
+                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">${this.ui('prompt_phq9')}</p>
                 </div>
                 <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
                     <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.phq9[this.currentIndex]}</h3>
                     <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                        <button class="btn ${previousAnswer === 0 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(0)">
-                            ${previousAnswer === 0 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Tidak pernah sama sekali
-                        </button>
-                        <button class="btn ${previousAnswer === 1 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(1)">
-                            ${previousAnswer === 1 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Beberapa hari
-                        </button>
-                        <button class="btn ${previousAnswer === 2 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(2)">
-                            ${previousAnswer === 2 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Lebih dari separuh waktu
-                        </button>
-                        <button class="btn ${previousAnswer === 3 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(3)">
-                            ${previousAnswer === 3 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Hampir setiap hari
-                        </button>
+                        ${this.ui('opt_phq9').map((lbl, v) => `
+                        <button class="btn ${previousAnswer === v ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(${v})">
+                            ${previousAnswer === v ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}${lbl}
+                        </button>`).join('')}
                     </div>
                 </div>
                 ${canGoBack ? `
                 <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
-                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                    <i class="fas fa-arrow-left"></i> ${this.ui('prev')}
                 </button>
                 ` : ''}
             `;
         } else if (this.currentStage === 'ucla') {
             html = `
                 <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
-                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">Bagian 2: Interaksi Sosial (${this.currentIndex + 1}/${this.ucla.length})</span>
-                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Seberapa sering Anda merasakan hal berikut?</p>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success-500); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">${this.ui('badge_ucla')} (${this.currentIndex + 1}/${this.ucla.length})</span>
+                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">${this.ui('prompt_ucla')}</p>
                 </div>
                 <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
                     <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.ucla[this.currentIndex]}</h3>
                     <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-                        <button class="btn ${previousAnswer === 1 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(1)">
-                            ${previousAnswer === 1 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Tidak pernah (Never)
-                        </button>
-                        <button class="btn ${previousAnswer === 2 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(2)">
-                            ${previousAnswer === 2 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Jarang (Rarely)
-                        </button>
-                        <button class="btn ${previousAnswer === 3 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(3)">
-                            ${previousAnswer === 3 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Kadang-kadang (Sometimes)
-                        </button>
-                        <button class="btn ${previousAnswer === 4 ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(4)">
-                            ${previousAnswer === 4 ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}Sering (Often)
-                        </button>
+                        ${this.ui('opt_ucla').map((lbl, i) => { const v = i + 1; return `
+                        <button class="btn ${previousAnswer === v ? 'btn-primary' : 'btn-outline'}" style="justify-content: flex-start; text-align: left; padding: 16px;" onclick="Assessment.selectAnswer(${v})">
+                            ${previousAnswer === v ? '<i class="fas fa-check-circle" style="margin-right: 8px;"></i>' : ''}${lbl}
+                        </button>`; }).join('')}
                     </div>
                 </div>
                 <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
-                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                    <i class="fas fa-arrow-left"></i> ${this.ui('prev')}
                 </button>
             `;
         } else if (this.currentStage === 'psp5') {
@@ -506,9 +676,9 @@ const Assessment = {
             html = `
                 <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
                     <span class="badge" style="background: rgba(239,68,68,0.12); color: #dc2626; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">
-                        Bagian 3: Tingkat Stres — PSP-5 (${this.currentIndex + 1}/${this.psp5.length})
+                        ${this.ui('badge_psp5')} (${this.currentIndex + 1}/${this.psp5.length})
                     </span>
-                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Dalam sebulan terakhir, pilih yang paling sesuai kondisi Anda.</p>
+                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">${this.ui('prompt_psp5')}</p>
                 </div>
                 <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
                     <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.psp5[this.currentIndex]}</h3>
@@ -523,7 +693,7 @@ const Assessment = {
                     </div>
                 </div>
                 <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
-                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                    <i class="fas fa-arrow-left"></i> ${this.ui('prev')}
                 </button>
             `;
         } else if (this.currentStage === 'sees10') {
@@ -531,9 +701,9 @@ const Assessment = {
             html = `
                 <div class="assessment-header" style="margin-bottom: var(--space-6); text-align: center;">
                     <span class="badge" style="background: rgba(234,88,12,0.12); color: #ea580c; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 12px; display: inline-block;">
-                        Bagian 4: Eating Response — SEES-10 (${this.currentIndex + 1}/${this.sees10.length})
+                        ${this.ui('badge_sees10')} (${this.currentIndex + 1}/${this.sees10.length})
                     </span>
-                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">Seberapa sering Anda merasakan hal berikut secara umum?</p>
+                    <p style="color: var(--text-tertiary); font-size: var(--text-sm);">${this.ui('prompt_sees10')}</p>
                 </div>
                 <div class="question-card" style="background: white; padding: var(--space-6); border-radius: var(--radius-xl); box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: var(--space-6);">
                     <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-6); text-align: center;">${this.sees10[this.currentIndex]}</h3>
@@ -548,7 +718,7 @@ const Assessment = {
                     </div>
                 </div>
                 <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="Assessment.prev()">
-                    <i class="fas fa-arrow-left"></i> Pertanyaan Sebelumnya
+                    <i class="fas fa-arrow-left"></i> ${this.ui('prev')}
                 </button>
             `;
         }
@@ -619,7 +789,7 @@ const Assessment = {
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px 20px;">
                     <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
-                    <p>Menyimpan hasil evaluasi Anda...</p>
+                    <p>${this.ui('saving')}</p>
                 </div>
             `;
         }
@@ -664,14 +834,14 @@ const Assessment = {
                 cont.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-500); margin-bottom: 20px;"></i>
-                        <h3>Gagal Menyimpan</h3>
-                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Data tersimpan lokal. Coba simpan ulang atau lihat hasil.</p>
+                        <h3>${this.ui('fail_title')}</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">${this.ui('fail_body')}</p>
                         <div style="display: flex; flex-direction: column; gap: 12px;">
                             <button class="btn btn-primary" onclick="Assessment.retryFinish()" style="width: 100%; justify-content: center;">
-                                <i class="fas fa-redo"></i> Coba Simpan Ulang
+                                <i class="fas fa-redo"></i> ${this.ui('fail_retry')}
                             </button>
                             <button class="btn btn-outline" onclick="Assessment.showResults(${phq9Score},'${phq9Category}',${uclaScore},'${uclaCategory}',${psp5Score},'${psp5Category}',${sees10Avg},'${sees10Category}')" style="width: 100%; justify-content: center;">
-                                <i class="fas fa-chart-pie"></i> Lihat Hasil Saja
+                                <i class="fas fa-chart-pie"></i> ${this.ui('fail_viewonly')}
                             </button>
                         </div>
                     </div>
@@ -754,14 +924,14 @@ const Assessment = {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-500); margin-bottom: 20px;"></i>
-                        <h3>Masih Gagal Menyimpan</h3>
-                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Periksa koneksi internet Anda. Data tetap tersimpan lokal.</p>
+                        <h3>${this.lang() === 'en' ? 'Still Failed to Save' : 'Masih Gagal Menyimpan'}</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">${this.lang() === 'en' ? 'Please check your internet connection. Your data is still saved locally.' : 'Periksa koneksi internet Anda. Data tetap tersimpan lokal.'}</p>
                         <div style="display: flex; flex-direction: column; gap: 12px;">
                             <button class="btn btn-primary" onclick="Assessment.retryFinish()" style="width: 100%; justify-content: center;">
-                                <i class="fas fa-redo"></i> Coba Lagi
+                                <i class="fas fa-redo"></i> ${this.lang() === 'en' ? 'Try Again' : 'Coba Lagi'}
                             </button>
                             <button class="btn btn-outline" onclick="Assessment.showResults(${pending.phq9Score}, '${pending.phq9Category}', ${pending.uclaScore}, '${pending.uclaCategory}')" style="width: 100%; justify-content: center;">
-                                <i class="fas fa-chart-pie"></i> Lihat Hasil Saja
+                                <i class="fas fa-chart-pie"></i> ${this.ui('fail_viewonly')}
                             </button>
                         </div>
                     </div>
@@ -855,24 +1025,27 @@ const Assessment = {
 
         // ── Discordance detection ───────────────────────────────────────────────
         // Flagging ketika self-report dan bio-signal tidak selaras (selisih > 30)
+        const en = this.lang() === 'en';
         let discordance = null;
         if (hasSensorData && componentScores.pHrv !== null) {
             const bioAvg = (pEda + pHrv + pSleep) / 3;
             const diff = Math.abs(pPsych - bioAvg);
             if (diff > 30) {
                 discordance = pPsych > bioAvg
-                    ? 'Laporan diri Anda menunjukkan kondisi baik, namun sinyal tubuh menunjukkan tekanan. Perhatikan sinyal fisik Anda.'
-                    : 'Tubuh Anda dalam kondisi rileks, namun skor psikometrik menunjukkan beban emosional. Pertimbangkan untuk berbicara dengan seseorang.';
+                    ? (en ? 'Your self-report indicates you are doing well, but your body signals show strain. Pay attention to your physical signals.'
+                          : 'Laporan diri Anda menunjukkan kondisi baik, namun sinyal tubuh menunjukkan tekanan. Perhatikan sinyal fisik Anda.')
+                    : (en ? 'Your body is relaxed, but your psychometric score shows emotional burden. Consider talking to someone.'
+                          : 'Tubuh Anda dalam kondisi rileks, namun skor psikometrik menunjukkan beban emosional. Pertimbangkan untuk berbicara dengan seseorang.');
             }
         }
 
         // ── Kategorisasi SynaScore ──────────────────────────────────────────────
         let fusionCategory, fusionColor;
-        if (fusionScore >= 80) { fusionCategory = 'Sangat Baik'; fusionColor = '#10b981'; }
-        else if (fusionScore >= 60) { fusionCategory = 'Baik'; fusionColor = '#3b82f6'; }
-        else if (fusionScore >= 40) { fusionCategory = 'Waspada'; fusionColor = '#f59e0b'; }
-        else if (fusionScore >= 20) { fusionCategory = 'Perlu Perhatian'; fusionColor = '#f97316'; }
-        else { fusionCategory = 'Kritis'; fusionColor = '#ef4444'; }
+        if (fusionScore >= 80) { fusionCategory = en ? 'Excellent' : 'Sangat Baik'; fusionColor = '#10b981'; }
+        else if (fusionScore >= 60) { fusionCategory = en ? 'Good' : 'Baik'; fusionColor = '#3b82f6'; }
+        else if (fusionScore >= 40) { fusionCategory = en ? 'Caution' : 'Waspada'; fusionColor = '#f59e0b'; }
+        else if (fusionScore >= 20) { fusionCategory = en ? 'Needs Attention' : 'Perlu Perhatian'; fusionColor = '#f97316'; }
+        else { fusionCategory = en ? 'Critical' : 'Kritis'; fusionColor = '#ef4444'; }
 
         return { fusionScore, fusionCategory, fusionColor, discordance, hasSensorData, componentScores };
     },
@@ -932,11 +1105,11 @@ const Assessment = {
                     data: {
                         labels: assessments.map(a => {
                             const d = new Date(a.date);
-                            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                            return d.toLocaleDateString(this.lang() === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short' });
                         }),
                         datasets: [
                             {
-                                label: 'PHQ-9 (Depresi)',
+                                label: this.lang() === 'en' ? 'PHQ-9 (Depression)' : 'PHQ-9 (Depresi)',
                                 data: assessments.map(a => a.phq9),
                                 borderColor: '#8B5CF6',
                                 backgroundColor: 'rgba(139, 92, 246, 0.1)',
@@ -946,7 +1119,7 @@ const Assessment = {
                                 pointBackgroundColor: '#8B5CF6'
                             },
                             {
-                                label: 'UCLA (Kesepian)',
+                                label: this.lang() === 'en' ? 'UCLA (Loneliness)' : 'UCLA (Kesepian)',
                                 data: assessments.map(a => a.ucla),
                                 borderColor: '#3b82f6',
                                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -975,9 +1148,14 @@ const Assessment = {
         }
     },
 
-    showResults(phq9Score, phq9Category, uclaScore, uclaCategory) {
+    showResults(phq9Score, phq9Category, uclaScore, uclaCategory, psp5Score, psp5Category, sees10Avg, sees10Category) {
         const container = document.getElementById('assessmentContent');
         if (!container) return;
+
+        // Remember stage + args so language toggle can re-render this screen
+        this.currentStage = 'result';
+        this._resultArgs = [phq9Score, phq9Category, uclaScore, uclaCategory, psp5Score, psp5Category, sees10Avg, sees10Category];
+        this._savedArgs = null;
 
         // Hide progress bar wrapper
         const progressWrapper = document.getElementById('assessmentProgressWrapper');
@@ -988,25 +1166,25 @@ const Assessment = {
         if (phq9Score >= 15) {
             recommendationHtml = `
                 <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--danger-500); padding: 16px; margin-top: 20px; border-radius: 0 8px 8px 0; text-align: left;">
-                    <p style="color: var(--danger-700); font-weight: 600; margin-bottom: 8px;"><i class="fas fa-exclamation-circle"></i> Bantuan Tersedia Untuk Anda</p>
-                    <p style="font-size: 0.9rem; color: var(--danger-600); margin-bottom: 12px;">Skor Anda menunjukkan tingkat beban mental yang tinggi. SCENTRAVN merekomendasikan Anda untuk berbicara dengan tenaga profesional.</p>
-                    <button class="btn btn-primary btn-sm" onclick="Router.navigate('support')" style="background: var(--danger-500); border-color: var(--danger-500);">Buka Support Hub</button>
+                    <p style="color: var(--danger-700); font-weight: 600; margin-bottom: 8px;"><i class="fas fa-exclamation-circle"></i> ${this.ui('rec_severe_title')}</p>
+                    <p style="font-size: 0.9rem; color: var(--danger-600); margin-bottom: 12px;">${this.ui('rec_severe_body')}</p>
+                    <button class="btn btn-primary btn-sm" onclick="Router.navigate('support')" style="background: var(--danger-500); border-color: var(--danger-500);">${this.ui('rec_severe_btn')}</button>
                 </div>
             `;
         } else if (phq9Score >= 10) {
             recommendationHtml = `
                 <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning-500); padding: 16px; margin-top: 20px; border-radius: 0 8px 8px 0; text-align: left;">
-                    <p style="color: var(--warning-700); font-weight: 600; margin-bottom: 8px;"><i class="fas fa-info-circle"></i> Rekomendasi Fitur</p>
-                    <p style="font-size: 0.9rem; color: var(--warning-600); margin-bottom: 12px;">SYNACHAT AI siap menemani Anda ngobrol dan meredakan beban pikiran Anda hari ini.</p>
-                    <button class="btn btn-primary btn-sm" onclick="Router.navigate('synachat')" style="background: var(--warning-500); border-color: var(--warning-500);">Mulai Percakapan AI</button>
+                    <p style="color: var(--warning-700); font-weight: 600; margin-bottom: 8px;"><i class="fas fa-info-circle"></i> ${this.ui('rec_mod_title')}</p>
+                    <p style="font-size: 0.9rem; color: var(--warning-600); margin-bottom: 12px;">${this.ui('rec_mod_body')}</p>
+                    <button class="btn btn-primary btn-sm" onclick="Router.navigate('synachat')" style="background: var(--warning-500); border-color: var(--warning-500);">${this.ui('rec_mod_btn')}</button>
                 </div>
             `;
         } else {
             recommendationHtml = `
                  <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success-500); padding: 16px; margin-top: 20px; border-radius: 0 8px 8px 0; text-align: left;">
-                    <p style="color: var(--success-700); font-weight: 600; margin-bottom: 8px;"><i class="fas fa-check-circle"></i> Pertahankan Kondisi Anda!</p>
-                    <p style="font-size: 0.9rem; color: var(--success-600); margin-bottom: 12px;">Kondisi mental Anda terpantau baik. Gunakan fitur Sleep Lab dan Meditasi untuk menjaga kualitas istirahat Anda.</p>
-                    <button class="btn btn-primary btn-sm" onclick="Router.navigate('dashboard')" style="background: var(--success-500); border-color: var(--success-500);">Lanjutkan ke Dashboard</button>
+                    <p style="color: var(--success-700); font-weight: 600; margin-bottom: 8px;"><i class="fas fa-check-circle"></i> ${this.ui('rec_good_title')}</p>
+                    <p style="font-size: 0.9rem; color: var(--success-600); margin-bottom: 12px;">${this.ui('rec_good_body')}</p>
+                    <button class="btn btn-primary btn-sm" onclick="Router.navigate('dashboard')" style="background: var(--success-500); border-color: var(--success-500);">${this.ui('rec_good_btn')}</button>
                 </div>
             `;
         }
@@ -1015,16 +1193,16 @@ const Assessment = {
         const fusion = this.calculateFusionScore(phq9Score, uclaScore);
         const fusionHtml = `
             <div style="background: linear-gradient(135deg, ${fusion.fusionColor}15, ${fusion.fusionColor}08); padding: 20px; border-radius: 16px; border: 2px solid ${fusion.fusionColor}30; margin-bottom: 16px;">
-                <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">SynaScore (Bio-Psycho Fusion)</p>
+                <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">${this.ui('synascore')}</p>
                 <p style="font-size: 3rem; font-weight: 800; color: ${fusion.fusionColor}; margin-bottom: 4px;">${fusion.fusionScore}</p>
                 <p style="font-size: var(--text-sm); font-weight: 600; color: ${fusion.fusionColor};">${fusion.fusionCategory}</p>
-                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px;">${fusion.hasSensorData ? 'Sensor + Psikometrik' : 'Psikometrik saja (hubungkan sensor untuk akurasi lebih)'}</p>
+                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px;">${fusion.hasSensorData ? this.ui('fusion_sensor') : this.ui('fusion_psy_only')}</p>
             </div>
         `;
 
         const discordanceHtml = fusion.discordance ? `
             <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 14px; margin-bottom: 16px; border-radius: 0 8px 8px 0; text-align: left;">
-                <p style="color: #d97706; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-exclamation-triangle"></i> Deteksi Diskordan</p>
+                <p style="color: #d97706; font-weight: 600; margin-bottom: 4px;"><i class="fas fa-exclamation-triangle"></i> ${this.ui('discordance_title')}</p>
                 <p style="font-size: 0.85rem; color: #92400e;">${fusion.discordance}</p>
             </div>
         ` : '';
@@ -1034,22 +1212,22 @@ const Assessment = {
                 <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--success-400), var(--success-600)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 2.5rem; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);">
                     <i class="fas fa-check"></i>
                 </div>
-                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">Evaluasi Selesai</h2>
-                <p style="color: var(--text-tertiary); margin-bottom: 24px;">Terima kasih. Sistem kami telah menyesuaikan fitur SCENTRAVN khusus untuk kondisi Anda.</p>
+                <h2 style="font-size: var(--text-2xl); color: var(--text-primary); margin-bottom: 12px;">${this.ui('result_title')}</h2>
+                <p style="color: var(--text-tertiary); margin-bottom: 24px;">${this.ui('result_thanks')}</p>
 
                 ${fusionHtml}
                 ${discordanceHtml}
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                     <div style="background: var(--bg-secondary); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
-                        <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Mental Score</p>
+                        <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">${this.ui('mental_score')}</p>
                         <p style="font-size: var(--text-3xl); font-weight: 800; color: var(--primary-600); margin-bottom: 4px;">${phq9Score}</p>
-                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${phq9Category}</p>
+                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${this.catLabel(phq9Category)}</p>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color);">
-                        <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Social Link</p>
+                        <p style="font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">${this.ui('social_link')}</p>
                         <p style="font-size: var(--text-3xl); font-weight: 800; color: var(--info-600); margin-bottom: 4px;">${uclaScore}</p>
-                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${uclaCategory}</p>
+                        <p style="font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);">${this.catLabel(uclaCategory)}</p>
                     </div>
                 </div>
 
@@ -1058,7 +1236,7 @@ const Assessment = {
                 <div id="longitudinalContainer"></div>
 
                 <div style="margin-top: 32px;">
-                    <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="Router.navigate('dashboard')">Lewati ke Dashboard</button>
+                    <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="Router.navigate('dashboard')">${this.ui('skip_dashboard')}</button>
                 </div>
             </div>
         `;

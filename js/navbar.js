@@ -10,7 +10,7 @@ const Navbar = {
         { id: 'dashboard', label: 'Dashboard', icon: 'fa-home', href: 'dashboard.html' },
         { id: 'analytics', label: 'Analytics', icon: 'fa-chart-line', href: 'analytics.html' },
         { id: 'health', label: 'Health', icon: 'fa-heartbeat', href: 'health.html' },
-        { id: 'chat', label: 'Synachat', icon: 'fa-comments', href: 'synachat.html' },
+        { id: 'chat', label: 'ScentraVN Chat', icon: 'fa-comments', href: 'synachat.html' },
         { id: 'profile', label: 'Profile', icon: 'fa-user', href: 'profile.html' }
     ],
 

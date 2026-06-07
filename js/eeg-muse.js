@@ -83,19 +83,23 @@ const MuseEEG = {
     /* Callbacks */
     _onMetrics:     null,
     _metricsListeners: [],
+    _rawListeners:  [],      // raw EEG sample listeners: cb({ t, ch, samples:[...] })
     _onConnection:  null,
     _onError:       null,
 
     /* ── Event binding ─────────────────────────────────────────────── */
     onMetrics(cb)    { if (cb && !this._metricsListeners.includes(cb)) this._metricsListeners.push(cb); },
     offMetrics(cb)   { this._metricsListeners = this._metricsListeners.filter(f => f !== cb); },
+    /* Raw per-channel EEG samples (256 Hz) — used by the RAW data recorder */
+    onRaw(cb)        { if (cb && !this._rawListeners.includes(cb)) this._rawListeners.push(cb); },
+    offRaw(cb)       { this._rawListeners = this._rawListeners.filter(f => f !== cb); },
     onConnection(cb) { this._onConnection = cb; },
     onError(cb)      { this._onError      = cb; },
 
     /* ── BLE connect ────────────────────────────────────────────────── */
     async connect() {
         if (!('bluetooth' in navigator)) {
-            this._emit('error', 'Web Bluetooth tidak didukung. Gunakan Chrome/Edge.');
+            this._emit('error', 'Bluetooth tidak didukung di browser ini. Gunakan Chrome atau Edge.');
             return false;
         }
         if (this.isConnected || this.isConnecting) return false;
@@ -117,18 +121,54 @@ const MuseEEG = {
             this.server  = await this.device.gatt.connect();
             this.service = await this.server.getPrimaryService(MUSE_SERVICE);
 
+            /* Control characteristic first — Muse S Gen 2 (Athena) needs a halt
+               before it will accept a preset change. */
+            this.controlChar = await this.service.getCharacteristic(MUSE_CHAR.control);
+            try {
+                await this.controlChar.startNotifications();
+                this.controlChar.addEventListener('characteristicvaluechanged', (e) => this._onControlReply(e.target.value));
+            } catch (_) { /* control notify optional */ }
+
+            await this._sendCommand('h');            // halt streaming
+            await this._delay(200);
+
             /* Subscribe to 4 EEG channels */
+            this._packetsSeen = 0;
             for (const ch of ['tp9', 'af7', 'af8', 'tp10']) {
                 const char = await this.service.getCharacteristic(MUSE_CHAR[ch]);
                 await char.startNotifications();
                 char.addEventListener('characteristicvaluechanged', (e) => this._onEEGPacket(ch, e.target.value));
             }
 
-            /* Start streaming */
-            this.controlChar = await this.service.getCharacteristic(MUSE_CHAR.control);
-            await this._sendCommand('p21');
+            /* Subscribe to motion (optional, best-effort) */
+            for (const ch of ['accelero', 'gyroscope']) {
+                try {
+                    const c = await this.service.getCharacteristic(MUSE_CHAR[ch]);
+                    await c.startNotifications();
+                    c.addEventListener('characteristicvaluechanged', (e) => this._onMotionPacket(ch, e.target.value));
+                } catch (_) { /* not present on all firmware */ }
+            }
+
+            /* Start streaming. Muse S Gen 2 ("Athena", fw 2024+) streams EEG on
+               preset p1035/p1034; older Muse 2 / Muse S Gen 1 use p21. Send the
+               Gen 2 preset first, then fall back to p21 if no packets arrive. */
+            await this._startPreset(this.PRESET_GEN2);   // 'p1035'
             await this._sendCommand('s');
             await this._sendCommand('d');
+
+            /* If no EEG packets within 2.5s, retry with the legacy preset. */
+            this._presetFallbackTimer = setTimeout(async () => {
+                if (this._packetsSeen === 0 && this.device?.gatt?.connected) {
+                    console.warn('[Muse] No EEG on', this.PRESET_GEN2, '→ retrying with p21 (Gen 1 / Muse 2)');
+                    try {
+                        await this._sendCommand('h');
+                        await this._delay(150);
+                        await this._startPreset('p21');
+                        await this._sendCommand('s');
+                        await this._sendCommand('d');
+                    } catch (_) {}
+                }
+            }, 2500);
 
             /* Battery characteristic (optional) */
             try {
@@ -204,7 +244,9 @@ const MuseEEG = {
            [0-1] = 16-bit sequence number
            [2-11] = 5 × 10-bit samples packed big-endian */
         const buf = this.buffers[channel];
+        this._packetsSeen = (this._packetsSeen || 0) + 1;
 
+        const samples = new Array(MUSE_SAMPLES_PER_PACKET);
         for (let i = 0; i < MUSE_SAMPLES_PER_PACKET; i++) {
             const byteOffset = 2 + Math.floor(i * 10 / 8);
             const bitOffset  = (i * 10) % 8;
@@ -213,6 +255,13 @@ const MuseEEG = {
             /* Convert to microvolts: Muse ADC ref 1.2V, 10-bit → ±0.7 mV range */
             const uv = (val - 512) * 0.48828125;
             buf.push(uv);
+            samples[i] = uv;
+        }
+        /* Emit RAW samples (for the multi-device recorder) */
+        if (this._rawListeners.length) {
+            const seq = (dataView.byteLength >= 2) ? (dataView.getUint8(0) << 8 | dataView.getUint8(1)) : 0;
+            const frame = { t: Date.now(), ch: channel, seq, samples };
+            for (const fn of this._rawListeners) { try { fn(frame); } catch (_) {} }
         }
 
         /* Keep rolling window */
@@ -487,9 +536,51 @@ const MuseEEG = {
     },
 
     /* ── Helpers ────────────────────────────────────────────────────── */
+    PRESET_GEN2: 'p1035',    // Muse S Gen 2 (Athena): EEG + PPG + IMU
+    _packetsSeen: 0,
+    _presetFallbackTimer: null,
+
+    _delay(ms) { return new Promise(r => setTimeout(r, ms)); },
+
+    async _startPreset(preset) {
+        try { await this._sendCommand(preset); }
+        catch (e) { console.warn('[Muse] preset', preset, 'failed:', e.message); }
+    },
+
+    /* Control-channel JSON replies (firmware/version/status) — best effort */
+    _onControlReply(dataView) {
+        try {
+            const len = dataView.getUint8(0);
+            let s = '';
+            for (let i = 1; i <= len && i < dataView.byteLength; i++) s += String.fromCharCode(dataView.getUint8(i));
+            this._ctrlBuf = (this._ctrlBuf || '') + s;
+            if (this._ctrlBuf.includes('}')) {
+                /* a full JSON reply has arrived; keep only for diagnostics */
+                this._ctrlBuf = '';
+            }
+        } catch (_) {}
+    },
+
+    /* Accel/Gyro packets (3 axes × 3 samples, 16-bit signed). Forwarded raw. */
+    _onMotionPacket(channel, dataView) {
+        if (!this._rawListeners.length) return;
+        try {
+            const out = [];
+            for (let i = 2; i + 5 < dataView.byteLength; i += 6) {
+                out.push([
+                    dataView.getInt16(i, false),
+                    dataView.getInt16(i + 2, false),
+                    dataView.getInt16(i + 4, false),
+                ]);
+            }
+            const frame = { t: Date.now(), ch: channel, samples: out };
+            for (const fn of this._rawListeners) { try { fn(frame); } catch (_) {} }
+        } catch (_) {}
+    },
+
     async _sendCommand(cmd) {
         if (!this.controlChar) return;
-        const encoded = new TextEncoder().encode(`X${cmd}\n`);
+        const encoded = new TextEncoder().encode(`${cmd}\n`);
         const packet  = new Uint8Array(encoded.length + 1);
         packet[0] = encoded.length;
         packet.set(encoded, 1);
@@ -505,6 +596,9 @@ const MuseEEG = {
         this.isConnected  = false;
         this.isConnecting = false;
         this.device = this.server = this.service = this.controlChar = null;
+        if (this._presetFallbackTimer) { clearTimeout(this._presetFallbackTimer); this._presetFallbackTimer = null; }
+        this._packetsSeen = 0;
+        this._ctrlBuf = '';
         for (const ch of Object.keys(this.buffers)) this.buffers[ch] = [];
     },
 
@@ -542,6 +636,8 @@ window.EEGMuse = {
     connect:     () => MuseEEG.connect(),
     disconnect:  () => MuseEEG.disconnect(),
     onMetrics:   (cb) => MuseEEG.onMetrics(cb),
+    onRaw:       (cb) => MuseEEG.onRaw(cb),
+    offRaw:      (cb) => MuseEEG.offRaw(cb),
     onConnection:(cb) => MuseEEG.onConnection(cb),
     onError:     (cb) => MuseEEG.onError(cb),
     startSimulation:(...a) => MuseEEG.startSimulation(...a),

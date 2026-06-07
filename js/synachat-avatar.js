@@ -70,7 +70,7 @@ const SynachatAvatar = {
             const c = document.getElementById(containerId);
             if (c) {
                 c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;min-height:160px;">' +
-                    '<img src="images/logo.png" alt="Dr. Synachat" style="width:96px;height:96px;border-radius:50%;object-fit:cover;opacity:.9;">' +
+                    '<img src="images/logo.png" alt="Dr. ScentraVN Chat" style="width:96px;height:96px;border-radius:50%;object-fit:cover;opacity:.9;">' +
                     '</div>';
             }
             return false;

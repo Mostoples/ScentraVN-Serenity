@@ -26,15 +26,17 @@ service cloud.firestore {
 
       // Wildcard match for all subcollections:
       // healthReadings, healthData, dailySummary, analyticsSummary,
-      // recordingHistory, chatHistory, assessments, interventionLogs,
-      // emergencyPlans, academyProgress, safetyPlans, moodLogs,
-      // musicTherapyLogs, sessions, journals, interventions, sleepSessions
+      // recordingHistory, rawRecordings, chatHistory, assessments,
+      // interventionLogs, emergencyPlans, academyProgress, safetyPlans,
+      // moodLogs, musicTherapyLogs, sessions, journals, interventions,
+      // sleepSessions
       match /{subcollection}/{docId} {
         allow read, write: if isOwner(userId);
         allow read, write: if isAdmin(); // Admin can write subcollections too
       }
 
-      // Two-level deep: e.g. sleepSessions/{sid}/epochs/{eid}
+      // Two-level deep: e.g. sleepSessions/{sid}/epochs/{eid},
+      // rawRecordings/{id}/chunks/{i}
       match /{subcollection}/{docId}/{subDoc=**} {
         allow read, write: if isOwner(userId);
         allow read, write: if isAdmin();

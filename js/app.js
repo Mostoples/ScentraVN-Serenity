@@ -95,8 +95,10 @@ const App = {
     setupRouter() {
         // Register routes
         Router.register('assessment', () => {
+            // Hide bottom navigation during the focused test/evaluation flow.
+            // Every other route restores it (display:flex) on entry.
             const nav = document.querySelector('.bottom-nav');
-            if (nav) nav.style.display = 'flex';
+            if (nav) nav.style.display = 'none';
             Router.render(Views.assessment());
             // Initialize assessment - check for saved progress or completed results
             if (typeof Assessment !== 'undefined' && Assessment.init) {
@@ -303,6 +305,13 @@ const App = {
             if (typeof RawRecorderView !== 'undefined') RawRecorderView.init();
         });
 
+        Router.register('recordhistory', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.recordHistory());
+            if (typeof RecordHistory !== 'undefined') RecordHistory.init();
+        });
+
         Router.register('sleepsession', () => {
             const nav = document.querySelector('.bottom-nav');
             if (nav) nav.style.display = 'flex';
@@ -484,6 +493,10 @@ const App = {
                     <a class="more-menu-item" data-route="rawrecorder" onclick="App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;"><i class="fas fa-record-vinyl"></i></div>
                         <span>RAW Recorder</span>
+                    </a>
+                    <a class="more-menu-item" data-route="recordhistory" onclick="App.closeMoreMenu()">
+                        <div class="more-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;"><i class="fas fa-clock-rotate-left"></i></div>
+                        <span>Riwayat Rekaman</span>
                     </a>
                     <a class="more-menu-item" onclick="window.open('research.html','_blank'); App.closeMoreMenu()">
                         <div class="more-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;"><i class="fas fa-flask"></i></div>
@@ -898,6 +911,9 @@ const App = {
         }
         if (previousRoute === 'sleepsession' && typeof SleepSessionUI !== 'undefined' && SleepSessionUI.destroy) {
             SleepSessionUI.destroy();
+        }
+        if (previousRoute === 'rawrecorder' && typeof RawRecorderView !== 'undefined' && RawRecorderView.destroy) {
+            RawRecorderView.destroy();
         }
     }
 };

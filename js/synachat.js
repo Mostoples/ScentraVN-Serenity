@@ -67,8 +67,8 @@ const GeminiKeyManager = {
     }
 };
 
-// System prompt for Dr. Synachat
-const SYSTEM_PROMPT = `You are Dr. Synachat, an empathetic, professional, and knowledgeable AI assistant who acts as both a psychologist and a medical advisor. You are part of a smartwatch health monitoring app called SCENTRAVN.
+// System prompt for Dr. ScentraVN Chat
+const SYSTEM_PROMPT = `You are Dr. ScentraVN Chat, an empathetic, professional, and knowledgeable AI assistant who acts as both a psychologist and a medical advisor. You are part of a smartwatch health monitoring app called SCENTRAVN.
 
 Your role:
 1. Provide emotional support and mental health guidance
@@ -178,7 +178,7 @@ let proactiveAnomalyMonitor = {
 
         banner.innerHTML = `
             <div style="flex: 1;">
-                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">Dr. Synachat tersedia</div>
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">Dr. ScentraVN Chat tersedia</div>
                 <div style="font-size: 0.85rem; opacity: 0.9;">Pola stres terdeteksi. Mau ngobrol sebentar?</div>
             </div>
             <button onclick="this.parentElement.remove(); Router.navigate('synachat');" style="background: white; color: #8B5CF6; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; flex-shrink: 0;">
@@ -324,9 +324,9 @@ function showAvatarFallback(container) {
     container.innerHTML = `
         <div class="avatar-fallback">
             <div class="avatar-fallback-icon">
-                <img class="avatar-fallback-img" src="images/ai.png" alt="Dr. Synachat" width="100" height="100" loading="lazy">
+                <img class="avatar-fallback-img" src="images/ai.png" alt="Dr. ScentraVN Chat" width="100" height="100" loading="lazy">
             </div>
-            <p>Dr. Synachat</p>
+            <p>Dr. ScentraVN Chat</p>
         </div>
     `;
 }
@@ -556,11 +556,11 @@ async function sendToGemini(userMessage) {
         const contents = [
             {
                 role: 'user',
-                parts: [{ text: `${SYSTEM_PROMPT}\n\nPlease acknowledge and respond as Dr. Synachat.` }]
+                parts: [{ text: `${SYSTEM_PROMPT}\n\nPlease acknowledge and respond as Dr. ScentraVN Chat.` }]
             },
             {
                 role: 'model',
-                parts: [{ text: 'Understood. I am Dr. Synachat, your AI health assistant from SCENTRAVN. I will provide empathetic support, help you understand your health data, and offer wellness guidance. How can I help you today?' }]
+                parts: [{ text: 'Understood. I am Dr. ScentraVN Chat, your AI health assistant from SCENTRAVN. I will provide empathetic support, help you understand your health data, and offer wellness guidance. How can I help you today?' }]
             },
             ...conversationHistory,
             {
@@ -704,7 +704,7 @@ function getMessageAvatarParts(role) {
     if (role === 'assistant') {
         return {
             avatarClass: 'message-avatar message-avatar--user-photo',
-            inner: '<img class="message-avatar-img" src="images/ai.png" alt="Dr. Synachat" width="36" height="36" loading="lazy">'
+            inner: '<img class="message-avatar-img" src="images/ai.png" alt="Dr. ScentraVN Chat" width="36" height="36" loading="lazy">'
         };
     }
     const user = typeof auth !== 'undefined' && auth.currentUser ? auth.currentUser : null;
@@ -809,7 +809,7 @@ function showTypingIndicator() {
     const typingHtml = `
         <div id="typingIndicator" class="message assistant">
             <div class="message-avatar">
-                <img class="message-avatar-img" src="images/ai.png" alt="Dr. Synachat" width="36" height="36" loading="lazy">
+                <img class="message-avatar-img" src="images/ai.png" alt="Dr. ScentraVN Chat" width="36" height="36" loading="lazy">
             </div>
             <div class="message-content">
                 <div class="message-bubble">
@@ -1016,9 +1016,9 @@ async function clearChat() {
         container.innerHTML = `
             <div id="welcomeMessage" class="welcome-message">
                 <div class="welcome-icon">
-                    <img class="welcome-icon-img" src="images/ai.png" alt="Dr. Synachat" width="80" height="80" loading="lazy">
+                    <img class="welcome-icon-img" src="images/ai.png" alt="Dr. ScentraVN Chat" width="80" height="80" loading="lazy">
                 </div>
-                <h3>Hello, I'm Dr. Synachat</h3>
+                <h3>Hello, I'm Dr. ScentraVN Chat</h3>
                 <p>Your personal AI health companion. I can analyze your vitals, offer wellness advice, and support your health journey.</p>
                 <div class="quick-actions">
                     <button class="quick-action" onclick="sendQuickMessage('Analyze my current heart rate')">

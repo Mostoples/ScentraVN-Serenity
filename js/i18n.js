@@ -13,7 +13,7 @@ const I18n = {
             'nav.dashboard': 'Dashboard',
             'nav.health': 'Health',
             'nav.heroic': 'HEROIC',
-            'nav.chat': 'Synachat',
+            'nav.chat': 'ScentraVN Chat',
             'nav.analytics': 'Analitik',
             'nav.profile': 'Profil',
             'nav.more': 'Lainnya',
@@ -48,7 +48,7 @@ const I18n = {
             'menu.assessment': 'Asesmen',
             'menu.assessment_sub': 'PHQ-9 & UCLA',
             'menu.chat': 'AI Chat',
-            'menu.chat_sub': 'Synachat',
+            'menu.chat_sub': 'ScentraVN Chat',
             'menu.crisis': 'Bantuan Krisis',
             'menu.crisis_sub': 'Hubungi Sekarang',
             'menu.sleep': 'Sleep Lab',
@@ -118,7 +118,7 @@ const I18n = {
             'assessment.rec_severe_desc': 'Skor Anda menunjukkan tingkat beban mental yang tinggi. SCENTRAVN merekomendasikan Anda untuk berbicara dengan tenaga profesional.',
             'assessment.rec_severe_btn': 'Buka Support Hub',
             'assessment.rec_moderate_title': 'Rekomendasi Fitur',
-            'assessment.rec_moderate_desc': 'SYNACHAT AI siap menemani Anda ngobrol dan meredakan beban pikiran Anda hari ini.',
+            'assessment.rec_moderate_desc': 'SCENTRAVN CHAT AI siap menemani Anda ngobrol dan meredakan beban pikiran Anda hari ini.',
             'assessment.rec_moderate_btn': 'Mulai Percakapan AI',
             'assessment.rec_good_title': 'Pertahankan Kondisi Anda!',
             'assessment.rec_good_desc': 'Kondisi mental Anda terpantau baik. Gunakan fitur Sleep Lab dan Meditasi untuk menjaga kualitas istirahat Anda.',
@@ -207,7 +207,7 @@ const I18n = {
             'support.references': 'Referensi Ilmiah',
 
             // Synachat
-            'synachat.title': 'Synachat',
+            'synachat.title': 'ScentraVN Chat',
             'synachat.ready': 'Siap membantu',
             'synachat.placeholder': 'Tanyakan tentang kesehatanmu...',
             'synachat.clear_confirm': 'Hapus semua riwayat chat? Tindakan ini tidak dapat dibatalkan.',
@@ -265,7 +265,7 @@ const I18n = {
             'health.recording': 'Merekam',
             'health.readings': 'pembacaan',
             'health.view_analytics': 'Lihat Analitik',
-            'health.ask_synachat': 'Tanya Dr. Synachat',
+            'health.ask_synachat': 'Tanya Dr. ScentraVN Chat',
 
             // Analytics Page
             'analytics.today': 'Hari Ini',
@@ -383,7 +383,7 @@ const I18n = {
             // Synachat
             'synachat.initializing': 'Menginisialisasi AI Assistant...',
             'synachat.live_health': 'Kesehatan Live',
-            'synachat.hello': 'Halo, saya Dr. Synachat',
+            'synachat.hello': 'Halo, saya Dr. ScentraVN Chat',
             'synachat.welcome_msg': 'Asisten kesehatan AI personal Anda. Tanyakan apa saja tentang kesehatan Anda.',
             'synachat.qa_heart': 'Analisis Jantung',
             'synachat.qa_heart_msg': 'Analisis detak jantung saya saat ini',
@@ -399,7 +399,7 @@ const I18n = {
             'moodbooster.mood_recorded': 'Mood dicatat. Playlist disesuaikan!',
 
             // Profile extras
-            'profile.chat_subtitle': 'Chat dengan Dr. Synachat',
+            'profile.chat_subtitle': 'Chat dengan Dr. ScentraVN Chat',
 
             // Questionnaire
             'questionnaire.title': 'Kuesioner Pengujian',
@@ -450,6 +450,17 @@ const I18n = {
             'games.loading_leaderboard': 'Memuat peringkat...',
 
             // Buttons & Actions
+            'action.edit': 'Ubah',
+            'action.see_all': 'Lihat Semua',
+            'action.tap_view': 'ketuk untuk lihat',
+            'dashboard.welcome': 'Selamat Datang',
+            'dashboard.body_temp': 'Suhu Tubuh',
+            'dashboard.devices': 'Perangkat',
+            'dashboard.scripts': 'Skenario',
+            'dashboard.morning_scene': 'Rutinitas Pagi',
+            'dashboard.morning_desc': 'Pernapasan, mindfulness, peregangan ringan',
+            'dashboard.evening_scene': 'Pelacakan Tidur',
+            'health.heart_rate': 'Detak Jantung',
             'action.start_monitoring': 'Mulai Monitoring',
             'action.talk_to_ai': 'Bicara ke AI',
 
@@ -505,7 +516,7 @@ const I18n = {
             'tour.analytics.chart_title': 'Grafik Tren',
             'tour.analytics.chart_desc': 'Grafik menampilkan pola detak jantung, stres, GSR, dan SpO2 Anda. Perhatikan rata-rata (Avg) di sudut kanan atas tiap grafik.',
             // Synachat
-            'tour.synachat.ai_title': 'Dr. Synachat',
+            'tour.synachat.ai_title': 'Dr. ScentraVN Chat',
             'tour.synachat.ai_desc': 'Asisten AI untuk dukungan emosional dan edukasi kesehatan. Bukan dokter sungguhan — untuk konsultasi medis, hubungi profesional.',
             'tour.synachat.context_title': 'Data Kesehatan Live',
             'tour.synachat.context_desc': 'AI dapat melihat data sensor Anda saat ini (detak jantung, SpO2, stres) untuk memberikan saran yang lebih relevan.',
@@ -569,7 +580,7 @@ const I18n = {
             'nav.dashboard': 'Dashboard',
             'nav.health': 'Health',
             'nav.heroic': 'HEROIC',
-            'nav.chat': 'Synachat',
+            'nav.chat': 'ScentraVN Chat',
             'nav.analytics': 'Analytics',
             'nav.profile': 'Profile',
             'nav.more': 'More',
@@ -604,7 +615,7 @@ const I18n = {
             'menu.assessment': 'Assessment',
             'menu.assessment_sub': 'PHQ-9 & UCLA',
             'menu.chat': 'AI Chat',
-            'menu.chat_sub': 'Synachat',
+            'menu.chat_sub': 'ScentraVN Chat',
             'menu.crisis': 'Crisis Support',
             'menu.crisis_sub': 'Get Help Now',
             'menu.sleep': 'Sleep Lab',
@@ -671,7 +682,7 @@ const I18n = {
             'assessment.rec_severe_desc': 'Your score indicates a high mental burden. SCENTRAVN recommends speaking with a professional.',
             'assessment.rec_severe_btn': 'Open Support Hub',
             'assessment.rec_moderate_title': 'Feature Recommendation',
-            'assessment.rec_moderate_desc': 'SYNACHAT AI is ready to chat and help ease your mind today.',
+            'assessment.rec_moderate_desc': 'SCENTRAVN CHAT AI is ready to chat and help ease your mind today.',
             'assessment.rec_moderate_btn': 'Start AI Chat',
             'assessment.rec_good_title': 'Keep It Up!',
             'assessment.rec_good_desc': 'Your mental condition looks good. Use Sleep Lab and Meditation to maintain your rest quality.',
@@ -760,7 +771,7 @@ const I18n = {
             'support.references': 'Scientific References',
 
             // Synachat
-            'synachat.title': 'Synachat',
+            'synachat.title': 'ScentraVN Chat',
             'synachat.ready': 'Ready to help',
             'synachat.placeholder': 'Ask about your health...',
             'synachat.clear_confirm': 'Delete all chat history? This action cannot be undone.',
@@ -818,7 +829,7 @@ const I18n = {
             'health.recording': 'Recording',
             'health.readings': 'readings',
             'health.view_analytics': 'View Analytics',
-            'health.ask_synachat': 'Ask Dr. Synachat',
+            'health.ask_synachat': 'Ask Dr. ScentraVN Chat',
 
             // Analytics Page
             'analytics.today': 'Today',
@@ -936,7 +947,7 @@ const I18n = {
             // Synachat
             'synachat.initializing': 'Initializing AI Assistant...',
             'synachat.live_health': 'Live Health',
-            'synachat.hello': 'Hello, I\'m Dr. Synachat',
+            'synachat.hello': 'Hello, I\'m Dr. ScentraVN Chat',
             'synachat.welcome_msg': 'Your personal AI health companion. Ask me anything about your health.',
             'synachat.qa_heart': 'Heart Analysis',
             'synachat.qa_heart_msg': 'Analyze my current heart rate',
@@ -952,7 +963,7 @@ const I18n = {
             'moodbooster.mood_recorded': 'Mood recorded. Playlist adjusted!',
 
             // Profile extras
-            'profile.chat_subtitle': 'Chat with Dr. Synachat',
+            'profile.chat_subtitle': 'Chat with Dr. ScentraVN Chat',
 
             // Questionnaire
             'questionnaire.title': 'App Testing Questionnaire',
@@ -1003,6 +1014,17 @@ const I18n = {
             'games.loading_leaderboard': 'Loading leaderboard...',
 
             // Buttons & Actions
+            'action.edit': 'Edit',
+            'action.see_all': 'See all',
+            'action.tap_view': 'tap to view',
+            'dashboard.welcome': 'Welcome',
+            'dashboard.body_temp': 'Body temp',
+            'dashboard.devices': 'Devices',
+            'dashboard.scripts': 'Scripts',
+            'dashboard.morning_scene': 'Morning routine',
+            'dashboard.morning_desc': 'Breathing, mindfulness, light stretch',
+            'dashboard.evening_scene': 'Sleep tracking',
+            'health.heart_rate': 'Heart Rate',
             'action.start_monitoring': 'Start Monitoring',
             'action.talk_to_ai': 'Talk to AI',
 
@@ -1058,7 +1080,7 @@ const I18n = {
             'tour.analytics.chart_title': 'Trend Charts',
             'tour.analytics.chart_desc': 'Charts show your heart rate, stress, GSR, and SpO2 patterns. Check the average (Avg) in the top-right corner of each chart.',
             // Synachat
-            'tour.synachat.ai_title': 'Dr. Synachat',
+            'tour.synachat.ai_title': 'Dr. ScentraVN Chat',
             'tour.synachat.ai_desc': 'An AI assistant for emotional support and health education. Not a real doctor — for medical advice, consult a professional.',
             'tour.synachat.context_title': 'Live Health Data',
             'tour.synachat.context_desc': 'The AI can see your current sensor data (heart rate, SpO2, stress) to give more relevant advice.',
@@ -1149,5 +1171,22 @@ const I18n = {
 
 function t(key, params) { return I18n.t(key, params); }
 
+/**
+ * Flip language ID ⇄ EN from the header button.
+ * If the assessment/test is open, delegate to Assessment.setLang so the
+ * in-progress answers/position are preserved (I18n.setLang re-routes and
+ * would otherwise restart the flow).
+ */
+function toggleLanguage() {
+    const next = I18n.currentLang === 'id' ? 'en' : 'id';
+    if (typeof Assessment !== 'undefined' && Assessment.setLang
+        && document.getElementById('assessmentContent')) {
+        Assessment.setLang(next);
+    } else {
+        I18n.setLang(next);
+    }
+}
+
 window.I18n = I18n;
 window.t = t;
+window.toggleLanguage = toggleLanguage;

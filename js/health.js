@@ -28,16 +28,153 @@ function initHealthPage() {
 // ─────────────────────────────────────────────
 
 let _healthLiveUnsub = null;
+let _lastLive = null;
+
+// BLE overlays — direct Web Bluetooth connections from this page (independent
+// of the Android→RTDB bridge). Galaxy Watch stays RTDB-only.
+let _museOverlay = null;     // { eeg, battery, updatedAt }
+let _espOverlay  = null;     // { bpm, spo2, battery, updatedAt }
+let _museMetricsHandler = null;
+let _bleDataHandler = null;
+let _museConnHandler = null;
+let _bleConnHandler = null;
+
+function _emptyLive() {
+    return {
+        galaxyWatch: { source: 'GALAXY_WATCH', connected: false, bpm: null, battery: null, updatedAt: 0, stress: { value: null, level: 'unavailable' } },
+        esp32:       { source: 'ESP32_WATCH', connected: false, bpm: null, spo2: null, battery: null, updatedAt: 0 },
+        muse:        { source: 'MUSE_S', connected: false, bpm: null, eeg: {}, battery: null, updatedAt: 0 },
+    };
+}
 
 function wireHealthLiveBridge() {
-    if (typeof ScentraLive === 'undefined') return;
-    ScentraLive.start();
-    if (_healthLiveUnsub) { _healthLiveUnsub(); _healthLiveUnsub = null; }
-    _healthLiveUnsub = ScentraLive.onUpdate(applyHealthLiveSnapshot);
+    if (typeof ScentraLive !== 'undefined') {
+        ScentraLive.start();
+        if (_healthLiveUnsub) { _healthLiveUnsub(); _healthLiveUnsub = null; }
+        _healthLiveUnsub = ScentraLive.onUpdate(applyHealthLiveSnapshot);
+    }
+    wireHealthBleButtons();
+    wireHealthBleStreams();
 }
 
 function unwireHealthLiveBridge() {
     if (_healthLiveUnsub) { _healthLiveUnsub(); _healthLiveUnsub = null; }
+    if (typeof MuseEEG !== 'undefined') {
+        if (_museMetricsHandler && MuseEEG.offMetrics) MuseEEG.offMetrics(_museMetricsHandler);
+    }
+    if (typeof BLEConnection !== 'undefined') {
+        if (_bleDataHandler && BLEConnection.offDataUpdate) BLEConnection.offDataUpdate(_bleDataHandler);
+        if (_bleConnHandler && BLEConnection.offConnectionChange) BLEConnection.offConnectionChange(_bleConnHandler);
+    }
+    _museMetricsHandler = _bleDataHandler = _museConnHandler = _bleConnHandler = null;
+}
+
+// ── BLE connect buttons (Muse S Gen 2 + ScentraVN Watch) ──
+function wireHealthBleButtons() {
+    const museBtn = document.getElementById('dev-muse-connect');
+    const espBtn  = document.getElementById('dev-esp-connect');
+
+    if (museBtn) museBtn.onclick = async () => {
+        if (typeof MuseEEG === 'undefined') return;
+        if (MuseEEG.isConnected) { await MuseEEG.disconnect(); setHealthBtn(museBtn, 'Hubungkan', false); return; }
+        setHealthBtn(museBtn, 'Menghubungkan…', true);
+        const ok = await MuseEEG.connect();
+        setHealthBtn(museBtn, ok ? 'Putuskan' : 'Hubungkan', false);
+        if (!ok && typeof Utils !== 'undefined') Utils.showToast?.('Muse: gagal / dibatalkan', 'warning');
+    };
+
+    if (espBtn) espBtn.onclick = async () => {
+        if (typeof BLEConnection === 'undefined') return;
+        if (BLEConnection.isConnected && BLEConnection.isConnected()) { await BLEConnection.disconnect(); setHealthBtn(espBtn, 'Hubungkan', false); return; }
+        setHealthBtn(espBtn, 'Menghubungkan…', true);
+        try { await BLEConnection.connect(); setHealthBtn(espBtn, 'Putuskan', false); }
+        catch (e) { setHealthBtn(espBtn, 'Hubungkan', false); }
+    };
+
+    // Reflect current connection state on entry
+    const museOn = (typeof MuseEEG !== 'undefined') && MuseEEG.isConnected;
+    const espOn  = (typeof BLEConnection !== 'undefined') && BLEConnection.isConnected && BLEConnection.isConnected();
+    if (museBtn) setHealthBtn(museBtn, museOn ? 'Putuskan' : 'Hubungkan', false);
+    if (espBtn)  setHealthBtn(espBtn, espOn ? 'Putuskan' : 'Hubungkan', false);
+}
+
+function _syncHealthBtn(id, connected) {
+    const btn = document.getElementById(id);
+    if (btn) setHealthBtn(btn, connected ? 'Putuskan' : 'Hubungkan', false);
+}
+
+function setHealthBtn(btn, label, busy) {
+    if (!btn) return;
+    btn.disabled = !!busy;
+    const icon = busy ? 'fa-spinner fa-spin' : 'fab fa-bluetooth-b';
+    btn.innerHTML = `<i class="${busy ? 'fas ' + icon : icon}"></i> ${label}`;
+}
+
+// ── Subscribe to live BLE streams → overlay → re-render ──
+function wireHealthBleStreams() {
+    if (typeof MuseEEG !== 'undefined' && MuseEEG.onMetrics && !_museMetricsHandler) {
+        _museMetricsHandler = (m) => {
+            const p = m.powers || {};
+            _museOverlay = {
+                eeg: { delta: p.delta, theta: p.theta, alpha: p.alpha, beta: p.beta, gamma: p.gamma },
+                battery: m.battery, updatedAt: Date.now(),
+            };
+            _syncHealthBtn('dev-muse-connect', true);
+            renderMergedHealth();
+        };
+        MuseEEG.onMetrics(_museMetricsHandler);
+    }
+    if (typeof BLEConnection !== 'undefined' && BLEConnection.onDataUpdate && !_bleDataHandler) {
+        _bleDataHandler = (d) => {
+            const finger = d.finger !== false;
+            _espOverlay = {
+                bpm: finger ? d.hr : 0, spo2: finger ? d.spo2 : 0,
+                battery: d.battery != null ? d.battery : null, updatedAt: Date.now(),
+            };
+            renderMergedHealth();
+        };
+        BLEConnection.onDataUpdate(_bleDataHandler);
+    }
+    // Keep ScentraVN connect button in sync (BLEConnection supports multi-listener).
+    // Muse uses a single-slot onConnection callback (avoid clobbering it) — its
+    // button is reflected from the metrics handler / onclick instead.
+    if (typeof BLEConnection !== 'undefined' && BLEConnection.onConnectionChange && !_bleConnHandler) {
+        _bleConnHandler = (isConnected) => {
+            _syncHealthBtn('dev-esp-connect', !!isConnected);
+            if (!isConnected) { _espOverlay = null; }
+            renderMergedHealth();
+        };
+        BLEConnection.onConnectionChange(_bleConnHandler);
+    }
+}
+
+/** Build a snapshot that merges the RTDB bridge data with live BLE overlays. */
+function mergeBleOverlay(live) {
+    const merged = JSON.parse(JSON.stringify(live || _emptyLive()));
+    const museOn = (typeof MuseEEG !== 'undefined') && (MuseEEG.isConnected || MuseEEG.simulationMode);
+    if (museOn && _museOverlay) {
+        merged.muse.connected = true;
+        merged.muse.source = MuseEEG.simulationMode ? 'MUSE_S (sim)' : 'MUSE_S (BLE)';
+        merged.muse.eeg = _museOverlay.eeg;
+        if (_museOverlay.battery != null) merged.muse.battery = _museOverlay.battery;
+        merged.muse.updatedAt = _museOverlay.updatedAt;
+    }
+    const espOn = (typeof BLEConnection !== 'undefined') && BLEConnection.isConnected && BLEConnection.isConnected();
+    if (espOn && _espOverlay) {
+        merged.esp32.connected = true;
+        merged.esp32.source = 'ESP32 (BLE)';
+        if (_espOverlay.bpm != null)  merged.esp32.bpm = _espOverlay.bpm;
+        if (_espOverlay.spo2 != null) merged.esp32.spo2 = _espOverlay.spo2;
+        if (_espOverlay.battery != null) merged.esp32.battery = _espOverlay.battery;
+        merged.esp32.updatedAt = _espOverlay.updatedAt;
+    }
+    return merged;
+}
+
+/** Re-render using the cached RTDB snapshot + current BLE overlays. */
+function renderMergedHealth() {
+    if (!document.getElementById('eegChart')) { unwireHealthLiveBridge(); return; }
+    _renderHealthSnapshot(mergeBleOverlay(_lastLive));
 }
 
 /**
@@ -47,16 +184,24 @@ function unwireHealthLiveBridge() {
  */
 function applyHealthLiveSnapshot(live) {
     if (!document.getElementById('eegChart')) { unwireHealthLiveBridge(); return; }
+    if (live) _lastLive = live;
+    _renderHealthSnapshot(mergeBleOverlay(_lastLive || _emptyLive()));
+}
+
+function _renderHealthSnapshot(live) {
+    if (!document.getElementById('eegChart')) { unwireHealthLiveBridge(); return; }
     if (!live) return;
 
     const gw = live.galaxyWatch, esp = live.esp32, muse = live.muse;
 
     // ── Badge global ──
-    const avail = (typeof ScentraLive !== 'undefined') && ScentraLive.available;
+    const bleOn = ((typeof MuseEEG !== 'undefined') && (MuseEEG.isConnected || MuseEEG.simulationMode)) ||
+                  ((typeof BLEConnection !== 'undefined') && BLEConnection.isConnected && BLEConnection.isConnected());
+    const avail = bleOn || ((typeof ScentraLive !== 'undefined') && ScentraLive.available);
     const anyOn = gw.connected || esp.connected || muse.connected;
-    if (!avail)       setHealthBadge('healthLiveBadge', 'off', 'SDK belum siap');
-    else if (anyOn)   setHealthBadge('healthLiveBadge', 'live', 'LIVE — app tersambung');
-    else              setHealthBadge('healthLiveBadge', 'waiting', 'App belum mengirim data');
+    if (!avail)       setHealthBadge('healthLiveBadge', 'off', 'Belum ada perangkat');
+    else if (anyOn)   setHealthBadge('healthLiveBadge', 'live', bleOn ? 'LIVE — Bluetooth' : 'LIVE — app tersambung');
+    else              setHealthBadge('healthLiveBadge', 'waiting', 'Menunggu data…');
 
     // ── Kartu perangkat (read-only) ──
     renderDeviceCard('gw', gw);
@@ -66,7 +211,7 @@ function applyHealthLiveSnapshot(live) {
     // ── Detak jantung: Watch → fallback ESP32 ──
     let hr = 0, hrSrc = '—';
     if (gw.connected && gw.bpm > 0)       { hr = gw.bpm;  hrSrc = 'Galaxy Watch'; }
-    else if (esp.connected && esp.bpm > 0) { hr = esp.bpm; hrSrc = 'ESP32'; }
+    else if (esp.connected && esp.bpm > 0) { hr = esp.bpm; hrSrc = 'ScentraVN Watch'; }
     renderHeartRate(hr, hrSrc);
 
     // ── SpO₂: HANYA ESP32 ──
@@ -270,7 +415,7 @@ function initEEGChart() {
             ],
         },
         options: {
-            responsive: true, animation: false,
+            responsive: true, maintainAspectRatio: false, animation: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } },

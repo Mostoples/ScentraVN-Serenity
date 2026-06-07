@@ -41,7 +41,7 @@
       "icons": [{ "src": "images/logo.png", "sizes": "any" }]
     },
     {
-      "name": "Dr. Synachat",
+      "name": "Dr. ScentraVN Chat",
       "short_name": "AI Chat",
       "description": "Chat with AI health assistant",
       "url": "/app.html#synachat",

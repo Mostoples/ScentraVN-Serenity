@@ -9,7 +9,7 @@ const Views = {
      */
     assessment() {
         return `
-            <div class="view-container" style="margin: 0 auto; padding-top: 40px;">
+            <div class="view-container" style="margin: 0 auto; padding-top: 24px; padding-bottom: 40px;">
                 <div id="assessmentProgressWrapper" style="margin-bottom: 32px; display: none;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">${t('assessment.progress')}</span>
@@ -46,9 +46,8 @@ const Views = {
                             <div class="hero-name" id="userName">User</div>
                             <div class="hero-sub" id="dashboardDate"></div>
                         </div>
-                        <button class="hero-action" onclick="Router.navigate('profile')" type="button">
+                        <button class="hero-action" onclick="Router.navigate('profile')" type="button" aria-label="${t('action.edit') || 'Edit'}" title="${t('action.edit') || 'Edit'}">
                             <i class="fas fa-pen"></i>
-                            <span>${t('action.edit') || 'Edit'}</span>
                         </button>
                     </div>
 
@@ -165,7 +164,7 @@ const Views = {
                 <div class="device-grid">
                     <div class="device-card" onclick="Router.navigate('live')">
                         <div class="device-card-head">
-                            <div class="icon"><i class="fas fa-watch"></i></div>
+                            <div class="icon"><img src="images/smartwatch.png" alt="Galaxy Watch" style="width:16px;height:16px;object-fit:contain;filter:brightness(0) saturate(100%) invert(28%) sepia(83%) saturate(2089%) hue-rotate(258deg) brightness(91%) contrast(96%);"></div>
                             <span class="device-card-status off" id="watchStatus">OFF</span>
                         </div>
                         <div class="device-card-name">Galaxy Watch</div>
@@ -184,7 +183,7 @@ const Views = {
                             <div class="icon"><i class="fas fa-robot"></i></div>
                             <span class="device-card-status on">ON</span>
                         </div>
-                        <div class="device-card-name">Dr. Synachat</div>
+                        <div class="device-card-name">Dr. ScentraVN Chat</div>
                         <div class="device-card-room">AI Assistant</div>
                     </div>
                 </div>
@@ -520,6 +519,7 @@ const Views = {
                     .hdev-card{padding:16px;display:flex;flex-direction:column;}
                     .hdev-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
                     .hdev-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;box-shadow:0 4px 12px rgba(124,58,237,0.30);}
+                    .hdev-img{width:30px;height:30px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 2px rgba(255,255,255,0.55));}
                     .hdev-dot{width:11px;height:11px;border-radius:50%;background:#cbd5e1;box-shadow:0 0 0 4px rgba(203,213,225,0.22);margin-top:5px;}
                     .hdev-dot.on{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,0.18);}
                     .hdev-dot.stale{background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,0.18);}
@@ -578,17 +578,19 @@ const Views = {
                     <section class="hsec">
                         <div class="hsec-head">
                             <h2><i class="fas fa-tower-broadcast"></i> Perangkat</h2>
-                            <span class="hsec-note"><i class="fas fa-circle-info"></i> Diatur dari aplikasi Android ScentraVN</span>
+                            <span class="hsec-note"><i class="fas fa-circle-info"></i> Muse &amp; ScentraVN lewat Bluetooth · Galaxy Watch lewat aplikasi ScentraVN</span>
                         </div>
                         <div class="hdev-grid">
                             ${[
-                                ['gw','fa-watch','Galaxy Watch','Detak jantung · Stres'],
-                                ['esp','fa-microchip','ESP32-C3','Detak jantung · SpO₂'],
-                                ['muse','fa-brain','Muse S Gen 2','Gelombang otak (EEG)']
-                            ].map(([k,ic,nm,role]) => `
+                                ['gw','img:images/smartwatch.png','Galaxy Watch','Detak jantung · Stres','rtdb'],
+                                ['esp','fa-microchip','ScentraVN Watch','Detak jantung · SpO₂','ble'],
+                                ['muse','fa-brain','Muse S Gen 2','Gelombang otak (EEG)','ble']
+                            ].map(([k,ic,nm,role,conn]) => `
                                 <div class="hcard hdev-card">
                                     <div class="hdev-top">
-                                        <div class="hdev-icon"><i class="fas ${ic}"></i></div>
+                                        <div class="hdev-icon">${ic.startsWith('img:')
+                                            ? `<img src="${ic.slice(4)}" alt="${nm}" class="hdev-img">`
+                                            : `<i class="fas ${ic}"></i>`}</div>
                                         <span class="hdev-dot" id="dev-${k}-dot"></span>
                                     </div>
                                     <div class="hdev-name">${nm}</div>
@@ -599,6 +601,9 @@ const Views = {
                                         <span><i class="fas fa-battery-half" style="color:#7c3aed;"></i> <span id="dev-${k}-batt">—</span></span>
                                     </div>
                                     <div class="hdev-updated" id="dev-${k}-updated">—</div>
+                                    ${conn === 'ble'
+                                        ? `<button class="hdev-connect-btn" id="dev-${k}-connect" type="button" style="margin-top:11px;width:100%;border:1px solid rgba(124,58,237,0.25);background:rgba(124,58,237,0.08);color:#6d28d9;font-weight:700;font-size:0.76rem;padding:8px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;"><i class="fab fa-bluetooth-b"></i> Hubungkan</button>`
+                                        : `<div style="margin-top:11px;font-size:0.66rem;color:#0891b2;font-weight:700;background:rgba(8,145,178,0.08);padding:8px;border-radius:10px;text-align:center;"><i class="fas fa-mobile-screen-button"></i> Buka aplikasi ScentraVN</div>`}
                                 </div>`).join('')}
                         </div>
                     </section>
@@ -626,7 +631,7 @@ const Views = {
                                 </div>
                                 <div class="hvit-num"><span class="n" id="spo2Value">--</span><span class="u">%</span></div>
                                 <div class="hvit-label">${t('health.blood_oxygen') || 'Saturasi Oksigen'}</div>
-                                <div class="hvit-foot">Hanya ESP32 (MAX30102) · Normal 95–100</div>
+                                <div class="hvit-foot">Dari ScentraVN Watch · Normal 95–100</div>
                             </div>
                             <div class="hcard hvit">
                                 <div class="hvit-top">
@@ -635,7 +640,7 @@ const Views = {
                                 </div>
                                 <div class="hvit-num"><span class="n" id="stressCategory" style="font-size:1.6rem;">—</span></div>
                                 <div class="hvit-label">Tingkat Stres</div>
-                                <div class="hvit-foot">Kategori dari Galaxy Watch (kalibrasi 3-titik)</div>
+                                <div class="hvit-foot">Tingkat stres dari Galaxy Watch</div>
                             </div>
                         </div>
                     </section>
@@ -650,7 +655,9 @@ const Views = {
                             </div>
                         </div>
                         <div class="heeg-cw">
-                            <canvas id="eegChart" style="width:100%;height:180px;display:block;"></canvas>
+                            <div style="position:relative;width:100%;height:180px;">
+                                <canvas id="eegChart"></canvas>
+                            </div>
                             <div style="font-size:0.62rem;color:#94a3b8;text-align:right;margin-top:4px;">Daya pita relatif (%) · ternormalisasi</div>
                         </div>
                         <div class="heeg-bands">
@@ -669,7 +676,15 @@ const Views = {
 
                     <!-- Quick Actions -->
                     <div class="health-actions">
-                        <button class="health-action-btn primary" onclick="Router.navigate('analytics')">
+                        <button class="health-action-btn primary" onclick="Router.navigate('rawrecorder')" style="background:linear-gradient(135deg,#7c3aed,#a855f7);">
+                            <i class="fas fa-record-vinyl"></i>
+                            <span>Rekam Data</span>
+                        </button>
+                        <button class="health-action-btn secondary" onclick="Router.navigate('recordhistory')">
+                            <i class="fas fa-clock-rotate-left"></i>
+                            <span>Riwayat Rekaman</span>
+                        </button>
+                        <button class="health-action-btn secondary" onclick="Router.navigate('analytics')">
                             <i class="fas fa-chart-line"></i>
                             <span>${t('health.view_analytics')}</span>
                         </button>
@@ -1047,7 +1062,7 @@ const Views = {
                         <!-- Welcome Message - Premium Design -->
                         <div id="welcomeMessage" class="welcome-message">
                             <div class="welcome-icon">
-                                <img class="welcome-icon-img" src="images/ai.png" alt="Dr. Synachat" width="80" height="80" loading="lazy">
+                                <img class="welcome-icon-img" src="images/ai.png" alt="Dr. ScentraVN Chat" width="80" height="80" loading="lazy">
                             </div>
                             <h3>${t('synachat.hello')}</h3>
                             <p>${t('synachat.welcome_msg')}</p>
@@ -2777,70 +2792,229 @@ const Views = {
      */
     rawRecorder() {
         const dev = (id, name, icon, sensors) => `
-            <div class="glass-card" style="padding:16px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;"><i class="fas ${icon}"></i></div>
-                    <div style="flex:1;">
-                        <div style="font-size:0.92rem;font-weight:700;color:#4c1d95;">${name}</div>
-                        <div style="font-size:0.7rem;color:#94a3b8;" id="rawDev-${id}-status">terputus</div>
+            <div class="rr-dev" id="rawDevCard-${id}">
+                <div class="rr-dev-hd">
+                    <div class="rr-dev-ic">${icon.startsWith('img:')
+                        ? `<img src="${icon.slice(4)}" alt="${name}">`
+                        : `<i class="fas ${icon}"></i>`}</div>
+                    <div class="rr-dev-main">
+                        <div class="rr-dev-name">${name}</div>
+                        <div class="rr-dev-sensors">${sensors}</div>
                     </div>
-                    <span id="rawDev-${id}-dot" style="width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span>
+                    <span class="rr-dev-status" id="rawDev-${id}-status"><span class="rr-dot"></span> Terputus</span>
                 </div>
-                <div style="font-size:0.7rem;color:#64748b;margin:8px 0;line-height:1.5;">${sensors}</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button class="aura-section-link" id="rawConnect-${id}" type="button" style="background:rgba(124,58,237,0.1);padding:6px 14px;border-radius:99px;">Hubungkan</button>
-                    <span style="font-size:0.7rem;color:#7c3aed;font-weight:600;align-self:center;" id="rawDev-${id}-count">0 frame</span>
-                </div>
+                <div class="rr-live" id="rawLive-${id}"></div>
+                <div class="rr-dev-hint" id="rawHint-${id}" style="display:none;"></div>
+                <div class="rr-dev-foot"><span class="rr-dev-count" id="rawDev-${id}-count">0 frame</span></div>
             </div>`;
 
         return `
-            <div class="view-container">
-                <section class="aura-hero" style="margin-bottom:22px;">
-                    <div class="hero-row">
-                        <div>
-                            <div class="hero-greeting">Data Acquisition</div>
-                            <div class="hero-name">RAW Recorder</div>
-                            <div class="hero-sub" id="rawTimer">Rekam data mentah multi-device</div>
+            <div class="rr-wrap">
+                <style>
+                    .rr-wrap{padding:14px 14px 30px;display:flex;flex-direction:column;gap:16px;max-width:560px;margin:0 auto;}
+                    .rr-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+                    .rr-title{font-size:1.25rem;font-weight:800;color:#4c1d95;display:flex;align-items:center;gap:9px;}
+                    .rr-title i{color:#7c3aed;}
+                    .rr-hist-link{display:inline-flex;align-items:center;gap:6px;font-size:0.74rem;font-weight:700;color:#7c3aed;background:rgba(124,58,237,0.1);padding:8px 13px;border-radius:99px;border:none;cursor:pointer;}
+
+                    /* ── Hero status / timer ── */
+                    .rr-hero{position:relative;overflow:hidden;border-radius:22px;padding:24px 20px;color:#fff;
+                        background:linear-gradient(135deg,#6d28d9 0%,#9333ea 60%,#a855f7 100%);
+                        box-shadow:0 14px 36px rgba(109,40,217,0.34);text-align:center;}
+                    .rr-hero::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% -10%,rgba(255,255,255,0.28),transparent 60%);pointer-events:none;}
+                    .rr-statuspill{position:relative;display:inline-flex;align-items:center;gap:8px;font-size:0.74rem;font-weight:700;
+                        background:rgba(255,255,255,0.18);padding:6px 14px;border-radius:99px;backdrop-filter:blur(4px);letter-spacing:.02em;}
+                    .rr-statuspill .sdot{width:9px;height:9px;border-radius:50%;background:#cbd5e1;}
+                    .rr-statuspill.rec .sdot{background:#fca5a5;box-shadow:0 0 0 0 rgba(252,165,165,.7);animation:rrPulse 1.4s infinite;}
+                    .rr-statuspill.pause .sdot{background:#fcd34d;}
+                    @keyframes rrPulse{0%{box-shadow:0 0 0 0 rgba(252,165,165,.6)}70%{box-shadow:0 0 0 9px rgba(252,165,165,0)}100%{box-shadow:0 0 0 0 rgba(252,165,165,0)}}
+                    .rr-timer{position:relative;font-size:3rem;font-weight:800;line-height:1.05;margin:14px 0 4px;font-variant-numeric:tabular-nums;letter-spacing:.01em;}
+                    .rr-timer-sub{position:relative;font-size:0.78rem;opacity:.85;font-weight:600;}
+
+                    /* ── Controls ── */
+                    .rr-controls{display:flex;align-items:center;justify-content:center;gap:26px;margin-top:8px;}
+                    .rr-rec-btn{width:84px;height:84px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:2rem;
+                        background:linear-gradient(135deg,#7c3aed,#a855f7);box-shadow:0 10px 26px rgba(124,58,237,.45);
+                        display:flex;align-items:center;justify-content:center;transition:transform .12s ease,box-shadow .2s ease;}
+                    .rr-rec-btn:active{transform:scale(.93);}
+                    .rr-rec-btn.is-rec{background:linear-gradient(135deg,#f59e0b,#f97316);box-shadow:0 10px 26px rgba(245,158,11,.45);}
+                    .rr-rec-btn:disabled{opacity:.6;cursor:default;}
+                    .rr-stop-btn{width:66px;height:66px;border-radius:50%;cursor:pointer;color:#fff;font-size:1.4rem;
+                        background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 10px 24px rgba(239,68,68,.42);border:none;
+                        display:none;align-items:center;justify-content:center;transition:transform .12s ease;}
+                    .rr-stop-btn:active{transform:scale(.93);}
+                    .rr-ctrl-label{font-size:0.62rem;font-weight:700;opacity:.8;margin-top:7px;text-transform:uppercase;letter-spacing:.06em;text-align:center;}
+                    .rr-ctrl-cell{display:flex;flex-direction:column;align-items:center;}
+
+                    /* ── Stats row ── */
+                    .rr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+                    .rr-stat{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:16px;padding:13px 8px;text-align:center;box-shadow:0 4px 14px rgba(76,29,149,.05);}
+                    .rr-stat .v{font-size:1.3rem;font-weight:800;color:#4c1d95;line-height:1;font-variant-numeric:tabular-nums;}
+                    .rr-stat .l{font-size:0.62rem;color:#94a3b8;font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:.04em;}
+
+                    /* ── Draft banner ── */
+                    .rr-draft{display:none;align-items:center;gap:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:16px;padding:13px 15px;}
+                    .rr-draft i.dic{color:#d97706;font-size:1.2rem;}
+                    .rr-draft .dtxt{flex:1;font-size:0.76rem;color:#92400e;line-height:1.45;}
+                    .rr-draft .dbtns{display:flex;gap:7px;flex-wrap:wrap;}
+                    .rr-draft button{font-size:0.7rem;font-weight:700;border:none;border-radius:99px;padding:7px 12px;cursor:pointer;}
+
+                    /* ── Device cards (live raw monitor) ── */
+                    .rr-sec{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px -2px;}
+                    .rr-sec-title{font-size:0.74rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;}
+                    .rr-sec-link{font-size:0.7rem;font-weight:700;color:#7c3aed;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+                    .rr-dev{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(76,29,149,.05);transition:border-color .2s;}
+                    .rr-dev.on{border-color:rgba(34,197,94,.4);}
+                    .rr-dev-hd{display:flex;align-items:center;gap:12px;}
+                    .rr-dev-ic{width:46px;height:46px;flex-shrink:0;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;}
+                    .rr-dev-ic img{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 2px rgba(255,255,255,0.5));}
+                    .rr-dev-main{flex:1;min-width:0;}
+                    .rr-dev-name{font-size:0.9rem;font-weight:800;color:#1e293b;}
+                    .rr-dev-sensors{font-size:0.64rem;color:#94a3b8;line-height:1.35;margin-top:2px;}
+                    .rr-dev-status{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:700;color:#94a3b8;white-space:nowrap;flex-shrink:0;}
+                    .rr-dev-status .rr-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;}
+                    .rr-dev-status.on{color:#15803d;} .rr-dev-status.on .rr-dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16);}
+                    .rr-live{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:7px;margin-top:12px;}
+                    .rr-cell{background:#faf8ff;border:1px solid rgba(124,58,237,.08);border-radius:10px;padding:7px 4px;text-align:center;}
+                    .rr-cell .k{font-size:0.52rem;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.02em;}
+                    .rr-cell .v{font-size:0.82rem;color:#4c1d95;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px;line-height:1;}
+                    .rr-cell .v.live{color:#16a34a;}
+                    .rr-dev-hint{margin-top:11px;font-size:0.7rem;color:#94a3b8;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#f8fafc;border-radius:10px;padding:9px 11px;}
+                    .rr-dev-hint a{color:#7c3aed;font-weight:700;cursor:pointer;text-decoration:none;}
+                    .rr-dev-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:9px;}
+                    .rr-dev-count{font-size:0.66rem;font-weight:700;color:#7c3aed;}
+
+                    /* ── Export ── */
+                    .rr-card{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:18px;padding:16px;box-shadow:0 4px 14px rgba(76,29,149,.05);}
+                    .rr-info-btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:0.8rem;font-weight:700;padding:13px;border-radius:14px;border:1px solid rgba(124,58,237,0.12);cursor:pointer;background:rgba(124,58,237,0.06);color:#6d28d9;transition:background .18s;}
+                    .rr-info-btn:hover{background:rgba(124,58,237,0.14);}
+                </style>
+
+                <div class="rr-top">
+                    <div class="rr-title"><i class="fas fa-record-vinyl"></i> RAW Recorder</div>
+                    <button class="rr-hist-link" type="button" onclick="Router.navigate('recordhistory')"><i class="fas fa-clock-rotate-left"></i> Riwayat</button>
+                </div>
+
+                <!-- Draft banner -->
+                <div class="rr-draft" id="rawDraftBanner">
+                    <i class="fas fa-floppy-disk dic"></i>
+                    <div class="dtxt" id="rawDraftText">Ada rekaman tersimpan sementara di perangkat.</div>
+                    <div class="dbtns">
+                        <button id="rawDraftSave" style="background:#10b981;color:#fff;">Simpan ke Cloud</button>
+                        <button id="rawDraftDiscard" style="background:#fee2e2;color:#b91c1c;">Buang</button>
+                    </div>
+                </div>
+
+                <!-- Hero timer + controls -->
+                <div class="rr-hero">
+                    <span class="rr-statuspill" id="rawStatusPill"><span class="sdot"></span> <span id="rawStatus">Siap merekam</span></span>
+                    <div class="rr-timer" id="rawDuration">00:00</div>
+                    <div class="rr-timer-sub" id="rawRawCount">Belum ada data</div>
+                    <div class="rr-controls">
+                        <div class="rr-ctrl-cell">
+                            <button class="rr-rec-btn" id="rawRecordBtn" type="button" aria-label="Rekam"><i class="fas fa-play"></i></button>
+                            <span class="rr-ctrl-label" id="rawRecordLabel">Mulai</span>
                         </div>
-                        <div class="hero-score-icon"><i class="fas fa-record-vinyl"></i></div>
-                    </div>
-                </section>
-
-                <div class="glass-card" style="padding:14px 16px; margin-bottom:18px; border-left:3px solid #6366f1;">
-                    <p style="font-size:0.78rem; color:#3730a3; line-height:1.6;">
-                        <i class="fas fa-circle-info"></i> Rekam sinyal mentah dari semua device sekaligus (BLE / WiFi / Firebase). Hasil bisa di-<strong>save sebagai JSON/CSV</strong> atau diunggah ke cloud untuk riset & training model.
-                    </p>
-                </div>
-
-                <div class="aura-section"><span class="aura-section-title">Perangkat</span></div>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    ${dev('watch8', 'Samsung Galaxy Watch 8', 'fa-watch-smart', 'HR · HRV · SpO2 · Accel · Gyro · Suhu kulit · EDA · Langkah · Barometer (via aplikasi perantara → WiFi/Firebase)')}
-                    ${dev('muse', 'Muse Sleep (EEG)', 'fa-brain', 'TP9 · AF7 · AF8 · TP10 · Band powers · Accel · Gyro (via Web Bluetooth)')}
-                    ${dev('scentra', 'ScentraVN Watch', 'fa-microchip', 'MAX30102 (red/IR/HR/SpO2) · MLX90614 suhu · IMU · EDA/GSR (via BLE/WiFi/Firebase)')}
-                </div>
-
-                <div class="glass-card" style="padding:18px; margin-top:18px;">
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
-                        <div class="metric-pill" style="padding:12px;"><div class="pill-label">Durasi</div><div class="pill-value" style="font-size:1.2rem;"><span id="rawDuration">0s</span></div></div>
-                        <div class="metric-pill" style="padding:12px;"><div class="pill-label">Total frame</div><div class="pill-value" style="font-size:1.2rem;"><span id="rawTotal">0</span></div></div>
-                        <div class="metric-pill" style="padding:12px;"><div class="pill-label">Status</div><div class="pill-value" style="font-size:1.1rem;"><span id="rawStatus">idle</span></div></div>
-                    </div>
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <button id="rawStartBtn" class="hero-action" type="button" style="background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;flex:1;justify-content:center;"><i class="fas fa-circle"></i> <span>Mulai Rekam</span></button>
-                        <button id="rawStopBtn" class="hero-action" type="button" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);flex:1;justify-content:center;display:none;"><i class="fas fa-stop"></i> <span>Stop</span></button>
+                        <div class="rr-ctrl-cell">
+                            <button class="rr-stop-btn" id="rawStopBtn" type="button" aria-label="Stop"><i class="fas fa-stop"></i></button>
+                            <span class="rr-ctrl-label" id="rawStopLabel" style="display:none;">Stop &amp; Simpan</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="aura-section" style="margin-top:18px;"><span class="aura-section-title">Ekspor &amp; Simpan</span></div>
-                <div class="glass-card" style="padding:16px;">
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <button id="rawExportJson" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-code"></i> JSON (lengkap)</button>
-                        <button id="rawExportMuse" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-csv"></i> CSV Muse</button>
-                        <button id="rawExportScentra" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-csv"></i> CSV ScentraVN</button>
-                        <button id="rawExportWatch8" class="aura-section-link" type="button" style="background:rgba(124,58,237,0.1);padding:8px 14px;border-radius:99px;"><i class="fas fa-file-csv"></i> CSV Watch8</button>
-                        <button id="rawSaveCloud" class="aura-section-link" type="button" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 14px;border-radius:99px;"><i class="fas fa-cloud-arrow-up"></i> Simpan ke Cloud</button>
+                <!-- Stats -->
+                <div class="rr-stats">
+                    <div class="rr-stat"><div class="v" id="rawTotal">0</div><div class="l">Total frame</div></div>
+                    <div class="rr-stat"><div class="v" id="rawStatRaw">0</div><div class="l">EEG mentah</div></div>
+                    <div class="rr-stat"><div class="v" id="rawStatDev">0/3</div><div class="l">Perangkat</div></div>
+                </div>
+
+                <!-- Devices: live raw-data monitor -->
+                <div class="rr-sec">
+                    <span class="rr-sec-title">Data Mentah Langsung</span>
+                    <a class="rr-sec-link" onclick="Router.navigate('health')"><i class="fas fa-bluetooth-b"></i> Sambungkan di Health</a>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:11px;">
+                    ${dev('muse', 'Muse S Gen 2', 'fa-brain', 'Gelombang otak (EEG) · gerakan kepala')}
+                    ${dev('scentra', 'ScentraVN Watch', 'fa-microchip', 'Detak jantung · SpO₂ · suhu · gerakan · respons kulit')}
+                    ${dev('galaxy', 'Galaxy Watch', 'img:images/smartwatch.png', 'Detak jantung · stres · baterai — lewat aplikasi ScentraVN')}
+                </div>
+
+                <button class="rr-info-btn" type="button" onclick="Router.navigate('recordhistory')"><i class="fas fa-clock-rotate-left"></i> Lihat Riwayat Rekaman</button>
+            </div>
+        `;
+    },
+
+    /**
+     * Recording History View — list saved RAW recordings, download to Excel/JSON.
+     */
+    recordHistory() {
+        return `
+            <div class="rh-wrap">
+                <style>
+                    .rh-wrap{padding:14px 14px 30px;display:flex;flex-direction:column;gap:16px;max-width:920px;margin:0 auto;}
+                    .rh-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+                    .rh-title{font-size:1.25rem;font-weight:800;color:#4c1d95;display:flex;align-items:center;gap:9px;}
+                    .rh-title i{color:#7c3aed;}
+                    .rh-actions{display:flex;gap:8px;flex-wrap:wrap;}
+                    .rh-btn{display:inline-flex;align-items:center;gap:7px;font-size:0.76rem;font-weight:700;padding:9px 15px;border-radius:99px;border:none;cursor:pointer;background:rgba(124,58,237,0.1);color:#6d28d9;transition:background .18s;}
+                    .rh-btn:hover{background:rgba(124,58,237,0.18);}
+                    .rh-btn.primary{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;}
+
+                    /* summary strip */
+                    .rh-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+                    .rh-sum{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(76,29,149,.05);text-align:center;}
+                    .rh-sum .v{font-size:1.35rem;font-weight:800;color:#4c1d95;line-height:1;font-variant-numeric:tabular-nums;}
+                    .rh-sum .l{font-size:0.62rem;color:#94a3b8;font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:.04em;}
+
+                    /* list / grid */
+                    .rh-grid{display:grid;grid-template-columns:1fr;gap:13px;}
+                    @media(min-width:680px){ .rh-grid{grid-template-columns:1fr 1fr;} }
+
+                    .rh-card{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:18px;padding:16px;box-shadow:0 5px 18px rgba(76,29,149,.06);display:flex;flex-direction:column;gap:12px;transition:transform .15s ease,box-shadow .2s ease;}
+                    .rh-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(76,29,149,.12);}
+                    .rh-card-top{display:flex;align-items:flex-start;gap:12px;}
+                    .rh-card-ic{width:44px;height:44px;flex-shrink:0;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;box-shadow:0 4px 12px rgba(124,58,237,.28);}
+                    .rh-card-hd{flex:1;min-width:0;}
+                    .rh-card-name{font-size:0.95rem;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+                    .rh-card-meta{font-size:0.68rem;color:#94a3b8;font-weight:600;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+                    .rh-card-meta .sep{color:#cbd5e1;}
+                    .rh-frames{flex-shrink:0;background:rgba(124,58,237,0.08);color:#6d28d9;font-size:0.66rem;font-weight:800;padding:5px 11px;border-radius:99px;white-space:nowrap;}
+
+                    .rh-chips{display:flex;gap:6px;flex-wrap:wrap;}
+                    .rh-chip{font-size:0.62rem;font-weight:700;padding:4px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:5px;}
+                    .rh-chip .d{width:6px;height:6px;border-radius:50%;}
+
+                    .rh-card-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;border-top:1px solid #f1f5f9;padding-top:12px;}
+                    .rh-dl{flex:1;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:0.76rem;font-weight:700;padding:10px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#10b981,#059669);color:#fff;transition:filter .18s;}
+                    .rh-dl:hover{filter:brightness(1.05);}
+                    .rh-ico-btn{width:42px;height:42px;border-radius:12px;border:1px solid rgba(124,58,237,0.14);background:rgba(124,58,237,0.05);color:#6d28d9;font-size:0.95rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .18s;}
+                    .rh-ico-btn:hover{background:rgba(124,58,237,0.12);}
+                    .rh-ico-btn.danger{border-color:rgba(239,68,68,0.18);background:rgba(239,68,68,0.07);color:#ef4444;}
+                    .rh-ico-btn.danger:hover{background:rgba(239,68,68,0.14);}
+                    .rh-ico-btn:disabled,.rh-dl:disabled{opacity:.6;cursor:default;}
+
+                    .rh-state{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:18px;padding:40px 24px;text-align:center;color:#94a3b8;box-shadow:0 4px 14px rgba(76,29,149,.05);}
+                    .rh-state .bigic{font-size:2.2rem;color:#c4b5fd;margin-bottom:12px;}
+                    .rh-state p{margin:0 0 14px;font-size:0.86rem;}
+                </style>
+
+                <div class="rh-head">
+                    <div class="rh-title"><i class="fas fa-clock-rotate-left"></i> Riwayat Rekaman</div>
+                    <div class="rh-actions">
+                        <button class="rh-btn primary" type="button" onclick="Router.navigate('rawrecorder')"><i class="fas fa-record-vinyl"></i> Rekam Baru</button>
+                        <button class="rh-btn" type="button" id="histRefresh"><i class="fas fa-rotate"></i> Muat Ulang</button>
                     </div>
-                    <p style="font-size:0.7rem;color:#94a3b8;margin-top:10px;line-height:1.5;">JSON menyimpan resolusi penuh. Cloud menyimpan versi downsampled (batas dokumen Firestore 1MB).</p>
+                </div>
+
+                <div class="rh-summary" id="histSummary" style="display:none;">
+                    <div class="rh-sum"><div class="v" id="rhCount">0</div><div class="l">Rekaman</div></div>
+                    <div class="rh-sum"><div class="v" id="rhFrames">0</div><div class="l">Total frame</div></div>
+                    <div class="rh-sum"><div class="v" id="rhSize">0</div><div class="l">Ukuran data</div></div>
+                </div>
+
+                <div id="histList">
+                    <div class="rh-state"><i class="fas fa-spinner fa-spin bigic" style="font-size:1.6rem;"></i><p>Memuat riwayat…</p></div>
                 </div>
             </div>
         `;

@@ -378,7 +378,7 @@ const InterventionEngine = {
                 });
                 break;
             case 'synachat':
-                this.showAlert("AI mendeteksi pola stres saat Anda sedang rileks. Mau ngobrol sebentar dengan Dr. Synachat?", () => {
+                this.showAlert("AI mendeteksi pola stres saat Anda sedang rileks. Mau ngobrol sebentar dengan Dr. ScentraVN Chat?", () => {
                     Router.navigate('synachat');
                 });
                 break;
@@ -484,7 +484,7 @@ const InterventionEngine = {
                         <i class="fas fa-phone-alt"></i> Hubungi Sejiwa (119 ext 8)
                     </a>
                     <button id="btnCrisisChat" style="width:100%;padding:14px;font-size:1rem;border-radius:16px;background:#f97316;color:white;border:none;font-weight:600;cursor:pointer;">
-                        <i class="fas fa-comments"></i> Bicara dengan Dr. Synachat
+                        <i class="fas fa-comments"></i> Bicara dengan Dr. ScentraVN Chat
                     </button>
                     <button id="btnCrisisPlan" style="width:100%;padding:14px;font-size:1rem;border-radius:16px;background:#f3f4f6;color:#374151;border:none;font-weight:600;cursor:pointer;">
                         <i class="fas fa-hand-holding-heart"></i> Buka Support Hub
