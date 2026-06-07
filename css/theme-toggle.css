@@ -291,6 +291,17 @@ html[data-theme="light"] .pill-value {
   color: #4c1d95 !important;
 }
 
+/* Exception: headings on coloured/gradient headers must stay white,
+   otherwise the dark-purple rule above makes them blend in. */
+html[data-theme="light"] .health-header .health-title,
+html[data-theme="light"] .health-title {
+  color: #ffffff !important;
+}
+html[data-theme="light"] .health-header .health-subtitle,
+html[data-theme="light"] .health-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
 /* Secondary / muted text — readable grey, never white-on-white */
 html[data-theme="light"] .card-subtitle,
 html[data-theme="light"] .script-card-desc,

@@ -78,7 +78,7 @@
 
       if (icon) icon.className = (rec && !paused) ? 'fas fa-pause' : 'fas fa-play';
       if (btn) btn.classList.toggle('is-rec', rec && !paused);
-      if (label) label.textContent = !rec ? 'Mulai' : (paused ? 'Lanjut' : 'Jeda');
+      if (label) label.textContent = !rec ? t('rr.lbl_start') : (paused ? t('rr.lbl_resume') : t('rr.lbl_pause'));
 
       const showStop = rec;
       if (stop) stop.style.display = showStop ? 'flex' : 'none';
@@ -89,7 +89,7 @@
         if (rec && !paused) pill.classList.add('rec');
         else if (paused) pill.classList.add('pause');
       }
-      this._setText('rawStatus', !rec ? 'Siap merekam' : (paused ? 'Dijeda' : 'Merekam'));
+      this._setText('rawStatus', !rec ? t('rr.status_ready') : (paused ? t('rr.status_paused') : t('rr.status_recording')));
     },
 
     _wireControls() {
@@ -104,7 +104,7 @@
           RawRecorder.pause();
           this._syncControls();
           const ok = await RawRecorder.saveDraft();
-          this._toast(ok ? 'Cadangan sementara tersimpan di perangkat' : 'Gagal menyimpan cadangan', ok ? 'success' : 'error');
+          this._toast(ok ? t('rr.toast_draft_saved') : t('rr.toast_draft_failed'), ok ? 'success' : 'error');
         }
         this._syncControls();
       });
@@ -118,16 +118,16 @@
       this._syncControls();
       if (sum.total === 0) {
         await RawRecorder.clearDraft();
-        this._toast('Rekaman kosong — tidak ada data masuk. Pastikan perangkat terhubung.', 'warning');
+        this._toast(t('rr.toast_empty'), 'warning');
         return;
       }
       const btn = this._el('rawStopBtn');
       this._busy = true;
       const orig = btn ? btn.innerHTML : '';
       if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-      this._setText('rawStatus', 'Menyimpan ke cloud…');
+      this._setText('rawStatus', t('rr.status_saving'));
 
-      const name = `Rekaman ${new Date().toLocaleString('id-ID')}`;
+      const name = `${t('rr.rec_default') || 'Rekaman'} ${new Date().toLocaleString(this._locale())}`;
       const id = await RawRecorder.saveToFirestore({ name });
 
       if (btn) btn.innerHTML = orig;
@@ -135,14 +135,14 @@
 
       if (id) {
         await RawRecorder.clearDraft();
-        this._setText('rawStatus', 'Tersimpan ✓');
-        this._toast(`Tersimpan ke Firestore (${sum.total} frame)`, 'success');
-        if (confirm('Rekaman tersimpan ke cloud. Buka halaman Riwayat sekarang?')) Router.navigate('recordhistory');
+        this._setText('rawStatus', t('rr.status_saved'));
+        this._toast(t('rr.toast_saved', { n: sum.total }), 'success');
+        if (confirm(t('rr.confirm_open_history'))) Router.navigate('recordhistory');
       } else {
-        this._setText('rawStatus', 'Gagal menyimpan');
+        this._setText('rawStatus', t('rr.status_failed'));
         // Keep a device-side checkpoint so data isn't lost
         await RawRecorder.saveDraft();
-        this._toast('Gagal unggah ke cloud — data disimpan sementara di perangkat.', 'error');
+        this._toast(t('rr.toast_upload_failed'), 'error');
         this._checkDraft();
       }
     },
@@ -154,19 +154,19 @@
       const banner = this._el('rawDraftBanner');
       if (!d || !banner) return;
       const total = d.total || 0;
-      const when = d.savedAt ? new Date(d.savedAt).toLocaleString('id-ID') : '';
-      this._setText('rawDraftText', `Cadangan tersimpan di perangkat — ${total} frame · ${d.durationSec || 0}s · ${when}`);
+      const when = d.savedAt ? new Date(d.savedAt).toLocaleString(this._locale()) : '';
+      this._setText('rawDraftText', t('rr.draft_text', { n: this._fmtNum(total), dur: d.durationSec || 0, when }));
       banner.style.display = 'flex';
 
       this._el('rawDraftSave').onclick = async (e) => {
         const b = e.currentTarget; const o = b.innerHTML; b.disabled = true; b.innerHTML = '…';
         await RawRecorder.restoreDraft();
-        const id = await RawRecorder.saveToFirestore({ name: `Rekaman (pulih) ${new Date().toLocaleString('id-ID')}` });
+        const id = await RawRecorder.saveToFirestore({ name: `${t('rh.rec_default')} ${new Date().toLocaleString(this._locale())}` });
         b.disabled = false; b.innerHTML = o;
-        if (id) { await RawRecorder.clearDraft(); this._hideDraft(); if (confirm('Tersimpan ke cloud. Buka Riwayat?')) Router.navigate('recordhistory'); }
+        if (id) { await RawRecorder.clearDraft(); this._hideDraft(); if (confirm(t('rr.confirm_open_history2'))) Router.navigate('recordhistory'); }
       };
       this._el('rawDraftDiscard').onclick = async () => {
-        if (!confirm('Buang cadangan sementara di perangkat?')) return;
+        if (!confirm(t('rr.confirm_discard'))) return;
         await RawRecorder.clearDraft();
         this._hideDraft();
       };
@@ -180,7 +180,7 @@
       this._setText('rawStatRaw', this._fmtNum(summary.counts.museRaw));
 
       const conn = this._connState();
-      const transports = { muse: 'Bluetooth', scentra: 'Bluetooth', galaxy: 'Aplikasi' };
+      const transports = { muse: t('rr.conn_bluetooth'), scentra: t('rr.conn_bluetooth'), galaxy: t('rr.conn_app') };
       let connected = 0;
 
       for (const id of ['muse', 'scentra', 'galaxy']) {
@@ -192,19 +192,19 @@
         if (card) card.classList.toggle('on', on);
         if (status) {
           status.classList.toggle('on', on);
-          status.innerHTML = `<span class="rr-dot"></span> ${on ? 'Terhubung · ' + transports[id] : 'Terputus'}`;
+          status.innerHTML = `<span class="rr-dot"></span> ${on ? t('rr.connected') + ' · ' + transports[id] : t('rr.disconnected')}`;
         }
         if (count) {
           const c = id === 'muse' ? (summary.counts.muse + summary.counts.museRaw) : summary.counts[id];
-          count.textContent = `${this._fmtNum(c)} frame`;
+          count.textContent = `${this._fmtNum(c)} ${t('rr.frame')}`;
         }
         this._renderLive(id, on);
       }
       this._setText('rawStatDev', `${connected}/3`);
 
       this._setText('rawRawCount', summary.total > 0
-        ? `${this._fmtNum(summary.counts.museRaw)} paket EEG · ${this._fmtNum(summary.counts.scentra)} watch · ${this._fmtNum(summary.counts.galaxy)} galaxy`
-        : (connected ? 'Perangkat siap — tekan ▶ untuk merekam' : 'Belum ada perangkat'));
+        ? t('rr.sub_packets', { eeg: this._fmtNum(summary.counts.museRaw), watch: this._fmtNum(summary.counts.scentra), galaxy: this._fmtNum(summary.counts.galaxy) })
+        : (connected ? t('rr.ready_press') : t('rr.no_device')));
     },
 
     /* Render the live raw-value cells for one device. */
@@ -218,8 +218,8 @@
         if (hint) {
           hint.style.display = 'flex';
           hint.innerHTML = id === 'galaxy'
-            ? `<i class="fas fa-mobile-screen-button"></i> Buka aplikasi ScentraVN untuk mengirim data.`
-            : `<i class="fas fa-circle-info"></i> Belum terhubung. <a onclick="Router.navigate('health')">Sambungkan di Health →</a>`;
+            ? `<i class="fas fa-mobile-screen-button"></i> ${t('rr.hint_galaxy')}`
+            : `<i class="fas fa-circle-info"></i> ${t('rr.hint_not_connected')} <a onclick="Router.navigate('health')">${t('rr.hint_connect_link')}</a>`;
         }
         return;
       }
@@ -239,14 +239,14 @@
         pairs = [
           ['HR', fin && d.hr ? d.hr : '—'], ['SpO₂', fin && d.spo2 ? d.spo2 : '—'],
           ['IR', this._n(d.ir, 0)], ['RED', this._n(d.red, 0)],
-          ['Suhu', this._n(d.bt, 1)], ['GSR', this._n(d.gsrRaw != null ? d.gsrRaw : d.gsr, 0)],
+          [t('rr.cell_temp'), this._n(d.bt, 1)], ['GSR', this._n(d.gsrRaw != null ? d.gsrRaw : d.gsr, 0)],
           ['AcX', this._n(d.ax, 2)], ['AcY', this._n(d.ay, 2)], ['AcZ', this._n(d.az, 2)],
         ];
       } else {
         const g = this._live.galaxy || {};
         pairs = [
           ['BPM', g.bpm != null ? g.bpm : '—'],
-          ['Stres', g.stress && g.stress.level && g.stress.level !== 'unavailable' ? g.stress.level : '—'],
+          [t('rr.cell_stress'), g.stress && g.stress.level && g.stress.level !== 'unavailable' ? g.stress.level : '—'],
           ['Bat', g.battery != null ? Math.round(g.battery) + '%' : '—'],
         ];
       }
@@ -263,7 +263,8 @@
       const p = n => String(n).padStart(2, '0');
       return h > 0 ? `${p(h)}:${p(m)}:${p(sec)}` : `${p(m)}:${p(sec)}`;
     },
-    _fmtNum(n) { return (n || 0).toLocaleString('id-ID'); },
+    _locale() { return (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID'; },
+    _fmtNum(n) { return (n || 0).toLocaleString(this._locale()); },
     _setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; },
 
     destroy() {

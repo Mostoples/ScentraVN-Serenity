@@ -2801,11 +2801,11 @@ const Views = {
                         <div class="rr-dev-name">${name}</div>
                         <div class="rr-dev-sensors">${sensors}</div>
                     </div>
-                    <span class="rr-dev-status" id="rawDev-${id}-status"><span class="rr-dot"></span> Terputus</span>
+                    <span class="rr-dev-status" id="rawDev-${id}-status"><span class="rr-dot"></span> ${t('rr.disconnected')}</span>
                 </div>
                 <div class="rr-live" id="rawLive-${id}"></div>
                 <div class="rr-dev-hint" id="rawHint-${id}" style="display:none;"></div>
-                <div class="rr-dev-foot"><span class="rr-dev-count" id="rawDev-${id}-count">0 frame</span></div>
+                <div class="rr-dev-foot"><span class="rr-dev-count" id="rawDev-${id}-count">0 ${t('rr.frame')}</span></div>
             </div>`;
 
         return `
@@ -2850,7 +2850,7 @@ const Views = {
                     .rr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
                     .rr-stat{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:16px;padding:13px 8px;text-align:center;box-shadow:0 4px 14px rgba(76,29,149,.05);}
                     .rr-stat .v{font-size:1.3rem;font-weight:800;color:#4c1d95;line-height:1;font-variant-numeric:tabular-nums;}
-                    .rr-stat .l{font-size:0.62rem;color:#94a3b8;font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:.04em;}
+                    .rr-stat .l{font-size:0.62rem;color:#64748b;font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:.04em;}
 
                     /* ── Draft banner ── */
                     .rr-draft{display:none;align-items:center;gap:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:16px;padding:13px 15px;}
@@ -2870,17 +2870,18 @@ const Views = {
                     .rr-dev-ic img{width:28px;height:28px;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 0 2px rgba(255,255,255,0.5));}
                     .rr-dev-main{flex:1;min-width:0;}
                     .rr-dev-name{font-size:0.9rem;font-weight:800;color:#1e293b;}
-                    .rr-dev-sensors{font-size:0.64rem;color:#94a3b8;line-height:1.35;margin-top:2px;}
+                    .rr-dev-sensors{font-size:0.64rem;color:#64748b;line-height:1.35;margin-top:2px;}
                     .rr-dev-status{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:700;color:#94a3b8;white-space:nowrap;flex-shrink:0;}
                     .rr-dev-status .rr-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;}
                     .rr-dev-status.on{color:#15803d;} .rr-dev-status.on .rr-dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16);}
                     .rr-live{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:7px;margin-top:12px;}
                     .rr-cell{background:#faf8ff;border:1px solid rgba(124,58,237,.08);border-radius:10px;padding:7px 4px;text-align:center;}
-                    .rr-cell .k{font-size:0.52rem;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.02em;}
+                    .rr-cell .k{font-size:0.52rem;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.02em;}
                     .rr-cell .v{font-size:0.82rem;color:#4c1d95;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px;line-height:1;}
                     .rr-cell .v.live{color:#16a34a;}
-                    .rr-dev-hint{margin-top:11px;font-size:0.7rem;color:#94a3b8;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#f8fafc;border-radius:10px;padding:9px 11px;}
-                    .rr-dev-hint a{color:#7c3aed;font-weight:700;cursor:pointer;text-decoration:none;}
+                    .rr-dev-hint{margin-top:11px;font-size:0.7rem;color:#475569;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#eef2f7;border:1px solid #e2e8f0;border-radius:10px;padding:9px 11px;}
+                    .rr-dev-hint i{color:#7c3aed;}
+                    .rr-dev-hint a{color:#6d28d9;font-weight:700;cursor:pointer;text-decoration:underline;}
                     .rr-dev-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:9px;}
                     .rr-dev-count{font-size:0.66rem;font-weight:700;color:#7c3aed;}
 
@@ -2891,56 +2892,56 @@ const Views = {
                 </style>
 
                 <div class="rr-top">
-                    <div class="rr-title"><i class="fas fa-record-vinyl"></i> RAW Recorder</div>
-                    <button class="rr-hist-link" type="button" onclick="Router.navigate('recordhistory')"><i class="fas fa-clock-rotate-left"></i> Riwayat</button>
+                    <div class="rr-title"><i class="fas fa-record-vinyl"></i> ${t('rr.title')}</div>
+                    <button class="rr-hist-link" type="button" onclick="Router.navigate('recordhistory')"><i class="fas fa-clock-rotate-left"></i> ${t('rr.history')}</button>
                 </div>
 
                 <!-- Draft banner -->
                 <div class="rr-draft" id="rawDraftBanner">
                     <i class="fas fa-floppy-disk dic"></i>
-                    <div class="dtxt" id="rawDraftText">Ada rekaman tersimpan sementara di perangkat.</div>
+                    <div class="dtxt" id="rawDraftText"></div>
                     <div class="dbtns">
-                        <button id="rawDraftSave" style="background:#10b981;color:#fff;">Simpan ke Cloud</button>
-                        <button id="rawDraftDiscard" style="background:#fee2e2;color:#b91c1c;">Buang</button>
+                        <button id="rawDraftSave" style="background:#10b981;color:#fff;">${t('rr.draft_save')}</button>
+                        <button id="rawDraftDiscard" style="background:#fee2e2;color:#b91c1c;">${t('rr.draft_discard')}</button>
                     </div>
                 </div>
 
                 <!-- Hero timer + controls -->
                 <div class="rr-hero">
-                    <span class="rr-statuspill" id="rawStatusPill"><span class="sdot"></span> <span id="rawStatus">Siap merekam</span></span>
+                    <span class="rr-statuspill" id="rawStatusPill"><span class="sdot"></span> <span id="rawStatus">${t('rr.status_ready')}</span></span>
                     <div class="rr-timer" id="rawDuration">00:00</div>
-                    <div class="rr-timer-sub" id="rawRawCount">Belum ada data</div>
+                    <div class="rr-timer-sub" id="rawRawCount">${t('rr.no_data')}</div>
                     <div class="rr-controls">
                         <div class="rr-ctrl-cell">
-                            <button class="rr-rec-btn" id="rawRecordBtn" type="button" aria-label="Rekam"><i class="fas fa-play"></i></button>
-                            <span class="rr-ctrl-label" id="rawRecordLabel">Mulai</span>
+                            <button class="rr-rec-btn" id="rawRecordBtn" type="button" aria-label="${t('rr.lbl_start')}"><i class="fas fa-play"></i></button>
+                            <span class="rr-ctrl-label" id="rawRecordLabel">${t('rr.lbl_start')}</span>
                         </div>
                         <div class="rr-ctrl-cell">
-                            <button class="rr-stop-btn" id="rawStopBtn" type="button" aria-label="Stop"><i class="fas fa-stop"></i></button>
-                            <span class="rr-ctrl-label" id="rawStopLabel" style="display:none;">Stop &amp; Simpan</span>
+                            <button class="rr-stop-btn" id="rawStopBtn" type="button" aria-label="${t('rr.lbl_stop')}"><i class="fas fa-stop"></i></button>
+                            <span class="rr-ctrl-label" id="rawStopLabel" style="display:none;">${t('rr.lbl_stop')}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Stats -->
                 <div class="rr-stats">
-                    <div class="rr-stat"><div class="v" id="rawTotal">0</div><div class="l">Total frame</div></div>
-                    <div class="rr-stat"><div class="v" id="rawStatRaw">0</div><div class="l">EEG mentah</div></div>
-                    <div class="rr-stat"><div class="v" id="rawStatDev">0/3</div><div class="l">Perangkat</div></div>
+                    <div class="rr-stat"><div class="v" id="rawTotal">0</div><div class="l">${t('rr.stat_total')}</div></div>
+                    <div class="rr-stat"><div class="v" id="rawStatRaw">0</div><div class="l">${t('rr.stat_raw')}</div></div>
+                    <div class="rr-stat"><div class="v" id="rawStatDev">0/3</div><div class="l">${t('rr.stat_dev')}</div></div>
                 </div>
 
                 <!-- Devices: live raw-data monitor -->
                 <div class="rr-sec">
-                    <span class="rr-sec-title">Data Mentah Langsung</span>
-                    <a class="rr-sec-link" onclick="Router.navigate('health')"><i class="fas fa-bluetooth-b"></i> Sambungkan di Health</a>
+                    <span class="rr-sec-title">${t('rr.section_live')}</span>
+                    <a class="rr-sec-link" onclick="Router.navigate('health')"><i class="fas fa-bluetooth-b"></i> ${t('rr.connect_health')}</a>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:11px;">
-                    ${dev('muse', 'Muse S Gen 2', 'fa-brain', 'Gelombang otak (EEG) · gerakan kepala')}
-                    ${dev('scentra', 'ScentraVN Watch', 'fa-microchip', 'Detak jantung · SpO₂ · suhu · gerakan · respons kulit')}
-                    ${dev('galaxy', 'Galaxy Watch', 'img:images/smartwatch.png', 'Detak jantung · stres · baterai — lewat aplikasi ScentraVN')}
+                    ${dev('muse', 'Muse S Gen 2', 'fa-brain', t('rr.dev_muse_sensors'))}
+                    ${dev('scentra', 'ScentraVN Watch', 'fa-microchip', t('rr.dev_scentra_sensors'))}
+                    ${dev('galaxy', 'Galaxy Watch', 'img:images/smartwatch.png', t('rr.dev_galaxy_sensors'))}
                 </div>
 
-                <button class="rr-info-btn" type="button" onclick="Router.navigate('recordhistory')"><i class="fas fa-clock-rotate-left"></i> Lihat Riwayat Rekaman</button>
+                <button class="rr-info-btn" type="button" onclick="Router.navigate('recordhistory')"><i class="fas fa-clock-rotate-left"></i> ${t('rr.see_history')}</button>
             </div>
         `;
     },
@@ -2965,7 +2966,7 @@ const Views = {
                     .rh-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
                     .rh-sum{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(76,29,149,.05);text-align:center;}
                     .rh-sum .v{font-size:1.35rem;font-weight:800;color:#4c1d95;line-height:1;font-variant-numeric:tabular-nums;}
-                    .rh-sum .l{font-size:0.62rem;color:#94a3b8;font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:.04em;}
+                    .rh-sum .l{font-size:0.62rem;color:#64748b;font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:.04em;}
 
                     /* list / grid */
                     .rh-grid{display:grid;grid-template-columns:1fr;gap:13px;}
@@ -2977,7 +2978,7 @@ const Views = {
                     .rh-card-ic{width:44px;height:44px;flex-shrink:0;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;box-shadow:0 4px 12px rgba(124,58,237,.28);}
                     .rh-card-hd{flex:1;min-width:0;}
                     .rh-card-name{font-size:0.95rem;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-                    .rh-card-meta{font-size:0.68rem;color:#94a3b8;font-weight:600;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+                    .rh-card-meta{font-size:0.68rem;color:#64748b;font-weight:600;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
                     .rh-card-meta .sep{color:#cbd5e1;}
                     .rh-frames{flex-shrink:0;background:rgba(124,58,237,0.08);color:#6d28d9;font-size:0.66rem;font-weight:800;padding:5px 11px;border-radius:99px;white-space:nowrap;}
 
@@ -2988,9 +2989,9 @@ const Views = {
                     .rh-card-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;border-top:1px solid #f1f5f9;padding-top:12px;}
                     .rh-dl{flex:1;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:0.76rem;font-weight:700;padding:10px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#10b981,#059669);color:#fff;transition:filter .18s;}
                     .rh-dl:hover{filter:brightness(1.05);}
-                    .rh-ico-btn{width:42px;height:42px;border-radius:12px;border:1px solid rgba(124,58,237,0.14);background:rgba(124,58,237,0.05);color:#6d28d9;font-size:0.95rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .18s;}
-                    .rh-ico-btn:hover{background:rgba(124,58,237,0.12);}
-                    .rh-ico-btn.danger{border-color:rgba(239,68,68,0.18);background:rgba(239,68,68,0.07);color:#ef4444;}
+                    .rh-ico-btn{width:42px;height:42px;border-radius:12px;border:1px solid rgba(124,58,237,0.28);background:rgba(124,58,237,0.12);color:#6d28d9;font-size:0.95rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .18s;}
+                    .rh-ico-btn:hover{background:rgba(124,58,237,0.2);}
+                    .rh-ico-btn.danger{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.12);color:#dc2626;}
                     .rh-ico-btn.danger:hover{background:rgba(239,68,68,0.14);}
                     .rh-ico-btn:disabled,.rh-dl:disabled{opacity:.6;cursor:default;}
 
@@ -3000,21 +3001,21 @@ const Views = {
                 </style>
 
                 <div class="rh-head">
-                    <div class="rh-title"><i class="fas fa-clock-rotate-left"></i> Riwayat Rekaman</div>
+                    <div class="rh-title"><i class="fas fa-clock-rotate-left"></i> ${t('rh.title')}</div>
                     <div class="rh-actions">
-                        <button class="rh-btn primary" type="button" onclick="Router.navigate('rawrecorder')"><i class="fas fa-record-vinyl"></i> Rekam Baru</button>
-                        <button class="rh-btn" type="button" id="histRefresh"><i class="fas fa-rotate"></i> Muat Ulang</button>
+                        <button class="rh-btn primary" type="button" onclick="Router.navigate('rawrecorder')"><i class="fas fa-record-vinyl"></i> ${t('rh.new')}</button>
+                        <button class="rh-btn" type="button" id="histRefresh"><i class="fas fa-rotate"></i> ${t('rh.reload')}</button>
                     </div>
                 </div>
 
                 <div class="rh-summary" id="histSummary" style="display:none;">
-                    <div class="rh-sum"><div class="v" id="rhCount">0</div><div class="l">Rekaman</div></div>
-                    <div class="rh-sum"><div class="v" id="rhFrames">0</div><div class="l">Total frame</div></div>
-                    <div class="rh-sum"><div class="v" id="rhSize">0</div><div class="l">Ukuran data</div></div>
+                    <div class="rh-sum"><div class="v" id="rhCount">0</div><div class="l">${t('rh.sum_count')}</div></div>
+                    <div class="rh-sum"><div class="v" id="rhFrames">0</div><div class="l">${t('rh.sum_frames')}</div></div>
+                    <div class="rh-sum"><div class="v" id="rhSize">0</div><div class="l">${t('rh.sum_size')}</div></div>
                 </div>
 
                 <div id="histList">
-                    <div class="rh-state"><i class="fas fa-spinner fa-spin bigic" style="font-size:1.6rem;"></i><p>Memuat riwayat…</p></div>
+                    <div class="rh-state"><i class="fas fa-spinner fa-spin bigic" style="font-size:1.6rem;"></i><p>${t('rh.loading')}</p></div>
                 </div>
             </div>
         `;
