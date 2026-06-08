@@ -15,9 +15,9 @@ function initHealthPage() {
     initEEGChart();
 
     // Status awal netral
-    setHealthBadge('healthLiveBadge', 'waiting', 'Menunggu data…');
+    setHealthBadge('healthLiveBadge', 'waiting', t('health.waiting'));
     setHealthBadge('liveIndicator', 'waiting', t('metric.live') || 'live');
-    setHealthBadge('eegLive', 'off', 'Muse mati');
+    setHealthBadge('eegLive', 'off', t('health.muse_off'));
 
     // Berlangganan data live dari App ScentraVN (Firebase RTDB)
     wireHealthLiveBridge();
@@ -76,31 +76,38 @@ function wireHealthBleButtons() {
 
     if (museBtn) museBtn.onclick = async () => {
         if (typeof MuseEEG === 'undefined') return;
-        if (MuseEEG.isConnected) { await MuseEEG.disconnect(); setHealthBtn(museBtn, 'Hubungkan', false); return; }
-        setHealthBtn(museBtn, 'Menghubungkan…', true);
+        if (MuseEEG.isConnected || MuseEEG.simulationMode) {
+            await MuseEEG.disconnect();
+            _museOverlay = null;                 // buang data EEG lama
+            setHealthBtn(museBtn, t('health.connect'), false);
+            renderMergedHealth();                // refresh status kartu → "Tidak terhubung"
+            return;
+        }
+        setHealthBtn(museBtn, t('health.connecting'), true);
         const ok = await MuseEEG.connect();
-        setHealthBtn(museBtn, ok ? 'Putuskan' : 'Hubungkan', false);
-        if (!ok && typeof Utils !== 'undefined') Utils.showToast?.('Muse: gagal / dibatalkan', 'warning');
+        setHealthBtn(museBtn, ok ? t('health.disconnect') : t('health.connect'), false);
+        if (!ok && typeof Utils !== 'undefined') Utils.showToast?.(t('health.muse_connect_fail'), 'warning');
+        renderMergedHealth();
     };
 
     if (espBtn) espBtn.onclick = async () => {
         if (typeof BLEConnection === 'undefined') return;
-        if (BLEConnection.isConnected && BLEConnection.isConnected()) { await BLEConnection.disconnect(); setHealthBtn(espBtn, 'Hubungkan', false); return; }
-        setHealthBtn(espBtn, 'Menghubungkan…', true);
-        try { await BLEConnection.connect(); setHealthBtn(espBtn, 'Putuskan', false); }
-        catch (e) { setHealthBtn(espBtn, 'Hubungkan', false); }
+        if (BLEConnection.isConnected && BLEConnection.isConnected()) { await BLEConnection.disconnect(); setHealthBtn(espBtn, t('health.connect'), false); return; }
+        setHealthBtn(espBtn, t('health.connecting'), true);
+        try { await BLEConnection.connect(); setHealthBtn(espBtn, t('health.disconnect'), false); }
+        catch (e) { setHealthBtn(espBtn, t('health.connect'), false); }
     };
 
     // Reflect current connection state on entry
     const museOn = (typeof MuseEEG !== 'undefined') && MuseEEG.isConnected;
     const espOn  = (typeof BLEConnection !== 'undefined') && BLEConnection.isConnected && BLEConnection.isConnected();
-    if (museBtn) setHealthBtn(museBtn, museOn ? 'Putuskan' : 'Hubungkan', false);
-    if (espBtn)  setHealthBtn(espBtn, espOn ? 'Putuskan' : 'Hubungkan', false);
+    if (museBtn) setHealthBtn(museBtn, museOn ? t('health.disconnect') : t('health.connect'), false);
+    if (espBtn)  setHealthBtn(espBtn, espOn ? t('health.disconnect') : t('health.connect'), false);
 }
 
 function _syncHealthBtn(id, connected) {
     const btn = document.getElementById(id);
-    if (btn) setHealthBtn(btn, connected ? 'Putuskan' : 'Hubungkan', false);
+    if (btn) setHealthBtn(btn, connected ? t('health.disconnect') : t('health.connect'), false);
 }
 
 function setHealthBtn(btn, label, busy) {
@@ -201,20 +208,19 @@ function _renderHealthSnapshot(live) {
                   ((typeof BLEConnection !== 'undefined') && BLEConnection.isConnected && BLEConnection.isConnected());
     const avail = bleOn || ((typeof ScentraLive !== 'undefined') && ScentraLive.available);
     const anyOn = gw.connected || esp.connected || muse.connected;
-    if (!avail)       setHealthBadge('healthLiveBadge', 'off', 'Belum ada perangkat');
-    else if (anyOn)   setHealthBadge('healthLiveBadge', 'live', bleOn ? 'LIVE — Bluetooth' : 'LIVE — app tersambung');
-    else              setHealthBadge('healthLiveBadge', 'waiting', 'Menunggu data…');
+    if (!avail)       setHealthBadge('healthLiveBadge', 'off', t('health.no_device'));
+    else if (anyOn)   setHealthBadge('healthLiveBadge', 'live', bleOn ? t('health.live_bt') : t('health.live_app'));
+    else              setHealthBadge('healthLiveBadge', 'waiting', t('health.waiting'));
 
     // ── Kartu perangkat (read-only) ──
     renderDeviceCard('gw', gw);
     renderDeviceCard('esp', esp);
     renderDeviceCard('muse', muse);
 
-    // ── Detak jantung: Watch → fallback ESP32 ──
-    let hr = 0, hrSrc = '—';
-    if (gw.connected && gw.bpm > 0)       { hr = gw.bpm;  hrSrc = 'Galaxy Watch'; }
-    else if (esp.connected && esp.bpm > 0) { hr = esp.bpm; hrSrc = 'ScentraVN Watch'; }
-    renderHeartRate(hr, hrSrc);
+    // ── Detak jantung: DUA sumber (Galaxy Watch + ScentraVN Watch) ──
+    const gwHr  = (gw.connected && gw.bpm > 0) ? gw.bpm : null;
+    const espHr = (esp.connected && esp.bpm > 0) ? esp.bpm : null;
+    renderHeartRate(gwHr, espHr);
 
     // ── SpO₂: HANYA ESP32 ──
     const spo2 = (esp.connected && esp.spo2 != null && esp.spo2 > 0) ? esp.spo2 : 0;
@@ -225,10 +231,10 @@ function _renderHealthSnapshot(live) {
     renderBodyTemp(bt);
 
     // ── Indikator vital live ──
-    setHealthBadge('liveIndicator', (hr > 0 || spo2 > 0) ? 'live' : 'waiting', t('metric.live') || 'live');
+    setHealthBadge('liveIndicator', (gwHr || espHr || spo2 > 0) ? 'live' : 'waiting', t('metric.live') || 'live');
 
     // ── Stres (kategori, dari Watch) ──
-    renderStress(gw.connected ? gw.stress.level : null);
+    renderStress(gw.connected ? gw.stress.value : null);
 
     // ── EEG (Muse) ──
     renderEEG(muse);
@@ -252,31 +258,46 @@ function renderDeviceCard(key, dev) {
         if (dev.connected && !stale) dot.classList.add('on');
         else if (stale)              dot.classList.add('stale');
     }
-    if (stat) stat.textContent = !dev.connected ? 'Tidak terhubung' : (stale ? 'Sinyal tertunda' : 'Terhubung');
+    if (stat) stat.textContent = !dev.connected ? t('health.not_connected') : (stale ? t('health.signal_delayed') : t('health.connected'));
     if (batt) batt.textContent = dev.battery != null ? `${Math.round(dev.battery)}%` : '—';
-    if (upd)  upd.textContent  = dev.updatedAt ? `diperbarui ${agoText(age)}` : 'belum ada data';
+    if (upd)  upd.textContent  = dev.updatedAt ? t('health.updated', { ago: agoText(age) }) : t('health.no_data_yet');
 }
 
 // ─────────────────────────────────────────────
 // VITALS
 // ─────────────────────────────────────────────
 
-function renderHeartRate(hr, source) {
-    const valEl = document.getElementById('hrValue');
-    const stEl  = document.getElementById('hrStatus');
-    const srcEl = document.getElementById('hrSource');
+/** Tampilkan DUA sumber BPM: Galaxy Watch + ScentraVN Watch. */
+function renderHeartRate(gwHr, espHr) {
+    setHrValue('hrGalaxy', gwHr);
+    setHrValue('hrEsp', espHr);
 
-    if (valEl) valEl.textContent = hr > 0 ? hr : '--';
-    if (srcEl) srcEl.textContent = source;
+    // Badge status berdasarkan pembacaan utama (Galaxy → fallback ScentraVN)
+    const primary = gwHr != null ? gwHr : espHr;
+    const stEl = document.getElementById('hrStatus');
     if (stEl) {
-        if (hr > 0 && typeof Utils !== 'undefined' && Utils.getHeartRateStatus) {
-            const s = Utils.getHeartRateStatus(hr);
+        if (primary != null && typeof Utils !== 'undefined' && Utils.getHeartRateStatus) {
+            const s = Utils.getHeartRateStatus(primary);
             stEl.textContent = s.status;
             stEl.style.color = statusHex(s.color);
         } else {
             stEl.textContent = '—';
             stEl.style.color = '';
         }
+    }
+}
+
+/** Set one BPM value cell, warnai sesuai status HR-nya. */
+function setHrValue(id, hr) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (hr != null && hr > 0) {
+        el.textContent = hr;
+        el.style.color = (typeof Utils !== 'undefined' && Utils.getHeartRateStatus)
+            ? statusHex(Utils.getHeartRateStatus(hr).color) : '#1e293b';
+    } else {
+        el.textContent = '--';
+        el.style.color = '#94a3b8';
     }
 }
 
@@ -315,19 +336,21 @@ function renderBodyTemp(bt) {
     }
 }
 
-function renderStress(level) {
+/** Tingkat stres Galaxy Watch — tampil ANGKA saja (0–100), warnai per level. */
+function renderStress(value) {
     const catEl = document.getElementById('stressCategory');
     if (!catEl) return;
-    const map = {
-        rileks:      { t: 'Rileks',  c: '#4ade80' },
-        rendah:      { t: 'Rendah',  c: '#34d399' },
-        sedang:      { t: 'Sedang',  c: '#fbbf24' },
-        tinggi:      { t: 'Tinggi',  c: '#f87171' },
-        unavailable: { t: 'Belum dikalibrasi', c: '#94a3b8' },
-    };
-    const m = level ? (map[level] || map.unavailable) : { t: '—', c: '#94a3b8' };
-    catEl.textContent = m.t;
-    catEl.style.color = m.c;
+    if (value == null || !isFinite(value)) {
+        catEl.textContent = '--';
+        catEl.style.color = '#1e293b';
+        return;
+    }
+    const v = Math.round(value);
+    let c = '#10b981';                  // tenang
+    if (v >= 67) c = '#ef4444';         // tinggi
+    else if (v >= 34) c = '#f59e0b';    // sedang
+    catEl.textContent = v;
+    catEl.style.color = c;
 }
 
 // ─────────────────────────────────────────────
@@ -358,16 +381,18 @@ function renderEEG(muse) {
 
     if (valid && sum > 0) {
         setHealthBadge('eegLive', 'live', 'LIVE');
-        const rel = {};
+        const max = Math.max(...vals, 1e-9);
+        const raw = {};
         EEG_BANDS.forEach((b) => {
-            const pct = (eeg[b] / sum) * 100;
-            rel[b] = pct;
-            setBand(b, `${pct.toFixed(0)}%`, pct);
+            const val = eeg[b];
+            raw[b] = val;
+            const barPct = (val / max) * 100;       // tinggi bar proporsional (visual)
+            setBand(b, fmtBandPower(val), barPct);  // tampil NILAI MENTAH (bukan %)
         });
-        updateEEGChart(rel);                 // chart memplot daya RELATIF (%)
+        updateEEGChart(raw);                 // chart memplot daya pita MENTAH
         renderEEGIndices(eeg);
     } else {
-        setHealthBadge('eegLive', 'off', 'Muse mati');
+        setHealthBadge('eegLive', 'off', t('health.muse_off'));
         EEG_BANDS.forEach((b) => setBand(b, '--', 0));
         renderEEGIndices(null);
     }
@@ -401,21 +426,12 @@ function renderEEGIndices(eeg) {
         ? EF.meditationIndex({ alpha: a, theta: th, beta: b, gamma: g })
         : ((b + g) > 0 ? +(((a + th) / (b + g))).toFixed(3) : null);
 
-    if (focusEl) focusEl.textContent = eng != null
-        ? `${eng < 0.6 ? 'Rendah' : eng <= 1.2 ? 'Sedang' : 'Tinggi'} (${eng.toFixed(2)})` : '--';
-    if (relaxEl) relaxEl.textContent = med != null
-        ? `${med < 1 ? 'Rendah' : med <= 2 ? 'Sedang' : 'Tinggi'} (${med.toFixed(2)})` : '--';
+    // Tampilkan ANGKA saja (indeks), tanpa label kualitatif
+    if (focusEl) focusEl.textContent = eng != null ? eng.toFixed(2) : '--';
+    if (relaxEl) relaxEl.textContent = med != null ? med.toFixed(2) : '--';
 
-    // Status mental heuristik dari proporsi pita + indeks
-    const total = a + b + th + g + d;
-    const pAlpha = total > 0 ? a / total : 0;
-    const pTheta = total > 0 ? th / total : 0;
-    let label = 'Netral', color = '#475569', bg = '#f1f5f9';
-    if (pTheta > 0.45 && eng != null && eng < 0.6)    { label = 'Mengantuk';    color = '#a16207'; bg = '#fef9c3'; }
-    else if (eng != null && eng > 1.3)                { label = 'Fokus tinggi'; color = '#b45309'; bg = '#ffedd5'; }
-    else if (med != null && med > 2 && pAlpha > 0.30) { label = 'Rileks';       color = '#15803d'; bg = '#dcfce7'; }
-    else if (eng != null && eng >= 0.6)               { label = 'Fokus';        color = '#047857'; bg = '#d1fae5'; }
-    if (chip) { chip.textContent = label; chip.style.display = ''; chip.style.background = bg; chip.style.color = color; }
+    // Chip status mental disembunyikan (hanya angka di halaman ini)
+    if (chip) chip.style.display = 'none';
 }
 
 function initEEGChart() {
@@ -449,9 +465,9 @@ function initEEGChart() {
             scales: {
                 x: { display: false, grid: { display: false } },
                 y: {
-                    display: true, beginAtZero: true, suggestedMax: 60,
+                    display: true, beginAtZero: true,
                     grid: { color: 'rgba(124,58,237,0.08)' },
-                    ticks: { maxTicksLimit: 5, color: '#94a3b8', font: { size: 10 }, callback: (v) => v + '%' },
+                    ticks: { maxTicksLimit: 5, color: '#94a3b8', font: { size: 10 } },
                 },
             },
         },
@@ -487,6 +503,14 @@ function setHealthBadge(id, state, text) {
     if (txt) txt.textContent = text; else el.textContent = text;
 }
 
+/** Format a raw band-power value for display (no percent). */
+function fmtBandPower(v) {
+    if (v == null || !isFinite(v)) return '--';
+    if (v >= 100) return String(Math.round(v));
+    if (v >= 10)  return v.toFixed(1);
+    return v.toFixed(2);
+}
+
 function statusHex(colorClass) {
     const map = { success: '#10b981', warning: '#f59e0b', danger: '#ef4444', info: '#3b82f6', gray: '#94a3b8' };
     return map[colorClass] || map.gray;
@@ -495,9 +519,9 @@ function statusHex(colorClass) {
 function agoText(ms) {
     if (ms == null) return '—';
     const s = Math.round(ms / 1000);
-    if (s < 2) return 'baru saja';
-    if (s < 60) return `${s} dtk lalu`;
-    return `${Math.round(s / 60)} mnt lalu`;
+    if (s < 2) return t('health.just_now');
+    if (s < 60) return t('health.secs_ago', { s });
+    return t('health.mins_ago', { m: Math.round(s / 60) });
 }
 
 // ─────────────────────────────────────────────

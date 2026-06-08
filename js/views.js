@@ -178,13 +178,13 @@ const Views = {
                         <div class="device-card-name">Muse EEG</div>
                         <div class="device-card-room">BioLab</div>
                     </div>
-                    <div class="device-card" onclick="Router.navigate('synachat')">
+                    <div class="device-card" onclick="Router.navigate('health')">
                         <div class="device-card-head">
-                            <div class="icon"><i class="fas fa-robot"></i></div>
-                            <span class="device-card-status on">ON</span>
+                            <div class="icon"><i class="fas fa-microchip"></i></div>
+                            <span class="device-card-status off" id="espStatus">OFF</span>
                         </div>
-                        <div class="device-card-name">Dr. ScentraVN Chat</div>
-                        <div class="device-card-room">AI Assistant</div>
+                        <div class="device-card-name">ScentraVN Watch</div>
+                        <div class="device-card-room">Bluetooth</div>
                     </div>
                 </div>
 
@@ -539,6 +539,12 @@ const Views = {
                     .hvit-num .u{font-size:0.85rem;font-weight:700;color:#94a3b8;}
                     .hvit-label{font-size:0.82rem;font-weight:700;color:#334155;}
                     .hvit-foot{font-size:0.66rem;color:#94a3b8;line-height:1.4;}
+                    .hr-dual{display:flex;flex-direction:column;gap:5px;margin:2px 0;}
+                    .hr-one{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+                    .hr-one .src{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:700;color:#64748b;white-space:nowrap;}
+                    .hr-one .src .hr-ic{width:15px;height:15px;object-fit:contain;}
+                    .hr-one .src i{color:#7c3aed;font-size:0.8rem;}
+                    .hr-one .v{font-size:1.55rem;font-weight:800;color:#1e293b;line-height:1;font-variant-numeric:tabular-nums;}
                     .heeg-card{padding:18px;}
                     .heeg-cw{background:#faf8ff;border:1px solid rgba(124,58,237,0.08);border-radius:14px;padding:12px;margin:14px 0;}
                     .heeg-bands{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:14px;}
@@ -572,7 +578,7 @@ const Views = {
                             <p class="health-subtitle">${t('health.subtitle')}</p>
                         </div>
                         <span id="healthLiveBadge" class="health-live-badge waiting">
-                            <span class="dot"></span><span class="txt">Menunggu data…</span>
+                            <span class="dot"></span><span class="txt">${t('health.waiting')}</span>
                         </span>
                     </div>
                 </div>
@@ -581,14 +587,14 @@ const Views = {
                     <!-- Perangkat -->
                     <section class="hsec">
                         <div class="hsec-head">
-                            <h2><i class="fas fa-tower-broadcast"></i> Perangkat</h2>
-                            <span class="hsec-note"><i class="fas fa-circle-info"></i> Muse &amp; ScentraVN lewat Bluetooth · Galaxy Watch lewat aplikasi ScentraVN</span>
+                            <h2><i class="fas fa-tower-broadcast"></i> ${t('health.devices_title')}</h2>
+                            <span class="hsec-note"><i class="fas fa-circle-info"></i> ${t('health.devices_note')}</span>
                         </div>
                         <div class="hdev-grid">
                             ${[
-                                ['gw','img:images/smartwatch.png','Galaxy Watch','Detak jantung · Stres','rtdb'],
-                                ['esp','fa-microchip','ScentraVN Watch','Detak jantung · SpO₂','ble'],
-                                ['muse','fa-brain','Muse S Gen 2','Gelombang otak (EEG)','ble']
+                                ['gw','img:images/smartwatch.png','Galaxy Watch',t('health.role_hr_stress'),'rtdb'],
+                                ['esp','fa-microchip','ScentraVN Watch',t('health.role_hr_spo2'),'ble'],
+                                ['muse','fa-brain','Muse S Gen 2',t('health.role_eeg'),'ble']
                             ].map(([k,ic,nm,role,conn]) => `
                                 <div class="hcard hdev-card">
                                     <div class="hdev-top">
@@ -600,14 +606,14 @@ const Views = {
                                     <div class="hdev-name">${nm}</div>
                                     <div class="hdev-role">${role}</div>
                                     <div class="hdev-meta">
-                                        <span id="dev-${k}-status">Tidak terhubung</span>
+                                        <span id="dev-${k}-status">${t('health.not_connected')}</span>
                                         <span class="hdev-sep">·</span>
                                         <span><i class="fas fa-battery-half" style="color:#7c3aed;"></i> <span id="dev-${k}-batt">—</span></span>
                                     </div>
                                     <div class="hdev-updated" id="dev-${k}-updated">—</div>
                                     ${conn === 'ble'
-                                        ? `<button class="hdev-connect-btn" id="dev-${k}-connect" type="button" style="margin-top:11px;width:100%;border:1px solid rgba(124,58,237,0.25);background:rgba(124,58,237,0.08);color:#6d28d9;font-weight:700;font-size:0.76rem;padding:8px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;"><i class="fab fa-bluetooth-b"></i> Hubungkan</button>`
-                                        : `<div style="margin-top:11px;font-size:0.66rem;color:#0891b2;font-weight:700;background:rgba(8,145,178,0.08);padding:8px;border-radius:10px;text-align:center;"><i class="fas fa-mobile-screen-button"></i> Buka aplikasi ScentraVN</div>`}
+                                        ? `<button class="hdev-connect-btn" id="dev-${k}-connect" type="button" style="margin-top:11px;width:100%;border:1px solid rgba(124,58,237,0.25);background:rgba(124,58,237,0.08);color:#6d28d9;font-weight:700;font-size:0.76rem;padding:8px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;"><i class="fab fa-bluetooth-b"></i> ${t('health.connect')}</button>`
+                                        : `<div style="margin-top:11px;font-size:0.66rem;color:#0891b2;font-weight:700;background:rgba(8,145,178,0.08);padding:8px;border-radius:10px;text-align:center;"><i class="fas fa-mobile-screen-button"></i> ${t('health.open_app')}</div>`}
                                 </div>`).join('')}
                         </div>
                     </section>
@@ -624,9 +630,18 @@ const Views = {
                                     <div class="hvit-ic" style="background:rgba(239,68,68,0.12);color:#ef4444;"><i class="fas fa-heart-pulse"></i></div>
                                     <span class="hvit-badge" id="hrStatus">—</span>
                                 </div>
-                                <div class="hvit-num"><span class="n" id="hrValue">--</span><span class="u">BPM</span></div>
+                                <div class="hr-dual">
+                                    <div class="hr-one">
+                                        <span class="src"><img src="images/smartwatch.png" alt="Galaxy" class="hr-ic"> Galaxy</span>
+                                        <span class="v" id="hrGalaxy">--</span>
+                                    </div>
+                                    <div class="hr-one">
+                                        <span class="src"><i class="fas fa-microchip"></i> ScentraVN</span>
+                                        <span class="v" id="hrEsp">--</span>
+                                    </div>
+                                </div>
                                 <div class="hvit-label">${t('health.heart_rate') || 'Detak Jantung'}</div>
-                                <div class="hvit-foot">Sumber: <span id="hrSource">—</span> · Normal 60–100</div>
+                                <div class="hvit-foot">BPM · Normal 60–100</div>
                             </div>
                             <div class="hcard hvit">
                                 <div class="hvit-top">
@@ -651,9 +666,9 @@ const Views = {
                                     <div class="hvit-ic" style="background:rgba(124,58,237,0.12);color:#7c3aed;"><i class="fas fa-brain"></i></div>
                                     <span class="hvit-badge" id="stressSource">Watch</span>
                                 </div>
-                                <div class="hvit-num"><span class="n" id="stressCategory" style="font-size:1.6rem;">—</span></div>
-                                <div class="hvit-label">Tingkat Stres</div>
-                                <div class="hvit-foot">Tingkat stres dari Galaxy Watch</div>
+                                <div class="hvit-num"><span class="n" id="stressCategory">--</span></div>
+                                <div class="hvit-label">${t('health.stress_level')}</div>
+                                <div class="hvit-foot">${t('health.stress_foot')}</div>
                             </div>
                         </div>
                     </section>
@@ -661,17 +676,17 @@ const Views = {
                     <!-- EEG -->
                     <section class="hsec hcard heeg-card">
                         <div class="hsec-head">
-                            <h2><i class="fas fa-brain"></i> Gelombang Otak EEG</h2>
+                            <h2><i class="fas fa-brain"></i> ${t('health.eeg_title')}</h2>
                             <div style="display:flex;align-items:center;gap:8px;">
                                 <span id="eegMentalChip" class="hvit-badge" style="display:none;">—</span>
-                                <span id="eegLive" class="health-live-badge off"><span class="dot"></span><span class="txt">Muse mati</span></span>
+                                <span id="eegLive" class="health-live-badge off"><span class="dot"></span><span class="txt">${t('health.muse_off')}</span></span>
                             </div>
                         </div>
                         <div class="heeg-cw">
                             <div style="position:relative;width:100%;height:180px;">
                                 <canvas id="eegChart"></canvas>
                             </div>
-                            <div style="font-size:0.62rem;color:#94a3b8;text-align:right;margin-top:4px;">Daya pita relatif (%) · ternormalisasi</div>
+                            <div style="font-size:0.62rem;color:#94a3b8;text-align:right;margin-top:4px;">${t('health.eeg_caption')}</div>
                         </div>
                         <div class="heeg-bands">
                             <div class="heeg-band"><div class="v" id="eegDelta" style="color:#3b82f6;">--</div><div class="n">Delta</div><div class="h">0.5–4Hz</div><div class="heeg-bar"><span id="eegBar-delta" style="background:#3b82f6;"></span></div></div>
@@ -681,9 +696,9 @@ const Views = {
                             <div class="heeg-band"><div class="v" id="eegGamma" style="color:#ef4444;">--</div><div class="n">Gamma</div><div class="h">30–100Hz</div><div class="heeg-bar"><span id="eegBar-gamma" style="background:#ef4444;"></span></div></div>
                         </div>
                         <div class="heeg-status">
-                            <div class="heeg-stat"><i class="fas fa-bullseye" style="color:#10b981;"></i><div><div class="lbl">Fokus / Engagement</div><div class="val" id="eegFocusState">--</div></div></div>
-                            <div class="heeg-stat"><i class="fas fa-spa" style="color:#7c3aed;"></i><div><div class="lbl">Relaksasi</div><div class="val" id="eegArousal">--</div></div></div>
-                            <div class="heeg-stat"><i class="fas fa-battery-half" style="color:#3b82f6;"></i><div><div class="lbl">Baterai Muse</div><div class="val" id="eegBattery">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-bullseye" style="color:#10b981;"></i><div><div class="lbl">${t('health.eeg_focus')}</div><div class="val" id="eegFocusState">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-spa" style="color:#7c3aed;"></i><div><div class="lbl">${t('health.eeg_relax')}</div><div class="val" id="eegArousal">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-battery-half" style="color:#3b82f6;"></i><div><div class="lbl">${t('health.muse_battery')}</div><div class="val" id="eegBattery">--</div></div></div>
                         </div>
                     </section>
 
@@ -2887,10 +2902,10 @@ const Views = {
                     .rr-dev-status{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;font-weight:700;color:#94a3b8;white-space:nowrap;flex-shrink:0;}
                     .rr-dev-status .rr-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;}
                     .rr-dev-status.on{color:#15803d;} .rr-dev-status.on .rr-dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16);}
-                    .rr-live{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:7px;margin-top:12px;}
-                    .rr-cell{background:#faf8ff;border:1px solid rgba(124,58,237,.08);border-radius:10px;padding:7px 4px;text-align:center;}
-                    .rr-cell .k{font-size:0.52rem;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.02em;}
-                    .rr-cell .v{font-size:0.82rem;color:#4c1d95;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px;line-height:1;}
+                    .rr-live{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px;}
+                    .rr-cell{background:#faf8ff;border:1px solid rgba(124,58,237,.08);border-radius:10px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:46px;}
+                    .rr-cell .k{font-size:0.54rem;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.02em;}
+                    .rr-cell .v{font-size:0.86rem;color:#4c1d95;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px;line-height:1;}
                     .rr-cell .v.live{color:#16a34a;}
                     .rr-dev-hint{margin-top:11px;font-size:0.7rem;color:#475569;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#eef2f7;border:1px solid #e2e8f0;border-radius:10px;padding:9px 11px;}
                     .rr-dev-hint i{color:#7c3aed;}
@@ -2939,7 +2954,7 @@ const Views = {
                 <!-- Stats -->
                 <div class="rr-stats">
                     <div class="rr-stat"><div class="v" id="rawTotal">0</div><div class="l">${t('rr.stat_total')}</div></div>
-                    <div class="rr-stat"><div class="v" id="rawStatRaw">0</div><div class="l">${t('rr.stat_raw')}</div></div>
+                    <div class="rr-stat"><div class="v" id="rawStatSize">0 KB</div><div class="l">${t('rr.stat_size')}</div></div>
                     <div class="rr-stat"><div class="v" id="rawStatDev">0/3</div><div class="l">${t('rr.stat_dev')}</div></div>
                 </div>
 

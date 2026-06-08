@@ -170,12 +170,17 @@ const MuseEEG = {
                 }
             }, 2500);
 
-            /* Battery characteristic (optional) */
+            /* Battery characteristic (telemetry 273e000b).
+               Packet: [0-1]=sequence, [2-3]=battery (÷512 → %), [4-5]=voltage…
+               NOTE: the DataView is e.target.VALUE, not e.target. */
             try {
                 const bat = await this.service.getCharacteristic(MUSE_CHAR.battery);
                 await bat.startNotifications();
                 bat.addEventListener('characteristicvaluechanged', (e) => {
-                    this.metrics.battery = e.target.getUint16(0, false) / 512;
+                    const dv = e.target.value;
+                    if (!dv || dv.byteLength < 4) return;
+                    const pct = dv.getUint16(2, false) / 512;
+                    this.metrics.battery = Math.max(0, Math.min(100, pct));
                 });
             } catch(_) { /* battery not always available */ }
 

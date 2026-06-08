@@ -177,7 +177,7 @@
     _render(summary, devices) {
       this._setText('rawDuration', this._fmtClock(summary.durationSec));
       this._setText('rawTotal', this._fmtNum(summary.total));
-      this._setText('rawStatRaw', this._fmtNum(summary.counts.museRaw));
+      this._setText('rawStatSize', this._fmtBytes(this._estimateBytes(summary.counts)));
 
       const conn = this._connState();
       const transports = { muse: t('rr.conn_bluetooth'), scentra: t('rr.conn_bluetooth'), galaxy: t('rr.conn_app') };
@@ -246,10 +246,13 @@
         const g = this._live.galaxy || {};
         pairs = [
           ['BPM', g.bpm != null ? g.bpm : '—'],
-          [t('rr.cell_stress'), g.stress && g.stress.level && g.stress.level !== 'unavailable' ? g.stress.level : '—'],
+          [t('rr.cell_stress'), (g.stress && g.stress.value != null && isFinite(g.stress.value)) ? Math.round(g.stress.value) : '—'],
           ['Bat', g.battery != null ? Math.round(g.battery) + '%' : '—'],
         ];
       }
+      // Kolom yang membagi rata jumlah sel agar rapi (tanpa sisa baris pincang)
+      const cols = { muse: 5, scentra: 3, galaxy: 3 }[id] || 5;
+      grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
       grid.innerHTML = pairs.map(([k, v]) =>
         `<div class="rr-cell"><div class="k">${k}</div><div class="v${(v !== '—' && v !== '') ? ' live' : ''}">${v === '' || v == null ? '—' : v}</div></div>`
       ).join('');
@@ -265,6 +268,17 @@
     },
     _locale() { return (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID'; },
     _fmtNum(n) { return (n || 0).toLocaleString(this._locale()); },
+    /* Perkiraan ukuran data live (byte rata-rata per jenis frame). */
+    _estimateBytes(c) {
+      c = c || {};
+      return (c.museRaw || 0) * 60 + (c.muse || 0) * 150 + (c.scentra || 0) * 130 + (c.galaxy || 0) * 80;
+    },
+    _fmtBytes(b) {
+      b = Number(b) || 0;
+      if (b < 1024) return b + ' B';
+      if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' KB';
+      return (b / 1024 / 1024).toFixed(1) + ' MB';
+    },
     _setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; },
 
     destroy() {

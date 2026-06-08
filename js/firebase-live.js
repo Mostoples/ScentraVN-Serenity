@@ -163,6 +163,7 @@
     _reflectDashboard(live) {
       this._setStatusBadge('watchStatus', live.galaxyWatch.connected);
       this._setStatusBadge('museStatus', live.muse.connected);
+      this._setStatusBadge('espStatus', live.esp32.connected);
     },
 
     _setStatusBadge(id, on) {
