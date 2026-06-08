@@ -42,7 +42,7 @@ let _bleConnHandler = null;
 function _emptyLive() {
     return {
         galaxyWatch: { source: 'GALAXY_WATCH', connected: false, bpm: null, battery: null, updatedAt: 0, stress: { value: null, level: 'unavailable' } },
-        esp32:       { source: 'ESP32_WATCH', connected: false, bpm: null, spo2: null, battery: null, updatedAt: 0 },
+        esp32:       { source: 'ESP32_WATCH', connected: false, bpm: null, spo2: null, bt: null, battery: null, updatedAt: 0 },
         muse:        { source: 'MUSE_S', connected: false, bpm: null, eeg: {}, battery: null, updatedAt: 0 },
     };
 }
@@ -129,6 +129,7 @@ function wireHealthBleStreams() {
             const finger = d.finger !== false;
             _espOverlay = {
                 bpm: finger ? d.hr : 0, spo2: finger ? d.spo2 : 0,
+                bt: d.bt != null ? d.bt : null,   // MLX90614 body temperature (°C)
                 battery: d.battery != null ? d.battery : null, updatedAt: Date.now(),
             };
             renderMergedHealth();
@@ -165,6 +166,7 @@ function mergeBleOverlay(live) {
         merged.esp32.source = 'ESP32 (BLE)';
         if (_espOverlay.bpm != null)  merged.esp32.bpm = _espOverlay.bpm;
         if (_espOverlay.spo2 != null) merged.esp32.spo2 = _espOverlay.spo2;
+        if (_espOverlay.bt != null)   merged.esp32.bt = _espOverlay.bt;
         if (_espOverlay.battery != null) merged.esp32.battery = _espOverlay.battery;
         merged.esp32.updatedAt = _espOverlay.updatedAt;
     }
@@ -217,6 +219,10 @@ function _renderHealthSnapshot(live) {
     // ── SpO₂: HANYA ESP32 ──
     const spo2 = (esp.connected && esp.spo2 != null && esp.spo2 > 0) ? esp.spo2 : 0;
     renderSpO2(spo2);
+
+    // ── Suhu tubuh: HANYA ScentraVN Watch (MLX90614) ──
+    const bt = (esp.connected && esp.bt != null && esp.bt > 0) ? esp.bt : null;
+    renderBodyTemp(bt);
 
     // ── Indikator vital live ──
     setHealthBadge('liveIndicator', (hr > 0 || spo2 > 0) ? 'live' : 'waiting', t('metric.live') || 'live');
@@ -283,6 +289,25 @@ function renderSpO2(spo2) {
             const s = Utils.getSpO2Status(spo2);
             stEl.textContent = s.status;
             stEl.style.color = statusHex(s.color);
+        } else {
+            stEl.textContent = '—';
+            stEl.style.color = '';
+        }
+    }
+}
+
+function renderBodyTemp(bt) {
+    const valEl = document.getElementById('bodyTempValue');
+    const stEl  = document.getElementById('bodyTempStatus');
+    if (valEl) valEl.textContent = (bt != null && bt > 0) ? Number(bt).toFixed(1) : '--';
+    if (stEl) {
+        if (bt != null && bt > 0) {
+            let label, color;
+            if (bt < 35)         { label = t('health.temp_low');    color = 'info'; }
+            else if (bt <= 37.5) { label = t('health.temp_normal'); color = 'success'; }
+            else                 { label = t('health.temp_fever');  color = 'danger'; }
+            stEl.textContent = label;
+            stEl.style.color = statusHex(color);
         } else {
             stEl.textContent = '—';
             stEl.style.color = '';

@@ -528,7 +528,8 @@ const Views = {
                     .hdev-meta{display:flex;align-items:center;gap:8px;font-size:0.76rem;color:#475569;font-weight:600;margin-top:10px;}
                     .hdev-meta .hdev-sep{color:#cbd5e1;}
                     .hdev-updated{font-size:0.66rem;color:#a78bfa;font-weight:600;margin-top:5px;}
-                    .hvit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+                    .hvit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+                    @media(min-width:641px) and (max-width:980px){ .hvit-grid{grid-template-columns:repeat(2,1fr);} }
                     .hvit{padding:18px;display:flex;flex-direction:column;gap:9px;}
                     .hvit-top{display:flex;align-items:center;justify-content:space-between;}
                     .hvit-ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
@@ -554,7 +555,10 @@ const Views = {
                     .heeg-stat .val{font-size:0.85rem;font-weight:800;color:#1e293b;}
                     .health-page .health-actions{display:flex;gap:12px;flex-wrap:wrap;}
                     @media(max-width:640px){
-                        .hdev-grid,.hvit-grid{grid-template-columns:1fr;}
+                        .hdev-grid{grid-template-columns:1fr;}
+                        .hvit-grid{grid-template-columns:1fr 1fr;}
+                        .hvit{padding:14px;}
+                        .hvit-num .n{font-size:1.8rem;}
                         .heeg-bands{gap:6px;} .heeg-band{padding:10px 3px;} .heeg-band .v{font-size:1.05rem;}
                         .heeg-status{grid-template-columns:1fr;}
                     }
@@ -631,7 +635,16 @@ const Views = {
                                 </div>
                                 <div class="hvit-num"><span class="n" id="spo2Value">--</span><span class="u">%</span></div>
                                 <div class="hvit-label">${t('health.blood_oxygen') || 'Saturasi Oksigen'}</div>
-                                <div class="hvit-foot">Dari ScentraVN Watch · Normal 95–100</div>
+                                <div class="hvit-foot">${t('health.spo2_foot')}</div>
+                            </div>
+                            <div class="hcard hvit">
+                                <div class="hvit-top">
+                                    <div class="hvit-ic" style="background:rgba(245,158,11,0.12);color:#f59e0b;"><i class="fas fa-temperature-half"></i></div>
+                                    <span class="hvit-badge" id="bodyTempStatus">—</span>
+                                </div>
+                                <div class="hvit-num"><span class="n" id="bodyTempValue">--</span><span class="u">°C</span></div>
+                                <div class="hvit-label">${t('health.body_temp') || 'Suhu Tubuh'}</div>
+                                <div class="hvit-foot">${t('health.temp_foot')}</div>
                             </div>
                             <div class="hcard hvit">
                                 <div class="hvit-top">
