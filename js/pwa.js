@@ -154,7 +154,7 @@ const PWA = {
                         <img src="images/logo.png" alt="SCENTRAVN" width="64" height="64" class="pwa-app-icon-img">
                     </div>
                     <div class="pwa-app-info">
-                        <h3>Install SCENTRAVN</h3>
+                        <h3>Install ScentraVN - Web</h3>
                         <p>Add to your home screen for the best experience</p>
                     </div>
                 </div>
@@ -779,27 +779,67 @@ const PWA = {
         // User clicked "Install" → count as interaction (won't auto-prompt again)
         this._markSeen();
 
-        if (!this.deferredPrompt) {
-            console.log('[PWA] No install prompt available');
-            // Show iOS instructions if on iOS
-            if (this.isIOS) {
-                this.showInstallPrompt(true);  // manual: user tapped Install
+        // Already running as an installed app.
+        if (this.isStandalone || this.isInstalled) {
+            this.hideInstallPrompt();
+            this.showManualInstallHelp(true);
+            return;
+        }
+
+        // Native install prompt available (Chromium-based browsers).
+        if (this.deferredPrompt) {
+            try {
+                this.deferredPrompt.prompt();
+                const { outcome } = await this.deferredPrompt.userChoice;
+                console.log('[PWA] User choice:', outcome);
+                this.deferredPrompt = null;
+                this.hideInstallPrompt();
+            } catch (e) {
+                // prompt() can throw if it was already used; fall back to help.
+                console.warn('[PWA] prompt() failed:', e);
+                this.deferredPrompt = null;
+                this.hideInstallPrompt();
+                this.showManualInstallHelp();
             }
             return;
         }
 
-        // Show the install prompt
-        this.deferredPrompt.prompt();
+        // No native prompt (iOS Safari, Firefox, or event not fired):
+        // never leave the button doing nothing — show manual instructions.
+        this.hideInstallPrompt();
+        this.showManualInstallHelp();
+    },
 
-        // Wait for user response
-        const { outcome } = await this.deferredPrompt.userChoice;
-        console.log('[PWA] User choice:', outcome);
+    /**
+     * Show platform-specific manual install instructions. Used whenever the
+     * native install prompt is unavailable so the button always gives feedback.
+     * @param {boolean} alreadyInstalled - true to show an "already installed" note.
+     */
+    showManualInstallHelp(alreadyInstalled = false) {
+        let title, message, icon;
 
-        // Clear the prompt
-        this.deferredPrompt = null;
+        if (alreadyInstalled) {
+            title = 'Sudah Terinstall';
+            icon = 'fa-circle-check';
+            message = 'Aplikasi ScentraVN - Web sudah terpasang dan sedang berjalan.';
+        } else if (this.isIOS) {
+            title = 'Pasang di iOS';
+            icon = 'fa-mobile-screen';
+            message = 'Di Safari:\n1. Ketuk tombol Bagikan (kotak dengan panah ke atas)\n2. Gulir dan pilih "Add to Home Screen"\n3. Ketuk "Add" untuk konfirmasi';
+        } else if (/Firefox/i.test(navigator.userAgent)) {
+            title = 'Pasang Aplikasi';
+            icon = 'fa-download';
+            message = 'Buka menu Firefox (☰) → "Install" / "Tambahkan ke Layar Utama". Untuk pengalaman terbaik, gunakan Chrome atau Edge.';
+        } else {
+            title = 'Pasang Aplikasi';
+            icon = 'fa-download';
+            message = 'Buka menu browser (⋮ di pojok kanan atas) lalu pilih "Install ScentraVN - Web" atau "Add to Home screen". Jika tidak muncul, aplikasi mungkin sudah terpasang.';
+        }
 
-        if (outcome === 'accepted') {
-            this.hideInstallPrompt();
+        if (window.Utils && typeof Utils.showModal === 'function') {
+            Utils.showModal({ title, message, icon, confirmText: 'Mengerti' });
+        } else {
+            alert(message);
         }
     },
 

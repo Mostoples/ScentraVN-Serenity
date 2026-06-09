@@ -9,8 +9,8 @@
  *        RAW: TP9/AF7/AF8/TP10 @256Hz + accel/gyro  ·  metrics: band powers, states
  *   2. ScentraVN Watch      — Web Bluetooth (BLEConnection / ESP32)
  *        RAW: MAX30102 red/IR/HR/SpO2, MLX90614 temps, IMU, EDA/GSR
- *   3. Galaxy Watch         — Firebase Realtime Database (ScentraLive bridge)
- *        bpm · stress · battery (Android companion → /scentravn/live/galaxyWatch)
+ *   3. Galaxy Watch         — offline loopback bridge ws://127.0.0.1 (ScentraLive),
+ *        RTDB only as fallback. bpm · stress · battery (Android companion → live)
  *
  * Save model (bypasses Firestore 1MB doc limit):
  *   users/{uid}/rawRecordings/{id}            ← metadata + summary
@@ -92,6 +92,22 @@
       this._detachSources();
       this._emit();
       return this.getSummary();
+    },
+
+    /**
+     * Clear the in-memory session back to a fresh idle state (00:00, no frames).
+     * Call AFTER a session has been saved/exported — Stop alone keeps the streams
+     * so a failed upload can still be retried/checkpointed; reset discards them.
+     */
+    reset() {
+      this.recording = false;
+      this.paused = false;
+      this.startedAt = null;
+      this.stoppedAt = null;
+      this.pausedMs = 0;
+      this._pauseStart = null;
+      this.streams = { galaxy: [], muse: [], museRaw: [], scentra: [] };
+      this._emit();
     },
 
     /** Active (non-paused) recording seconds. Frozen once stopped. */
@@ -182,11 +198,13 @@
         }
       }
 
-      /* Galaxy Watch — via Firebase Realtime Database (ScentraLive bridge) */
-      this._attachGalaxyRTDB();
+      /* Galaxy Watch — via offline loopback bridge (ws://127.0.0.1), with the
+         Realtime Database only as a fallback when the on-device bridge is absent.
+         Both sources funnel through ScentraLive, so we subscribe once. */
+      this._attachGalaxy();
     },
 
-    _attachGalaxyRTDB() {
+    _attachGalaxy() {
       if (typeof ScentraLive === 'undefined') return;
       try {
         ScentraLive.start();
@@ -196,7 +214,9 @@
           const gw = live && live.galaxyWatch;
           if (!gw) return;
           this.devices.galaxy.connected = !!gw.connected;
-          this.devices.galaxy.transport = 'RTDB';
+          // Tag the genuine transport so saved sessions distinguish offline (local
+          // bridge) captures from cloud (RTDB) ones.
+          this.devices.galaxy.transport = ScentraLive.source === 'local' ? 'LOCAL' : 'RTDB';
           /* only record genuinely new frames from the bridge */
           if (gw.updatedAt && gw.updatedAt === lastUpdatedAt) return;
           lastUpdatedAt = gw.updatedAt || Date.now();

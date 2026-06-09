@@ -16,7 +16,7 @@
  *  - Navigasi: network-first -> halaman ter-cache -> offline.html.
  */
 
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.1';
 const PRECACHE = `scentravn-precache-v${APP_VERSION}`;
 const RUNTIME = `scentravn-runtime-v${APP_VERSION}`;
 
@@ -54,6 +54,7 @@ const LOCAL_ASSETS = [
     '/js/i18n.js',
     '/js/firebase-config.js',
     '/js/firebase-live.js',
+    '/js/local-bridge.js',
     '/js/auth-guard.js',
     '/js/auth.js',
 

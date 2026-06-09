@@ -105,15 +105,31 @@
       return Math.sqrt(varc);
     },
 
-    /** True when a channel's amplitude variance sits in a plausible EEG range. */
-    _chanGood(ch) {
+    /**
+     * Classify one electrode's contact quality from its amplitude variance:
+     *   'nodata' — not enough samples yet (buffer still filling)
+     *   'flat'   — variance too low → lead lifted / no skin contact
+     *   'noisy'  — variance too high → motion / railing artefact
+     *   'good'   — variance inside a plausible EEG range
+     */
+    _chanQuality(ch) {
       const sd = this._chanStd(ch);
-      return sd != null && sd >= this.STD_MIN_UV && sd <= this.STD_MAX_UV;
+      if (sd == null) return 'nodata';
+      if (sd < this.STD_MIN_UV) return 'flat';
+      if (sd > this.STD_MAX_UV) return 'noisy';
+      return 'good';
     },
+    _chanGood(ch) { return this._chanQuality(ch) === 'good'; },
+
+    /** Human label (TP9/AF7/AF8/TP10) for a bad-channel list. */
+    _chanLabels(chs) { return chs.map(c => c.toUpperCase()).join(', '); },
 
     /**
-     * Detect a stable, good-quality Muse signal and, once it holds for
-     * STABLE_MS, flag readiness + notify the user that recording can start.
+     * Per-electrode signal monitor. Surfaces exactly which Muse lead is not yet
+     * stable, then — once the frontal leads (AF7/AF8, the ones that drive every
+     * EEG metric) hold good for STABLE_MS — flags readiness. Readiness no longer
+     * waits on the temporal leads behind the ears, which flap constantly and used
+     * to keep the signal "stabilising" forever; their quality is still shown.
      */
     _evaluateMuseStability() {
       const realConnected = (typeof MuseEEG !== 'undefined') && MuseEEG.isConnected && !MuseEEG.simulationMode;
@@ -124,15 +140,23 @@
         this._museReady = false;
         this._museReadyNotified = false;
         this._renderReadyBadge(simulating ? 'sim' : 'off');
+        this._renderMuseQuality(false);
         return;
       }
 
-      // Require both frontal leads (AF7/AF8) good, plus at least one temporal.
-      const frontalGood = this._chanGood('af7') && this._chanGood('af8');
-      const temporalGood = this._chanGood('tp9') || this._chanGood('tp10');
-      const stableNow = frontalGood && temporalGood;
+      const quals = {
+        tp9:  this._chanQuality('tp9'),
+        af7:  this._chanQuality('af7'),
+        af8:  this._chanQuality('af8'),
+        tp10: this._chanQuality('tp10'),
+      };
+      this._renderMuseQuality(true, quals);
 
-      if (stableNow) {
+      // Frontal leads gate readiness; every not-yet-good lead is named to the user.
+      const frontalGood = quals.af7 === 'good' && quals.af8 === 'good';
+      const bad = ['af7', 'af8', 'tp9', 'tp10'].filter(ch => quals[ch] !== 'good');
+
+      if (frontalGood) {
         if (!this._museStableSince) this._museStableSince = Date.now();
         const held = Date.now() - this._museStableSince;
         if (held >= this.STABLE_MS) {
@@ -143,17 +167,56 @@
               this._toast(t('rr.muse_ready') || 'Sinyal Muse stabil — siap merekam', 'success');
             }
           }
-          this._renderReadyBadge('ready');
+          this._renderReadyBadge('ready', bad);
         } else {
-          this._renderReadyBadge('stabilizing');
+          this._renderReadyBadge('almost', bad);
         }
       } else {
-        // Signal lost quality — reset so the user is re-notified next time.
+        // Frontal contact lost — reset so the user is re-notified when it returns.
         this._museStableSince = null;
         this._museReady = false;
         this._museReadyNotified = false;
-        this._renderReadyBadge('stabilizing');
+        this._renderReadyBadge('stabilizing', bad);
       }
+    },
+
+    /** Lazily create the per-electrode quality strip inside the Muse device card. */
+    _ensureMuseQuality() {
+      let el = this._el('rawMuseQuality');
+      if (el) return el;
+      const card = this._el('rawDevCard-muse');
+      if (!card) return null;
+      const live = this._el('rawLive-muse');
+      el = document.createElement('div');
+      el.id = 'rawMuseQuality';
+      el.className = 'rr-mq';
+      el.style.display = 'none';
+      if (live && live.parentNode) live.parentNode.insertBefore(el, live);
+      else card.appendChild(el);
+      return el;
+    },
+
+    _MQ_META: {
+      good:   { c: '#16a34a', bg: 'rgba(22,163,74,.12)',  ic: 'fa-circle-check', k: 'rr.q_good' },
+      noisy:  { c: '#d97706', bg: 'rgba(217,119,6,.12)',  ic: 'fa-wave-square',  k: 'rr.q_noisy' },
+      flat:   { c: '#dc2626', bg: 'rgba(220,38,38,.12)',  ic: 'fa-link-slash',   k: 'rr.q_flat' },
+      nodata: { c: '#94a3b8', bg: 'rgba(148,163,184,.14)', ic: 'fa-circle-notch', k: 'rr.q_nodata' },
+    },
+    _MQ_CHANS: [['TP9', 'tp9'], ['AF7', 'af7'], ['AF8', 'af8'], ['TP10', 'tp10']],
+
+    _renderMuseQuality(show, quals) {
+      const el = this._ensureMuseQuality();
+      if (!el) return;
+      if (!show) { el.style.display = 'none'; return; }
+      el.style.display = 'block';
+      const cells = this._MQ_CHANS.map(([lab, ch]) => {
+        const m = this._MQ_META[(quals && quals[ch]) || 'nodata'];
+        const tx = t(m.k) || '';
+        return `<div class="rr-mq-chip" style="background:${m.bg};color:${m.c};" title="${lab} — ${tx}">` +
+          `<i class="fas ${m.ic}"></i><b>${lab}</b><span>${tx}</span></div>`;
+      }).join('');
+      el.innerHTML = `<div class="rr-mq-title">${t('rr.muse_quality_title') || 'Kualitas kontak elektroda'}</div>` +
+        `<div class="rr-mq-grid">${cells}</div>`;
     },
 
     /** Lazily create the readiness badge inside the hero, below the sub-text. */
@@ -171,13 +234,20 @@
       return badge;
     },
 
-    _renderReadyBadge(state) {
+    _renderReadyBadge(state, bad) {
       const badge = this._ensureReadyBadge();
       if (!badge) return;
+      const chans = (bad && bad.length) ? this._chanLabels(bad) : '';
+      // When the frontal leads aren't good yet, name the offending electrodes
+      // so the user knows exactly where to adjust the headband.
+      const stabilizingTx = chans
+        ? (t('rr.muse_check', { chans }) || ('Perbaiki kontak: ' + chans))
+        : (t('rr.muse_stabilizing') || 'Menstabilkan sinyal Muse…');
       const styles = {
         off:         { show: false },
         sim:         { show: true, bg: 'rgba(148,163,184,.16)', fg: '#475569', ic: 'fa-flask', tx: t('rr.muse_sim') || 'Mode simulasi — bukan data asli' },
-        stabilizing: { show: true, bg: 'rgba(245,158,11,.16)', fg: '#b45309', ic: 'fa-wave-square', tx: t('rr.muse_stabilizing') || 'Menstabilkan sinyal Muse…' },
+        stabilizing: { show: true, bg: 'rgba(239,68,68,.14)',  fg: '#b91c1c', ic: 'fa-triangle-exclamation', tx: stabilizingTx },
+        almost:      { show: true, bg: 'rgba(245,158,11,.16)', fg: '#b45309', ic: 'fa-spinner fa-spin', tx: t('rr.muse_almost') || 'Hampir stabil — tahan posisi headband…' },
         ready:       { show: true, bg: 'rgba(16,185,129,.16)', fg: '#047857', ic: 'fa-circle-check', tx: t('rr.muse_ready') || 'Sinyal Muse stabil — siap merekam' },
       }[state] || { show: false };
 
@@ -237,6 +307,9 @@
       this._syncControls();
       if (sum.total === 0) {
         await RawRecorder.clearDraft();
+        RawRecorder.reset();
+        this._render(RawRecorder.getSummary(), RawRecorder.devices);
+        this._syncControls();
         this._toast(t('rr.toast_empty'), 'warning');
         return;
       }
@@ -254,6 +327,10 @@
 
       if (id) {
         await RawRecorder.clearDraft();
+        // Session saved → wipe the in-memory streams so the hero returns to 00:00
+        // / no data. (Stop kept them only so a failed upload could be retried.)
+        RawRecorder.reset();
+        this._render(RawRecorder.getSummary(), RawRecorder.devices);
         this._setText('rawStatus', t('rr.status_saved'));
         this._toast(t('rr.toast_saved', { n: sum.total }), 'success');
         if (await this._confirm(t('rr.confirm_open_history'), { title: t('rr.history'), confirmText: t('rr.history') || 'Riwayat', cancelText: 'Nanti' })) Router.navigate('recordhistory');
@@ -299,7 +376,15 @@
       this._setText('rawStatSize', this._fmtBytes(this._estimateBytes(summary.counts)));
 
       const conn = this._connState();
-      const transports = { muse: t('rr.conn_bluetooth'), scentra: t('rr.conn_bluetooth'), galaxy: t('rr.conn_app') };
+      // Galaxy Watch no longer rides the Realtime Database: data arrives over the
+      // offline loopback bridge (ws://127.0.0.1). Show the actual source so the
+      // card reads "Offline (lokal)" when the on-device bridge is feeding it.
+      const galaxyOffline = (typeof ScentraLive !== 'undefined') && ScentraLive.source === 'local';
+      const transports = {
+        muse: t('rr.conn_bluetooth'),
+        scentra: t('rr.conn_bluetooth'),
+        galaxy: galaxyOffline ? (t('rr.conn_offline') || 'Offline (lokal)') : t('rr.conn_app'),
+      };
       let connected = 0;
 
       for (const id of ['muse', 'scentra', 'galaxy']) {
@@ -348,8 +433,11 @@
       if (id === 'muse') {
         const r = this._live.museRaw || {}, m = this._live.muse || {};
         pairs = [
-          ['TP9', this._uv(r.tp9)], ['AF7', this._uv(r.af7)], ['AF8', this._uv(r.af8)], ['TP10', this._uv(r.tp10)],
-          ['δ', this._n(m.delta, 1)], ['θ', this._n(m.theta, 1)], ['α', this._n(m.alpha, 1)], ['β', this._n(m.beta, 1)], ['γ', this._n(m.gamma, 1)],
+          ['TP9', this._uv(r.tp9), 'Temporal-parietal kiri (belakang telinga kiri)'],
+          ['AF7', this._uv(r.af7), 'Anterior-frontal kiri (dahi kiri)'],
+          ['AF8', this._uv(r.af8), 'Anterior-frontal kanan (dahi kanan)'],
+          ['TP10', this._uv(r.tp10), 'Temporal-parietal kanan (belakang telinga kanan)'],
+          ['Delta', this._n(m.delta, 1)], ['Theta', this._n(m.theta, 1)], ['Alpha', this._n(m.alpha, 1)], ['Beta', this._n(m.beta, 1)], ['Gamma', this._n(m.gamma, 1)],
           ['Bat', m.battery != null ? Math.round(m.battery) + '%' : '—'],
         ];
       } else if (id === 'scentra') {
@@ -357,7 +445,8 @@
         const fin = d.finger !== false;
         pairs = [
           ['HR', fin && d.hr ? d.hr : '—'], ['SpO₂', fin && d.spo2 ? d.spo2 : '—'],
-          ['IR', this._n(d.ir, 0)], ['RED', this._n(d.red, 0)],
+          ['IR', this._n(d.ir, 0), 'PPG mentah kanal IR (inframerah) — MAX30102'],
+          ['RED', this._n(d.red, 0), 'PPG mentah kanal RED (merah) — MAX30102'],
           [t('rr.cell_temp'), this._n(d.bt, 1)], ['GSR', this._n(d.gsrRaw != null ? d.gsrRaw : d.gsr, 0)],
           ['AcX', this._n(d.ax, 2)], ['AcY', this._n(d.ay, 2)], ['AcZ', this._n(d.az, 2)],
         ];
@@ -372,8 +461,8 @@
       // Kolom yang membagi rata jumlah sel agar rapi (tanpa sisa baris pincang)
       const cols = { muse: 5, scentra: 3, galaxy: 3 }[id] || 5;
       grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-      grid.innerHTML = pairs.map(([k, v]) =>
-        `<div class="rr-cell"><div class="k">${k}</div><div class="v${(v !== '—' && v !== '') ? ' live' : ''}">${v === '' || v == null ? '—' : v}</div></div>`
+      grid.innerHTML = pairs.map(([k, v, tip]) =>
+        `<div class="rr-cell"${tip ? ` title="${k} — ${tip}"` : ''}><div class="k">${k}</div><div class="v${(v !== '—' && v !== '') ? ' live' : ''}">${v === '' || v == null ? '—' : v}</div></div>`
       ).join('');
     },
 

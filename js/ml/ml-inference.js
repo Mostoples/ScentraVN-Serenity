@@ -314,7 +314,8 @@
         conf += 0.10;
       }
       if (thetaBetaRatio !== null) {
-        score += clamp((thetaBetaRatio - 6.4) * 1.3, -15, 25);
+        /* Recentred for the corrected Muse decoder: θ/β ≈ 3 is the neutral point. */
+        score += clamp((thetaBetaRatio - 3.0) * 2.0, -15, 25);
         conf += 0.15;
       }
       if (gsr !== null) {

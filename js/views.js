@@ -592,8 +592,8 @@ const Views = {
                         </div>
                         <div class="hdev-grid">
                             ${[
-                                ['gw','img:images/smartwatch.png','Galaxy Watch',t('health.role_hr_stress'),'rtdb'],
-                                ['esp','fa-microchip','ScentraVN Watch',t('health.role_hr_spo2'),'ble'],
+                                ['gw','img:images/smartwatch.png','Galaxy Watch',t('health.role_hr'),'rtdb'],
+                                ['esp','fa-microchip','ScentraVN Watch',t('health.role_hr_spo2_stress'),'ble'],
                                 ['muse','fa-brain','Muse S Gen 2',t('health.role_eeg'),'ble']
                             ].map(([k,ic,nm,role,conn]) => `
                                 <div class="hcard hdev-card">
@@ -664,7 +664,7 @@ const Views = {
                             <div class="hcard hvit">
                                 <div class="hvit-top">
                                     <div class="hvit-ic" style="background:rgba(124,58,237,0.12);color:#7c3aed;"><i class="fas fa-brain"></i></div>
-                                    <span class="hvit-badge" id="stressSource">Watch</span>
+                                    <span class="hvit-badge" id="stressSource">ScentraVN</span>
                                 </div>
                                 <div class="hvit-num"><span class="n" id="stressCategory">--</span></div>
                                 <div class="hvit-label">${t('health.stress_level')}</div>
@@ -2907,6 +2907,14 @@ const Views = {
                     .rr-cell .k{font-size:0.54rem;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.02em;}
                     .rr-cell .v{font-size:0.86rem;color:#4c1d95;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px;line-height:1;}
                     .rr-cell .v.live{color:#16a34a;}
+                    /* Per-electrode Muse contact-quality strip */
+                    .rr-mq{margin-top:12px;padding:10px 11px;background:#faf8ff;border:1px solid rgba(124,58,237,.1);border-radius:12px;}
+                    .rr-mq-title{font-size:0.58rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+                    .rr-mq-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+                    .rr-mq-chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:10px;text-align:center;transition:background .25s,color .25s;}
+                    .rr-mq-chip i{font-size:0.92rem;}
+                    .rr-mq-chip b{font-size:0.66rem;font-weight:800;letter-spacing:.02em;}
+                    .rr-mq-chip span{font-size:0.54rem;font-weight:700;opacity:.9;}
                     .rr-dev-hint{margin-top:11px;font-size:0.7rem;color:#475569;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#eef2f7;border:1px solid #e2e8f0;border-radius:10px;padding:9px 11px;}
                     .rr-dev-hint i{color:#7c3aed;}
                     .rr-dev-hint a{color:#6d28d9;font-weight:700;cursor:pointer;text-decoration:underline;}

@@ -42,7 +42,7 @@ let _bleConnHandler = null;
 function _emptyLive() {
     return {
         galaxyWatch: { source: 'GALAXY_WATCH', connected: false, bpm: null, battery: null, updatedAt: 0, stress: { value: null, level: 'unavailable' } },
-        esp32:       { source: 'ESP32_WATCH', connected: false, bpm: null, spo2: null, bt: null, battery: null, updatedAt: 0 },
+        esp32:       { source: 'ESP32_WATCH', connected: false, bpm: null, spo2: null, bt: null, battery: null, updatedAt: 0, stress: { value: null, level: 'unavailable' } },
         muse:        { source: 'MUSE_S', connected: false, bpm: null, eeg: {}, battery: null, updatedAt: 0 },
     };
 }
@@ -137,6 +137,11 @@ function wireHealthBleStreams() {
             _espOverlay = {
                 bpm: finger ? d.hr : 0, spo2: finger ? d.spo2 : 0,
                 bt: d.bt != null ? d.bt : null,   // MLX90614 body temperature (°C)
+                // Tingkat stres dihitung di ScentraVN Watch (HR+GSR+suhu+SpO₂),
+                // hanya valid saat finger terdeteksi.
+                stress: (finger && d.stress != null && isFinite(d.stress))
+                    ? { value: Number(d.stress), level: d.stressLevel || null }
+                    : { value: null, level: 'unavailable' },
                 battery: d.battery != null ? d.battery : null, updatedAt: Date.now(),
             };
             renderMergedHealth();
@@ -174,6 +179,7 @@ function mergeBleOverlay(live) {
         if (_espOverlay.bpm != null)  merged.esp32.bpm = _espOverlay.bpm;
         if (_espOverlay.spo2 != null) merged.esp32.spo2 = _espOverlay.spo2;
         if (_espOverlay.bt != null)   merged.esp32.bt = _espOverlay.bt;
+        if (_espOverlay.stress)       merged.esp32.stress = _espOverlay.stress;
         if (_espOverlay.battery != null) merged.esp32.battery = _espOverlay.battery;
         merged.esp32.updatedAt = _espOverlay.updatedAt;
     }
@@ -189,7 +195,7 @@ function renderMergedHealth() {
 /**
  * Render snapshot kontrak (galaxyWatch/esp32/muse) ke halaman health.
  * Jujur sesuai skema: HR dari Watch (fallback ESP32), SpO₂ HANYA ESP32,
- * Stres = kategori dari Watch, EEG dari Muse. BP/EKG tidak ada.
+ * Stres = angka 0–100 dari ScentraVN Watch (ESP32), EEG dari Muse. BP/EKG tidak ada.
  */
 function applyHealthLiveSnapshot(live) {
     if (!document.getElementById('eegChart')) { unwireHealthLiveBridge(); return; }
@@ -233,8 +239,10 @@ function _renderHealthSnapshot(live) {
     // ── Indikator vital live ──
     setHealthBadge('liveIndicator', (gwHr || espHr || spo2 > 0) ? 'live' : 'waiting', t('metric.live') || 'live');
 
-    // ── Stres (kategori, dari Watch) ──
-    renderStress(gw.connected ? gw.stress.value : null);
+    // ── Stres (angka 0–100, dari ScentraVN Watch / ESP32) ──
+    const espStress = (esp.connected && esp.stress && esp.stress.value != null)
+        ? esp.stress.value : null;
+    renderStress(espStress);
 
     // ── EEG (Muse) ──
     renderEEG(muse);
@@ -336,7 +344,7 @@ function renderBodyTemp(bt) {
     }
 }
 
-/** Tingkat stres Galaxy Watch — tampil ANGKA saja (0–100), warnai per level. */
+/** Tingkat stres ScentraVN Watch — tampil ANGKA saja (0–100), warnai per level. */
 function renderStress(value) {
     const catEl = document.getElementById('stressCategory');
     if (!catEl) return;

@@ -9,6 +9,17 @@
 (() => {
   'use strict';
 
+  /**
+   * Lokasi elektroda Muse pada kepala (sistem 10-20 internasional).
+   * Muse S Gen 2 punya 4 elektroda EEG + referensi FPz di dahi tengah.
+   */
+  const MUSE_ELECTRODES = {
+    tp9:  { name: 'TP9',  region: 'Temporal-parietal kiri (belakang telinga kiri)',  lobe: 'Lobus temporal kiri' },
+    af7:  { name: 'AF7',  region: 'Anterior-frontal kiri (dahi kiri)',                lobe: 'Korteks prefrontal kiri' },
+    af8:  { name: 'AF8',  region: 'Anterior-frontal kanan (dahi kanan)',             lobe: 'Korteks prefrontal kanan' },
+    tp10: { name: 'TP10', region: 'Temporal-parietal kanan (belakang telinga kanan)', lobe: 'Lobus temporal kanan' },
+  };
+
   const RecordHistory = {
     init() {
       document.getElementById('histRefresh')?.addEventListener('click', () => this.load());
@@ -150,21 +161,58 @@
         wsInfo['!cols'] = [{ wch: 22 }, { wch: 48 }];
         XLSX.utils.book_append_sheet(wb, wsInfo, 'Info');
 
+        /* ── Legend sheet: arti channel EEG & band power ── */
+        const legendAOA = [
+          ['ScentraVN Record — Keterangan Data'],
+          [subtitle],
+          [],
+          ['Elektroda EEG (sistem 10-20)', 'Lokasi pengambilan sinyal', 'Area otak'],
+          ...Object.values(MUSE_ELECTRODES).map(e => [e.name, e.region, e.lobe]),
+          ['Referensi', 'FPz — dahi tengah', 'Titik referensi (bukan sinyal otak)'],
+          [],
+          ['Band power EEG (µV²)', 'Rentang frekuensi', 'Kaitan umum'],
+          ['delta', '0.5–4 Hz', 'Tidur dalam'],
+          ['theta', '4–8 Hz',  'Kantuk, meditasi, memori'],
+          ['alpha', '8–13 Hz', 'Rileks, mata tertutup'],
+          ['beta',  '13–30 Hz', 'Fokus, waspada, berpikir aktif'],
+          ['gamma', '30–44 Hz', 'Pemrosesan kognitif tinggi'],
+          ['smr',   '12–15 Hz', 'Sensorimotor rhythm (tenang & fokus)'],
+          [],
+          ['Sinyal PPG — ScentraVN Watch (MAX30102)', 'Keterangan', 'Catatan'],
+          ['ir',   'PPG mentah kanal IR (infra-merah)',  'Pantulan LED inframerah dari jari — sinyal fotopletismografi'],
+          ['red',  'PPG mentah kanal RED (merah)',       'Pantulan LED merah — dipakai bersama IR untuk SpO₂'],
+          ['hr',   'Detak jantung (BPM)',                'Turunan dari puncak gelombang PPG'],
+          ['spo2', 'Saturasi oksigen (%)',               'Turunan rasio IR/RED'],
+          ['rmssd', 'HRV RMSSD (ms)',                    'Turunan interval antar-detak PPG'],
+        ];
+        const wsLegend = XLSX.utils.aoa_to_sheet(legendAOA);
+        wsLegend['!merges'] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } },
+          { s: { r: 1, c: 0 }, e: { r: 1, c: 2 } },
+        ];
+        wsLegend['!cols'] = [{ wch: 24 }, { wch: 42 }, { wch: 34 }];
+        XLSX.utils.book_append_sheet(wb, wsLegend, 'Keterangan');
+
         /* ── EEG raw (long format): one row per sample ── */
         const eegRows = [], motionRows = [];
         for (const f of (streams.museRaw || [])) {
-          if (['tp9', 'af7', 'af8', 'tp10'].includes(f.ch)) {
-            (f.samples || []).forEach((uv, i) => eegRows.push({ t: f.t, ch: f.ch, seq: f.seq, i, uV: uv }));
+          const el = MUSE_ELECTRODES[f.ch];
+          if (el) {
+            // Channel diberi label baku (AF7/TP9/…) + lokasi elektroda di kepala
+            // sehingga pembaca data tahu sinyal ini diambil dari bagian mana.
+            (f.samples || []).forEach((uv, i) => eegRows.push({
+              t: f.t, channel: el.name, region: el.region, seq: f.seq, i, uV: uv,
+            }));
           } else {
             (f.samples || []).forEach((s, i) => motionRows.push({ t: f.t, ch: f.ch, i, x: s[0], y: s[1], z: s[2] }));
           }
         }
-        if (eegRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz)', subtitle), 'EEG_Raw');
+        if (eegRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20', subtitle), 'EEG_Raw');
         if (motionRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(motionRows, 'Muse Motion — accel/gyro', subtitle), 'Muse_Motion');
 
         /* ── Other streams (arrays flattened to pipe-joined strings) ── */
-        this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle);
-        this._appendStream(wb, 'ScentraVN', streams.scentra, subtitle);
+        this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle, 'Muse Metrics — band power (µV²) & status');
+        this._appendStream(wb, 'ScentraVN', streams.scentra, subtitle, 'ScentraVN Watch — PPG (ir/red), HR, SpO₂, EDA, IMU');
         this._appendStream(wb, 'Galaxy_Watch', streams.galaxy, subtitle);
 
         if (wb.SheetNames.length === 1) {
@@ -215,15 +263,14 @@
       });
     },
 
-    _appendStream(wb, name, arr, subtitle) {
+    _appendStream(wb, name, arr, subtitle, title) {
       if (!arr || !arr.length) return;
       const rows = arr.map(r => {
         const o = {};
         for (const k of Object.keys(r)) o[k] = Array.isArray(r[k]) ? r[k].join('|') : r[k];
         return o;
       });
-      const title = name.replace(/_/g, ' ');
-      XLSX.utils.book_append_sheet(wb, this._titledSheet(rows, title, subtitle), name.slice(0, 31));
+      XLSX.utils.book_append_sheet(wb, this._titledSheet(rows, title || name.replace(/_/g, ' '), subtitle), name.slice(0, 31));
     },
 
     async _delete(id) {

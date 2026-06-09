@@ -2,7 +2,7 @@
  * ScentraVN Serenity — EEG Muse Sleep Module
  *
  * Connects to Muse Sleep headband via Web Bluetooth API.
- * Decodes 12-byte EEG packets → 5 samples per channel (256 Hz).
+ * Decodes 20-byte EEG packets → 12 × 12-bit samples per channel (256 Hz).
  * Computes FFT band powers: delta, theta, alpha, beta, gamma.
  * Classifies stress (theta/beta ratio) and focus (SMR/alpha ratio).
  * Falls back to simulation mode when no device is present.
@@ -21,9 +21,11 @@ const MUSE_CHAR = {
     accelero:   '273e000a-4c4d-454d-96be-f03bac821358',
 };
 
-/* Muse streams at 256 Hz; each packet = 5 samples */
+/* Muse streams at 256 Hz; each EEG packet = 12 samples (12-bit each) */
 const MUSE_SAMPLE_RATE  = 256;
-const MUSE_SAMPLES_PER_PACKET = 5;
+const MUSE_SAMPLES_PER_PACKET = 12;
+const MUSE_ADC_MIDPOINT = 2048;            // 12-bit unsigned centre (0..4095)
+const MUSE_UV_PER_UNIT  = 0.48828125;      // ADC unit → microvolts
 
 /* Band definitions [lowHz, highHz] */
 const BANDS = {
@@ -35,12 +37,16 @@ const BANDS = {
     gamma: [30, 100],
 };
 
-/* Stress classification thresholds (theta/beta ratio) */
-const STRESS_HIGH   = 9.50;
-const STRESS_MEDIUM = 6.37;
+/* Stress classification thresholds (theta/beta ratio).
+   Recentred for the corrected 12-bit decoder + windowed PSD: a resting adult on
+   the θ[4-8]/β[13-30] bands sits around θ/β ≈ 2–3, drowsy/loaded climbs higher.
+   (Old 6.37/9.50 centre assumed the previous mis-decoded spectrum.) */
+const STRESS_HIGH   = 4.50;   // θ/β above this → high
+const STRESS_MEDIUM = 3.00;   // θ/β above this → medium, else low
 
-/* Focus: SMR/alpha ratio > 1.5 = good focus */
-const FOCUS_GOOD = 1.5;
+/* Focus: SMR/alpha ratio. Alpha normally dominates, so SMR/α ≈ 0.2–0.5; it rises
+   as alpha is suppressed during focused attention. 0.35 ≈ "good focus" baseline. */
+const FOCUS_GOOD = 0.35;
 
 /* FFT window size — power-of-2, ~1 s at 256 Hz */
 const FFT_SIZE = 256;
@@ -245,20 +251,26 @@ const MuseEEG = {
 
     /* ── EEG packet decoder ─────────────────────────────────────────── */
     _onEEGPacket(channel, dataView) {
-        /* 12-byte Muse packet:
-           [0-1] = 16-bit sequence number
-           [2-11] = 5 × 10-bit samples packed big-endian */
+        /* 20-byte Muse EEG packet:
+           [0-1]   = 16-bit sample index
+           [2-19]  = 12 samples × 12-bit UNSIGNED, packed big-endian
+           Each sample → microvolts around the 12-bit midpoint (2048):
+             uv = (raw12 - 2048) * 0.48828125  (canonical muse-js scaling). */
         const buf = this.buffers[channel];
         this._packetsSeen = (this._packetsSeen || 0) + 1;
 
-        const samples = new Array(MUSE_SAMPLES_PER_PACKET);
-        for (let i = 0; i < MUSE_SAMPLES_PER_PACKET; i++) {
-            const byteOffset = 2 + Math.floor(i * 10 / 8);
-            const bitOffset  = (i * 10) % 8;
-            let val = (dataView.getUint8(byteOffset) << 8 | dataView.getUint8(byteOffset + 1));
-            val = (val >> (6 - bitOffset)) & 0x3FF;
-            /* Convert to microvolts: Muse ADC ref 1.2V, 10-bit → ±0.7 mV range */
-            const uv = (val - 512) * 0.48828125;
+        /* Clamp to whatever the packet actually carries (guards short frames). */
+        const fits = Math.max(0, Math.floor(((dataView.byteLength - 2) * 8) / 12));
+        const count = Math.min(MUSE_SAMPLES_PER_PACKET, fits);
+
+        const samples = new Array(count);
+        for (let i = 0; i < count; i++) {
+            const bitIndex   = i * 12;
+            const byteOffset = 2 + (bitIndex >> 3);     // /8
+            const bitOffset  = bitIndex & 7;            // %8  → 0 or 4
+            const word  = (dataView.getUint8(byteOffset) << 8) | dataView.getUint8(byteOffset + 1);
+            const raw12 = (word >> (4 - bitOffset)) & 0x0FFF;   // 0..4095
+            const uv = (raw12 - MUSE_ADC_MIDPOINT) * MUSE_UV_PER_UNIT;
             buf.push(uv);
             samples[i] = uv;
         }
@@ -383,37 +395,49 @@ const MuseEEG = {
 
     /* ── FFT & band power ───────────────────────────────────────────── */
     _bandPowers(samples) {
-        /* Apply Hanning window */
-        const windowed = samples.map((s, i) => s * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (samples.length - 1))));
+        const N = samples.length;
 
-        /* Cooley-Tukey in-place FFT */
-        const N = windowed.length;
-        const re = Float64Array.from(windowed);
+        /* 1) Detrend (remove DC mean) THEN apply a Hann window. Subtracting the
+              mean here is what stops any residual offset from dumping huge power
+              into delta. Track window power U = Σw² for correct PSD scaling. */
+        const mean = samples.reduce((a, s) => a + s, 0) / N;
+        const re = new Float64Array(N);
         const im = new Float64Array(N);
-        this._fft(re, im, N);
-
-        /* Compute power spectral density per bin */
-        const freqRes = MUSE_SAMPLE_RATE / N;   /* Hz per bin */
-        const psd = new Float64Array(N / 2);
-        for (let k = 1; k < N / 2; k++) {
-            psd[k] = (re[k] * re[k] + im[k] * im[k]) / (N * N);
+        let U = 0;
+        for (let n = 0; n < N; n++) {
+            const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * n / (N - 1));
+            re[n] = (samples[n] - mean) * w;
+            U += w * w;
         }
 
-        /* Integrate power in each band */
+        /* 2) Cooley-Tukey in-place FFT */
+        this._fft(re, im, N);
+
+        /* 3) One-sided power spectral density (µV²/Hz).
+              P[k] = 2·|X[k]|² / (fs·U), DC/Nyquist not doubled (skipped here). */
+        const freqRes = MUSE_SAMPLE_RATE / N;            /* Hz per bin */
+        const half = N >> 1;
+        const norm = 2 / (MUSE_SAMPLE_RATE * U);
+        const psd = new Float64Array(half);
+        for (let k = 1; k < half; k++) {
+            psd[k] = (re[k] * re[k] + im[k] * im[k]) * norm;
+        }
+
+        /* 4) Integrate PSD across each band → absolute band power (µV²) */
         const powers = {};
         for (const [band, [lo, hi]] of Object.entries(BANDS)) {
             let p = 0;
-            for (let k = Math.round(lo / freqRes); k <= Math.round(hi / freqRes) && k < psd.length; k++) {
-                p += psd[k];
+            for (let k = Math.ceil(lo / freqRes); k <= Math.floor(hi / freqRes) && k < half; k++) {
+                p += psd[k] * freqRes;
             }
-            powers[band] = p * 1e6;  /* scale to readable units */
+            powers[band] = p;
         }
 
         /* Alpha peak frequency */
         let peakPow = 0, peakFreq = 10;
-        const loK = Math.round(BANDS.alpha[0] / freqRes);
-        const hiK = Math.round(BANDS.alpha[1] / freqRes);
-        for (let k = loK; k <= hiK && k < psd.length; k++) {
+        const loK = Math.ceil(BANDS.alpha[0] / freqRes);
+        const hiK = Math.floor(BANDS.alpha[1] / freqRes);
+        for (let k = loK; k <= hiK && k < half; k++) {
             if (psd[k] > peakPow) { peakPow = psd[k]; peakFreq = k * freqRes; }
         }
         powers._alphaPeak = peakFreq;

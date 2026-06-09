@@ -18,12 +18,19 @@
 
   const LIVE_PATH = 'scentravn/live';
   const BUF_MAX = 120;          // ~1 menit @ 2 Hz untuk sparkline
+  const LOCAL_TTL_MS = 5000;    // selama bridge lokal masih kirim < ini, abaikan Firebase
 
   const ScentraLive = {
     started: false,
     available: false,
+    // Mode offline-first: Realtime Database DIMATIKAN. Satu-satunya sumber data
+    // live adalah bridge lokal (local-bridge.js → ws://127.0.0.1 → _ingest('local')).
+    // Set false hanya jika ingin kembali memakai RTDB sebagai sumber.
+    offlineOnly: true,
     ref: null,
     latest: {},                 // snapshot mentah terakhir (ternormalisasi)
+    source: null,               // 'local' (ws://127.0.0.1) | 'firebase'
+    _localLastAt: 0,            // kapan terakhir terima dari bridge lokal
     _subs: new Set(),
     _bpmBuf: { galaxyWatch: [], esp32: [], muse: [] },
     _skewMs: 0,                 // koreksi beda jam HP vs browser
@@ -33,6 +40,15 @@
     start() {
       if (this.started) return;
 
+      // Mode offline: JANGAN sentuh Realtime Database sama sekali. Tandai started
+      // agar pemanggilan berulang tidak mencoba menyambung; data Galaxy Watch
+      // mengalir hanya dari bridge lokal lewat _ingest(raw, 'local').
+      if (this.offlineOnly) {
+        this.started = true;
+        console.log('[ScentraLive] Mode offline — RTDB nonaktif, sumber data hanya bridge lokal.');
+        return;
+      }
+
       if (typeof firebase === 'undefined' || typeof firebase.database !== 'function') {
         console.warn('[ScentraLive] firebase-database SDK belum dimuat — live bridge nonaktif.');
         return;
@@ -41,7 +57,7 @@
       try {
         const db = firebase.database();
         this.ref = db.ref(LIVE_PATH);
-        this.ref.on('value', (snap) => this._onSnapshot(snap.val()), (err) => {
+        this.ref.on('value', (snap) => this._ingest(snap.val(), 'firebase'), (err) => {
           console.error('[ScentraLive] RTDB read error:', err);
         });
         this.started = true;
@@ -66,6 +82,30 @@
         try { cb(this.latest); } catch (_) {}
       }
       return () => this._subs.delete(cb);
+    },
+
+    /**
+     * Titik masuk semua snapshot, dari sumber mana pun.
+     * @param raw    objek `/scentravn/live` ({ galaxyWatch, esp32?, muse? })
+     * @param source 'local' (bridge ws://127.0.0.1 — app di HP yang sama) | 'firebase'
+     *
+     * Bridge lokal DIPRIORITASKAN: tahan-offline & latensi rendah. Selama bridge
+     * lokal masih mengirim (< LOCAL_TTL_MS), update Firebase diabaikan agar kedua
+     * sumber tidak saling menimpa. Jika bridge lokal diam, Firebase mengambil alih.
+     */
+    _ingest(raw, source) {
+      const now = Date.now();
+      // Dalam mode offline, snapshot dari Firebase (jika ada) diabaikan total.
+      if (source !== 'local' && this.offlineOnly) return;
+      if (source === 'local') {
+        this._localLastAt = now;
+        this.source = 'local';
+      } else {
+        if (this._localLastAt && (now - this._localLastAt) < LOCAL_TTL_MS) return;
+        this.source = 'firebase';
+      }
+      this.available = true;
+      this._onSnapshot(raw);
     },
 
     /* ── Snapshot handling ─────────────────────────────────────────── */
@@ -186,7 +226,7 @@
               <i class="fas fa-tower-broadcast" style="color:#7c3aed;"></i> Live Monitor
             </h2>
             <p style="margin:4px 0 0;font-size:0.82rem;color:#64748b;">
-              Data realtime dari <b>App ScentraVN</b> via Firebase. Web app = semua tampilan.
+              Data realtime dari <b>App ScentraVN</b> via bridge lokal (offline, ws://127.0.0.1). Web app = semua tampilan.
             </p>
           </div>
           <div id="liveConnPill" class="live-conn-pill" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:0.8rem;font-weight:700;background:#f1f5f9;color:#64748b;">
@@ -314,8 +354,16 @@
       const dot = document.getElementById('liveConnDot');
       const txt = document.getElementById('liveConnText');
       if (dot && txt) {
-        if (!this.available) { dot.style.background = '#ef4444'; txt.textContent = 'SDK Database belum dimuat'; }
-        else if (anyOn) { dot.style.background = '#22c55e'; txt.textContent = 'Live — app tersambung'; }
+        if (!this.available) {
+          dot.style.background = '#f59e0b';
+          txt.textContent = this.offlineOnly ? 'Menunggu bridge lokal (offline)…' : 'SDK Database belum dimuat';
+        }
+        else if (anyOn) {
+          dot.style.background = '#22c55e';
+          txt.textContent = this.source === 'local'
+            ? 'Live — bridge lokal (offline)'
+            : 'Live — app tersambung';
+        }
         else { dot.style.background = '#f59e0b'; txt.textContent = 'App belum mengirim data'; }
       }
 
