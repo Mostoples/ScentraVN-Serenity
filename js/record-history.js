@@ -106,34 +106,51 @@
         const { meta, streams } = await this._fetch(it.id);
         const blob = new Blob([JSON.stringify({ meta, streams }, null, 2)], { type: 'application/json' });
         this._save(blob, `${this._slug(it.name)}-${it.id}.json`);
-      } catch (e) { alert(t('rh.fail', { msg: e.message })); }
+      } catch (e) { this._alert(t('rh.fail', { msg: e.message }), { danger: true }); }
       btn.disabled = false; btn.innerHTML = orig;
     },
 
     async _downloadExcel(btn, it) {
-      if (typeof XLSX === 'undefined') { alert(t('rh.xlsx_missing')); return; }
+      if (typeof XLSX === 'undefined') { this._alert(t('rh.xlsx_missing'), { danger: true }); return; }
       const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
       try {
         const { meta, streams } = await this._fetch(it.id);
         const wb = XLSX.utils.book_new();
+        wb.Props = { Title: 'ScentraVN Record', Author: 'ScentraVN Serenity', CreatedDate: new Date() };
 
-        /* Info sheet */
-        const info = [
-          [t('rh.x_name'), it.name || ''],
+        const recName = it.name || t('rh.rec_default');
+        const created = this._fmtDate(it.createdAt) || this._fmtISO(it.startedAt) || '';
+        const subtitle = created ? `${recName} · ${created}` : recName;
+
+        /* ── Info sheet (titled key/value table) ── */
+        const infoAOA = [
+          ['ScentraVN Record'],
+          [recName],
+          [created],
+          [],
+          [t('rh.x_field'), t('rh.x_value')],
+          [t('rh.x_name'), recName],
           ['ID', it.id],
-          [t('rh.x_created'), this._fmtDate(it.createdAt) || ''],
+          [t('rh.x_created'), created],
           [t('rh.x_start'), it.startedAt || ''],
           [t('rh.x_end'), it.endedAt || ''],
-          [t('rh.x_duration'), it.durationSec || 0],
+          [t('rh.x_duration'), it.durationSec != null ? this._fmtDur(it.durationSec) : ''],
           [t('rh.x_total'), it.total || 0],
           [t('rh.x_eeg'), (it.counts || {}).museRaw || 0],
           [t('rh.x_muse'), (it.counts || {}).muse || 0],
           [t('rh.x_scentra'), (it.counts || {}).scentra || 0],
           [t('rh.x_galaxy'), (it.counts || {}).galaxy || 0],
         ];
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[t('rh.x_field'), t('rh.x_value')], ...info]), 'Info');
+        const wsInfo = XLSX.utils.aoa_to_sheet(infoAOA);
+        wsInfo['!merges'] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+          { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
+          { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },
+        ];
+        wsInfo['!cols'] = [{ wch: 22 }, { wch: 48 }];
+        XLSX.utils.book_append_sheet(wb, wsInfo, 'Info');
 
-        /* EEG raw (long format): one row per sample */
+        /* ── EEG raw (long format): one row per sample ── */
         const eegRows = [], motionRows = [];
         for (const f of (streams.museRaw || [])) {
           if (['tp9', 'af7', 'af8', 'tp10'].includes(f.ch)) {
@@ -142,36 +159,77 @@
             (f.samples || []).forEach((s, i) => motionRows.push({ t: f.t, ch: f.ch, i, x: s[0], y: s[1], z: s[2] }));
           }
         }
-        if (eegRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(eegRows), 'EEG_Raw');
-        if (motionRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(motionRows), 'Muse_Motion');
+        if (eegRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz)', subtitle), 'EEG_Raw');
+        if (motionRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(motionRows, 'Muse Motion — accel/gyro', subtitle), 'Muse_Motion');
 
-        /* Other streams as-is (arrays flattened to pipe-joined strings) */
-        this._appendStream(wb, 'Muse_Metrics', streams.muse);
-        this._appendStream(wb, 'ScentraVN', streams.scentra);
-        this._appendStream(wb, 'Galaxy_Watch', streams.galaxy);
+        /* ── Other streams (arrays flattened to pipe-joined strings) ── */
+        this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle);
+        this._appendStream(wb, 'ScentraVN', streams.scentra, subtitle);
+        this._appendStream(wb, 'Galaxy_Watch', streams.galaxy, subtitle);
 
         if (wb.SheetNames.length === 1) {
-          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[t('rh.x_empty')]]), 'Empty');
+          XLSX.utils.book_append_sheet(wb, this._titledSheet([], t('rh.x_empty'), subtitle), 'Empty');
         }
-        XLSX.writeFile(wb, `${this._slug(it.name)}-${it.id}.xlsx`);
-      } catch (e) { console.error(e); alert(t('rh.xlsx_failed', { msg: e.message })); }
+        XLSX.writeFile(wb, `${this._slug(recName)}-${it.id}.xlsx`);
+      } catch (e) { console.error(e); this._alert(t('rh.xlsx_failed', { msg: e.message }), { danger: true }); }
       btn.disabled = false; btn.innerHTML = orig;
     },
 
-    _appendStream(wb, name, arr) {
+    /**
+     * Build a worksheet with a "ScentraVN Record" banner above the data table.
+     * The banner rows are merged across all data columns; columns auto-size.
+     */
+    _titledSheet(rows, title, subtitle) {
+      const headers = (rows && rows.length) ? Object.keys(rows[0]) : ['—'];
+      const ncol = Math.max(1, headers.length);
+      const banner = [['ScentraVN Record']];
+      if (title) banner.push([title]);
+      if (subtitle) banner.push([subtitle]);
+      banner.push([]);                                   // spacer row
+      const headerRow = banner.length;                  // 0-based row for the table header
+      const ws = XLSX.utils.aoa_to_sheet(banner);
+      if (rows && rows.length) {
+        XLSX.utils.sheet_add_json(ws, rows, { origin: { r: headerRow, c: 0 } });
+      } else {
+        XLSX.utils.sheet_add_aoa(ws, [[t('rh.x_empty')]], { origin: { r: headerRow, c: 0 } });
+      }
+      const merges = [];
+      for (let r = 0; r < banner.length - 1; r++) merges.push({ s: { r, c: 0 }, e: { r, c: ncol - 1 } });
+      ws['!merges'] = merges;
+      ws['!cols'] = this._autoCols(rows || [], headers);
+      ws['!freeze'] = { xSplit: 0, ySplit: headerRow + 1 };
+      return ws;
+    },
+
+    /** Estimate sensible column widths from header + sample of values. */
+    _autoCols(rows, headers) {
+      return headers.map(h => {
+        let w = String(h).length;
+        const lim = Math.min(rows.length, 200);
+        for (let i = 0; i < lim; i++) {
+          const v = rows[i] ? rows[i][h] : '';
+          const len = v == null ? 0 : String(v).length;
+          if (len > w) w = len;
+        }
+        return { wch: Math.min(42, Math.max(9, w + 2)) };
+      });
+    },
+
+    _appendStream(wb, name, arr, subtitle) {
       if (!arr || !arr.length) return;
       const rows = arr.map(r => {
         const o = {};
         for (const k of Object.keys(r)) o[k] = Array.isArray(r[k]) ? r[k].join('|') : r[k];
         return o;
       });
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), name.slice(0, 31));
+      const title = name.replace(/_/g, ' ');
+      XLSX.utils.book_append_sheet(wb, this._titledSheet(rows, title, subtitle), name.slice(0, 31));
     },
 
     async _delete(id) {
-      if (!confirm(t('rh.confirm_delete'))) return;
+      if (!await this._confirm(t('rh.confirm_delete'), { danger: true, confirmText: t('rh.delete') || 'Hapus', cancelText: 'Batal' })) return;
       try { await RawRecorder.deleteRecording(id); this.load(); }
-      catch (e) { alert(t('rh.delete_failed', { msg: e.message })); }
+      catch (e) { this._alert(t('rh.delete_failed', { msg: e.message }), { danger: true }); }
     },
 
     _save(blob, filename) {
@@ -184,6 +242,14 @@
 
     /* helpers */
     _set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; },
+    async _confirm(msg, opts) {
+      if (typeof Utils !== 'undefined' && Utils.confirmModal) return await Utils.confirmModal(msg, opts || {});
+      return confirm(msg);
+    },
+    _alert(msg, opts) {
+      if (typeof Utils !== 'undefined' && Utils.alertModal) return Utils.alertModal(msg, opts || {});
+      alert(msg);
+    },
     _esc(s) { return String(s == null ? '' : s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])); },
     _slug(s) { return String(s || 'rekaman').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'rekaman'; },
     _locale() { return (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID'; },

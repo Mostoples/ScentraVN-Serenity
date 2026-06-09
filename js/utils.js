@@ -520,6 +520,117 @@ const Utils = {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    },
+
+    /* ── Branded modal dialogs (replace native alert/confirm) ─────────── */
+
+    /** Inject modal styles once. */
+    _ensureModalStyles() {
+        if (document.getElementById('svn-modal-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'svn-modal-styles';
+        style.textContent = `
+            .svn-modal-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;
+                justify-content:center;padding:20px;background:rgba(30,17,63,0.55);
+                backdrop-filter:blur(3px);opacity:0;transition:opacity .18s ease;}
+            .svn-modal-overlay.show{opacity:1;}
+            .svn-modal{width:100%;max-width:340px;background:#fff;border-radius:20px;
+                padding:24px 22px 18px;box-shadow:0 24px 60px rgba(76,29,149,.28);
+                text-align:center;transform:translateY(12px) scale(.97);
+                transition:transform .2s cubic-bezier(.2,.8,.3,1);font-family:inherit;}
+            .svn-modal-overlay.show .svn-modal{transform:translateY(0) scale(1);}
+            .svn-modal-ic{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;
+                justify-content:center;margin:0 auto 14px;font-size:1.4rem;}
+            .svn-modal-title{font-size:1.05rem;font-weight:800;color:#3b0764;margin:0 0 6px;}
+            .svn-modal-msg{font-size:0.86rem;color:#475569;line-height:1.5;margin:0 0 18px;white-space:pre-line;}
+            .svn-modal-actions{display:flex;gap:10px;justify-content:center;}
+            .svn-modal-btn{flex:1;border:none;cursor:pointer;font-weight:700;font-size:0.84rem;
+                padding:11px 16px;border-radius:12px;transition:filter .15s,background .15s;color:#fff;}
+            .svn-modal-btn:hover{filter:brightness(1.06);}
+            .svn-modal-cancel{background:#f1f5f9;color:#475569;}
+            .svn-modal-cancel:hover{background:#e2e8f0;filter:none;}
+        `;
+        document.head.appendChild(style);
+    },
+
+    /**
+     * Branded modal dialog. Returns Promise<boolean> (true = confirm).
+     * opts: { title, message, icon, confirmText, cancelText, danger }
+     * If cancelText is null/omitted it behaves like an alert (single button).
+     */
+    showModal(opts = {}) {
+        const {
+            title = 'ScentraVN',
+            message = '',
+            icon = 'fa-circle-info',
+            confirmText = 'OK',
+            cancelText = null,
+            danger = false,
+        } = opts;
+        this._ensureModalStyles();
+
+        return new Promise((resolve) => {
+            document.querySelectorAll('.svn-modal-overlay').forEach(el => el.remove());
+
+            const accent = danger ? '#ef4444' : '#8b5cf6';
+            const overlay = document.createElement('div');
+            overlay.className = 'svn-modal-overlay';
+            overlay.innerHTML = `
+                <div class="svn-modal" role="dialog" aria-modal="true">
+                    <div class="svn-modal-ic" style="background:${accent}1a;color:${accent};">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <h3 class="svn-modal-title">${this.sanitizeHTML(title)}</h3>
+                    <p class="svn-modal-msg">${this.sanitizeHTML(message)}</p>
+                    <div class="svn-modal-actions">
+                        ${cancelText ? `<button class="svn-modal-btn svn-modal-cancel" type="button">${this.sanitizeHTML(cancelText)}</button>` : ''}
+                        <button class="svn-modal-btn svn-modal-ok" type="button" style="background:${accent};">${this.sanitizeHTML(confirmText)}</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add('show'));
+
+            const close = (val) => {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.remove(), 200);
+                document.removeEventListener('keydown', onKey);
+                resolve(val);
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') close(false);
+                else if (e.key === 'Enter') close(true);
+            };
+            document.addEventListener('keydown', onKey);
+
+            overlay.querySelector('.svn-modal-ok').addEventListener('click', () => close(true));
+            const cancelBtn = overlay.querySelector('.svn-modal-cancel');
+            if (cancelBtn) cancelBtn.addEventListener('click', () => close(false));
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
+        });
+    },
+
+    /** Confirm dialog → Promise<boolean>. */
+    confirmModal(message, opts = {}) {
+        return this.showModal({
+            message,
+            title: opts.title || 'Konfirmasi',
+            icon: opts.icon || (opts.danger ? 'fa-triangle-exclamation' : 'fa-circle-question'),
+            confirmText: opts.confirmText || 'Ya',
+            cancelText: opts.cancelText || 'Batal',
+            danger: opts.danger || false,
+        });
+    },
+
+    /** Alert dialog → Promise<void>. */
+    alertModal(message, opts = {}) {
+        return this.showModal({
+            message,
+            title: opts.title || 'ScentraVN',
+            icon: opts.icon || (opts.danger ? 'fa-triangle-exclamation' : 'fa-circle-info'),
+            confirmText: opts.confirmText || 'OK',
+            cancelText: null,
+            danger: opts.danger || false,
+        });
     }
 };
 

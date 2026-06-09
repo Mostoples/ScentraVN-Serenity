@@ -29,6 +29,7 @@
     recording: false,
     paused: false,
     startedAt: null,
+    stoppedAt: null,        // frozen timestamp when recording stops
     pausedMs: 0,            // accumulated paused time
     _pauseStart: null,
 
@@ -56,6 +57,7 @@
       this.recording = true;
       this.paused = false;
       this.startedAt = Date.now();
+      this.stoppedAt = null;
       this.pausedMs = 0;
       this._pauseStart = null;
       this.streams = { galaxy: [], muse: [], museRaw: [], scentra: [] };
@@ -83,6 +85,7 @@
 
     stop() {
       if (this.paused && this._pauseStart) this.pausedMs += Date.now() - this._pauseStart;
+      this.stoppedAt = Date.now();
       this.recording = false;
       this.paused = false;
       this._pauseStart = null;
@@ -91,12 +94,15 @@
       return this.getSummary();
     },
 
-    /** Active (non-paused) recording seconds. */
+    /** Active (non-paused) recording seconds. Frozen once stopped. */
     elapsedSec() {
       if (!this.startedAt) return 0;
+      // Once stopped, freeze the clock at the stop moment so the on-screen
+      // timer no longer keeps counting after the user presses Stop.
+      const now = (!this.recording && this.stoppedAt) ? this.stoppedAt : Date.now();
       let paused = this.pausedMs;
-      if (this.paused && this._pauseStart) paused += Date.now() - this._pauseStart;
-      return Math.max(0, Math.round((Date.now() - this.startedAt - paused) / 1000));
+      if (this.recording && this.paused && this._pauseStart) paused += Date.now() - this._pauseStart;
+      return Math.max(0, Math.round((now - this.startedAt - paused) / 1000));
     },
 
     getSummary() {
@@ -122,6 +128,9 @@
       if (typeof MuseEEG !== 'undefined') {
         this._museMetricsListener = (m) => {
           if (!this.recording || this.paused) return;
+          // RECORD REAL DATA ONLY: ignore frames while the headband is in
+          // simulation mode so saved sessions never contain synthetic values.
+          if (!MuseEEG.isConnected || MuseEEG.simulationMode) return;
           this._record('muse', {
             t: Date.now(),
             delta: m.powers?.delta, theta: m.powers?.theta, alpha: m.powers?.alpha,
@@ -131,12 +140,13 @@
             emotion: m.emotion?.label, mentalState: m.mentalState?.label,
             battery: m.battery,
           });
-          this.devices.muse.connected = MuseEEG.isConnected || MuseEEG.simulationMode;
+          // Connected flag reflects a genuine BLE link only.
+          this.devices.muse.connected = MuseEEG.isConnected && !MuseEEG.simulationMode;
         };
         MuseEEG.onMetrics(this._museMetricsListener);
-        if (MuseEEG.isConnected || MuseEEG.simulationMode) {
+        if (MuseEEG.isConnected && !MuseEEG.simulationMode) {
           this.devices.muse.connected = true;
-          this.devices.muse.transport = MuseEEG.simulationMode ? 'Simulasi' : 'BLE';
+          this.devices.muse.transport = 'BLE';
         }
 
         /* Muse — RAW per-channel EEG samples (256Hz) + motion */
@@ -237,12 +247,13 @@
         this._emit();
         return true;
       }
+      // Real device only — do NOT silently fall back to simulation so that
+      // recordings always contain genuine Muse data.
       const ok = await MuseEEG.connect();
-      if (!ok && !MuseEEG.isConnected) { MuseEEG.startSimulation('medium'); }
-      this.devices.muse.connected = true;
-      this.devices.muse.transport = (ok || MuseEEG.isConnected) ? 'BLE' : 'Simulasi';
+      this.devices.muse.connected = !!(ok && MuseEEG.isConnected);
+      this.devices.muse.transport = this.devices.muse.connected ? 'BLE' : null;
       this._emit();
-      return true;
+      return this.devices.muse.connected;
     },
 
     async connectScentra() {
@@ -285,8 +296,20 @@
 
     exportCSV(stream) {
       const arr = this.streams[stream];
-      if (!arr || !arr.length) { alert('Tidak ada data untuk ' + stream); return; }
+      if (!arr || !arr.length) {
+        if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal('Tidak ada data untuk ' + stream, { danger: true });
+        else alert('Tidak ada data untuk ' + stream);
+        return;
+      }
       this._download(RawRecorder.streamToCSV(arr), `scentravn-${stream}-${this._stamp()}.csv`, 'text/csv');
+    },
+
+    /** Human-friendly default recording name, e.g. "ScentraVN Record · 09 Jun 2026, 03.52". */
+    prettyName(date = new Date()) {
+      const locale = (typeof I18n !== 'undefined' && I18n.currentLang === 'en') ? 'en-US' : 'id-ID';
+      const datePart = date.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
+      const timePart = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+      return `ScentraVN Record · ${datePart}, ${timePart}`;
     },
 
     /** Convert an array of frames → CSV string (handles arrays like raw samples). */
@@ -307,7 +330,9 @@
     async saveToFirestore(meta = {}) {
       try {
         if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') {
-          alert('Login diperlukan untuk menyimpan ke cloud.'); return null;
+          if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal('Login diperlukan untuk menyimpan ke cloud.', { danger: true });
+          else alert('Login diperlukan untuk menyimpan ke cloud.');
+          return null;
         }
         const uid = auth.currentUser.uid;
         const summary = this.getSummary();
@@ -330,7 +355,7 @@
           counts: summary.counts,
           total: summary.total,
           devices: this.devices,
-          name: meta.name || `Rekaman ${new Date().toLocaleString('id-ID')}`,
+          name: meta.name || this.prettyName(),
           note: meta.note || '',
           schemaVersion: 2,
           chunkCount: parts.length,
@@ -350,7 +375,8 @@
         return docRef.id;
       } catch (e) {
         console.error('Firestore save failed:', e);
-        alert('Gagal menyimpan ke cloud: ' + e.message);
+        if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal('Gagal menyimpan ke cloud: ' + e.message, { danger: true });
+        else alert('Gagal menyimpan ke cloud: ' + e.message);
         return null;
       }
     },

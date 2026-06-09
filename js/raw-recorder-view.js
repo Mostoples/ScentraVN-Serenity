@@ -17,6 +17,14 @@
     _live: { museRaw: {}, muse: null, scentra: null, galaxy: null },
     _subs: [],
 
+    /* Muse signal-stability tracking */
+    _museStableSince: null,
+    _museReady: false,
+    _museReadyNotified: false,
+    STABLE_MS: 2500,          // signal must stay good this long to be "ready"
+    STD_MIN_UV: 1.0,          // below → flat/disconnected lead
+    STD_MAX_UV: 60.0,         // above → motion/railing artefact
+
     init() {
       if (typeof RawRecorder === 'undefined') return;
       this._live = { museRaw: {}, muse: null, scentra: null, galaxy: null };
@@ -27,12 +35,25 @@
       this._render(RawRecorder.getSummary(), RawRecorder.devices);
       this._syncControls();
       this._checkDraft();
-      this._timer = setInterval(() => this._render(RawRecorder.getSummary(), RawRecorder.devices), 1000);
+      this._timer = setInterval(() => {
+        this._render(RawRecorder.getSummary(), RawRecorder.devices);
+        this._evaluateMuseStability();
+      }, 1000);
     },
 
     _el(id) { return document.getElementById(id); },
     _toast(msg, type) {
       if (typeof Utils !== 'undefined' && Utils.showToast) Utils.showToast(msg, type || 'info');
+    },
+    /** Branded confirm dialog (no native Chrome popup). */
+    async _confirm(msg, opts) {
+      if (typeof Utils !== 'undefined' && Utils.confirmModal) return await Utils.confirmModal(msg, opts || {});
+      return confirm(msg);
+    },
+    /** Human-friendly default recording name. */
+    _recName() {
+      if (typeof RawRecorder !== 'undefined' && RawRecorder.prettyName) return RawRecorder.prettyName();
+      return `ScentraVN Record · ${new Date().toLocaleString(this._locale())}`;
     },
 
     /* ── Live raw-data monitor (independent of recording) ── */
@@ -63,10 +84,108 @@
     },
 
     _connState() {
-      const muse = (typeof MuseEEG !== 'undefined') && (MuseEEG.isConnected || MuseEEG.simulationMode);
+      // Recorder treats Muse as connected ONLY on a genuine BLE link, never in
+      // simulation, so the live monitor and recordings reflect real data.
+      const muse = (typeof MuseEEG !== 'undefined') && MuseEEG.isConnected && !MuseEEG.simulationMode;
       const scentra = (typeof BLEConnection !== 'undefined') && BLEConnection.isConnected && BLEConnection.isConnected();
       const galaxy = !!(this._live.galaxy && this._live.galaxy.connected);
       return { muse, scentra, galaxy };
+    },
+
+    /* ── Muse signal stability → "siap merekam" notification ── */
+
+    /** Standard deviation of the last N samples of a Muse channel buffer. */
+    _chanStd(ch, n = 256) {
+      if (typeof MuseEEG === 'undefined' || !MuseEEG.buffers) return null;
+      const b = MuseEEG.buffers[ch];
+      if (!b || b.length < 64) return null;            // not enough samples yet
+      const w = b.slice(-n);
+      const mean = w.reduce((a, x) => a + x, 0) / w.length;
+      const varc = w.reduce((a, x) => a + (x - mean) * (x - mean), 0) / w.length;
+      return Math.sqrt(varc);
+    },
+
+    /** True when a channel's amplitude variance sits in a plausible EEG range. */
+    _chanGood(ch) {
+      const sd = this._chanStd(ch);
+      return sd != null && sd >= this.STD_MIN_UV && sd <= this.STD_MAX_UV;
+    },
+
+    /**
+     * Detect a stable, good-quality Muse signal and, once it holds for
+     * STABLE_MS, flag readiness + notify the user that recording can start.
+     */
+    _evaluateMuseStability() {
+      const realConnected = (typeof MuseEEG !== 'undefined') && MuseEEG.isConnected && !MuseEEG.simulationMode;
+      const simulating = (typeof MuseEEG !== 'undefined') && MuseEEG.simulationMode;
+
+      if (!realConnected) {
+        this._museStableSince = null;
+        this._museReady = false;
+        this._museReadyNotified = false;
+        this._renderReadyBadge(simulating ? 'sim' : 'off');
+        return;
+      }
+
+      // Require both frontal leads (AF7/AF8) good, plus at least one temporal.
+      const frontalGood = this._chanGood('af7') && this._chanGood('af8');
+      const temporalGood = this._chanGood('tp9') || this._chanGood('tp10');
+      const stableNow = frontalGood && temporalGood;
+
+      if (stableNow) {
+        if (!this._museStableSince) this._museStableSince = Date.now();
+        const held = Date.now() - this._museStableSince;
+        if (held >= this.STABLE_MS) {
+          if (!this._museReady) {
+            this._museReady = true;
+            if (!this._museReadyNotified) {
+              this._museReadyNotified = true;
+              this._toast(t('rr.muse_ready') || 'Sinyal Muse stabil — siap merekam', 'success');
+            }
+          }
+          this._renderReadyBadge('ready');
+        } else {
+          this._renderReadyBadge('stabilizing');
+        }
+      } else {
+        // Signal lost quality — reset so the user is re-notified next time.
+        this._museStableSince = null;
+        this._museReady = false;
+        this._museReadyNotified = false;
+        this._renderReadyBadge('stabilizing');
+      }
+    },
+
+    /** Lazily create the readiness badge inside the hero, below the sub-text. */
+    _ensureReadyBadge() {
+      let badge = this._el('rawReadyBadge');
+      if (badge) return badge;
+      const sub = this._el('rawRawCount');
+      if (!sub || !sub.parentNode) return null;
+      badge = document.createElement('div');
+      badge.id = 'rawReadyBadge';
+      badge.style.cssText = 'display:none;align-items:center;justify-content:center;gap:7px;' +
+        'margin:8px auto 0;padding:6px 14px;border-radius:99px;font-size:0.74rem;font-weight:700;' +
+        'max-width:max-content;transition:background .2s,color .2s;';
+      sub.parentNode.insertBefore(badge, sub.nextSibling);
+      return badge;
+    },
+
+    _renderReadyBadge(state) {
+      const badge = this._ensureReadyBadge();
+      if (!badge) return;
+      const styles = {
+        off:         { show: false },
+        sim:         { show: true, bg: 'rgba(148,163,184,.16)', fg: '#475569', ic: 'fa-flask', tx: t('rr.muse_sim') || 'Mode simulasi — bukan data asli' },
+        stabilizing: { show: true, bg: 'rgba(245,158,11,.16)', fg: '#b45309', ic: 'fa-wave-square', tx: t('rr.muse_stabilizing') || 'Menstabilkan sinyal Muse…' },
+        ready:       { show: true, bg: 'rgba(16,185,129,.16)', fg: '#047857', ic: 'fa-circle-check', tx: t('rr.muse_ready') || 'Sinyal Muse stabil — siap merekam' },
+      }[state] || { show: false };
+
+      if (!styles.show) { badge.style.display = 'none'; return; }
+      badge.style.display = 'inline-flex';
+      badge.style.background = styles.bg;
+      badge.style.color = styles.fg;
+      badge.innerHTML = `<i class="fas ${styles.ic}"></i> ${styles.tx}`;
     },
 
     /* ── Record / Pause / Stop ── */
@@ -127,7 +246,7 @@
       if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
       this._setText('rawStatus', t('rr.status_saving'));
 
-      const name = `${t('rr.rec_default') || 'Rekaman'} ${new Date().toLocaleString(this._locale())}`;
+      const name = this._recName();
       const id = await RawRecorder.saveToFirestore({ name });
 
       if (btn) btn.innerHTML = orig;
@@ -137,7 +256,7 @@
         await RawRecorder.clearDraft();
         this._setText('rawStatus', t('rr.status_saved'));
         this._toast(t('rr.toast_saved', { n: sum.total }), 'success');
-        if (confirm(t('rr.confirm_open_history'))) Router.navigate('recordhistory');
+        if (await this._confirm(t('rr.confirm_open_history'), { title: t('rr.history'), confirmText: t('rr.history') || 'Riwayat', cancelText: 'Nanti' })) Router.navigate('recordhistory');
       } else {
         this._setText('rawStatus', t('rr.status_failed'));
         // Keep a device-side checkpoint so data isn't lost
@@ -161,12 +280,12 @@
       this._el('rawDraftSave').onclick = async (e) => {
         const b = e.currentTarget; const o = b.innerHTML; b.disabled = true; b.innerHTML = '…';
         await RawRecorder.restoreDraft();
-        const id = await RawRecorder.saveToFirestore({ name: `${t('rh.rec_default')} ${new Date().toLocaleString(this._locale())}` });
+        const id = await RawRecorder.saveToFirestore({ name: this._recName() });
         b.disabled = false; b.innerHTML = o;
-        if (id) { await RawRecorder.clearDraft(); this._hideDraft(); if (confirm(t('rr.confirm_open_history2'))) Router.navigate('recordhistory'); }
+        if (id) { await RawRecorder.clearDraft(); this._hideDraft(); if (await this._confirm(t('rr.confirm_open_history2'), { title: t('rr.history'), confirmText: t('rr.history') || 'Riwayat', cancelText: 'Nanti' })) Router.navigate('recordhistory'); }
       };
       this._el('rawDraftDiscard').onclick = async () => {
-        if (!confirm(t('rr.confirm_discard'))) return;
+        if (!await this._confirm(t('rr.confirm_discard'), { danger: true, confirmText: t('rr.draft_discard') || 'Buang', cancelText: 'Batal' })) return;
         await RawRecorder.clearDraft();
         this._hideDraft();
       };

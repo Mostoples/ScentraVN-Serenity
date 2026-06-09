@@ -871,3 +871,111 @@ if (document.readyState === 'loading') {
 
 // Make PWA globally available
 window.PWA = PWA;
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Indikator Status Koneksi (Offline / Online)
+ * Modul mandiri: menampilkan banner kecil saat offline dan toast singkat
+ * saat koneksi pulih. Tidak bergantung pada objek PWA di atas.
+ * ──────────────────────────────────────────────────────────────────────────── */
+(function () {
+    'use strict';
+
+    const NetworkStatus = {
+        bannerId: 'network-status-banner',
+
+        init() {
+            this.injectStyles();
+            this.createBanner();
+
+            window.addEventListener('online', () => this.update(true));
+            window.addEventListener('offline', () => this.update(false));
+
+            // Status awal
+            this.update(navigator.onLine, true);
+        },
+
+        injectStyles() {
+            if (document.getElementById('network-status-styles')) return;
+            const style = document.createElement('style');
+            style.id = 'network-status-styles';
+            style.textContent = `
+                .net-status {
+                    position: fixed;
+                    left: 50%;
+                    top: 0;
+                    transform: translateX(-50%) translateY(-120%);
+                    z-index: 10050;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: calc(8px + env(safe-area-inset-top, 0px));
+                    padding: 10px 18px;
+                    border-radius: 999px;
+                    font-size: 0.8125rem;
+                    font-weight: 600;
+                    color: #fff;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+                    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+                    opacity: 0;
+                    pointer-events: none;
+                    max-width: calc(100vw - 32px);
+                }
+                .net-status.visible {
+                    transform: translateX(-50%) translateY(0);
+                    opacity: 1;
+                }
+                .net-status.offline {
+                    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                }
+                .net-status.online {
+                    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                }
+                .net-status i { font-size: 0.9rem; }
+            `;
+            document.head.appendChild(style);
+        },
+
+        createBanner() {
+            if (document.getElementById(this.bannerId)) return;
+            const el = document.createElement('div');
+            el.id = this.bannerId;
+            el.className = 'net-status';
+            el.setAttribute('role', 'status');
+            el.setAttribute('aria-live', 'polite');
+            document.body.appendChild(el);
+            this.el = el;
+        },
+
+        update(isOnline, initial = false) {
+            const el = this.el || document.getElementById(this.bannerId);
+            if (!el) return;
+
+            if (isOnline) {
+                // Jangan tampilkan apa pun saat pertama kali load dalam keadaan online.
+                if (initial) {
+                    el.classList.remove('visible');
+                    return;
+                }
+                el.className = 'net-status online';
+                el.innerHTML = '<i class="fas fa-wifi"></i><span>Koneksi kembali — tersinkronisasi</span>';
+                el.classList.add('visible');
+                clearTimeout(this._hideTimer);
+                this._hideTimer = setTimeout(() => el.classList.remove('visible'), 2500);
+            } else {
+                el.className = 'net-status offline';
+                el.innerHTML = '<i class="fas fa-wifi-slash"></i><span>Mode offline — data tersimpan tetap tersedia</span>';
+                el.classList.add('visible');
+                clearTimeout(this._hideTimer);
+            }
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => NetworkStatus.init());
+    } else {
+        NetworkStatus.init();
+    }
+
+    window.NetworkStatus = NetworkStatus;
+})();

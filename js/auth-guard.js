@@ -9,30 +9,69 @@ const AuthGuard = {
      */
     check() {
         return new Promise((resolve) => {
-            // Check cached user first for quick response
-            const cachedUser = localStorage.getItem('scentravn_user');
+            let settled = false;
+
+            // Cached user from a previous successful login (set by the
+            // onAuthStateChanged listener in firebase-config.js).
+            const cachedUser = this.getCachedUser();
+            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
+            const allow = (user) => {
+                if (settled) return;
+                settled = true;
+                resolve(user);
+            };
+
+            const deny = () => {
+                if (settled) return;
+                settled = true;
+                window.location.href = 'auth.html';
+                resolve(null);
+            };
 
             // Listen for auth state
             const unsubscribe = auth.onAuthStateChanged((user) => {
                 unsubscribe(); // Unsubscribe after first check
 
                 if (user) {
-                    resolve(user);
+                    allow(user);
+                } else if (isOffline && cachedUser) {
+                    // Offline and we have a previously cached session: trust the
+                    // cache and let the user in. Firebase cannot reach its auth
+                    // servers offline, so we must not redirect to the login page
+                    // (where Google sign-in would be impossible).
+                    allow(cachedUser);
                 } else {
-                    // Redirect to auth page
-                    window.location.href = 'auth.html';
-                    resolve(null);
+                    // Online with no user, or no cached session at all.
+                    deny();
                 }
             });
 
-            // Timeout fallback - if Firebase takes too long
+            // Timeout fallback - if Firebase takes too long to respond.
             setTimeout(() => {
-                if (!auth.currentUser && !cachedUser) {
-                    window.location.href = 'auth.html';
-                    resolve(null);
+                if (settled) return;
+                if (auth.currentUser) {
+                    allow(auth.currentUser);
+                } else if (cachedUser) {
+                    // Slow/offline Firebase but we have a cached session: allow.
+                    allow(cachedUser);
+                } else {
+                    deny();
                 }
             }, 3000);
         });
+    },
+
+    /**
+     * Get cached user object from localStorage (null if none)
+     */
+    getCachedUser() {
+        try {
+            const raw = localStorage.getItem('scentravn_user');
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
     },
 
     /**
@@ -59,8 +98,23 @@ const AuthGuard = {
      */
     redirectIfAuthenticated() {
         return new Promise((resolve) => {
+            let settled = false;
+            const cachedUser = this.getCachedUser();
+            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
+            // Offline with a cached session: no point staying on the login page
+            // (Google sign-in needs internet). Go straight to the app.
+            if (isOffline && cachedUser) {
+                settled = true;
+                window.location.href = 'app.html';
+                resolve(true);
+                return;
+            }
+
             const unsubscribe = auth.onAuthStateChanged((user) => {
                 unsubscribe();
+                if (settled) return;
+                settled = true;
 
                 if (user) {
                     window.location.href = 'app.html';
@@ -69,6 +123,16 @@ const AuthGuard = {
                     resolve(false);
                 }
             });
+
+            // Fallback: if Firebase is slow but we already have a cached session.
+            setTimeout(() => {
+                if (settled) return;
+                if (auth.currentUser || cachedUser) {
+                    settled = true;
+                    window.location.href = 'app.html';
+                    resolve(true);
+                }
+            }, 3000);
         });
     },
 

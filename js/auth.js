@@ -8,6 +8,10 @@ const Auth = {
      */
     async register(email, password, name) {
         try {
+            // Always use LOCAL persistence so the session survives browser
+            // restarts and works offline-first (no re-login required).
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
             // Create user with email and password
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
@@ -32,12 +36,11 @@ const Auth = {
      */
     async login(email, password, rememberMe = false) {
         try {
-            // Set persistence based on remember me
-            const persistence = rememberMe
-                ? firebase.auth.Auth.Persistence.LOCAL
-                : firebase.auth.Auth.Persistence.SESSION;
-
-            await auth.setPersistence(persistence);
+            // Always use LOCAL persistence for an offline-first PWA so the
+            // session is kept after closing the app and works offline.
+            // (rememberMe kept for API compatibility but no longer downgrades
+            // to SESSION, which would log the user out on browser close.)
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
             // Sign in
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
@@ -63,6 +66,14 @@ const Auth = {
             };
         }
 
+        // Google OAuth popup requires an internet connection.
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            return {
+                success: false,
+                error: 'Login Google membutuhkan koneksi internet untuk pertama kali. Setelah login, aplikasi bisa dipakai offline.'
+            };
+        }
+
         // Prevent multiple popup requests
         if (this._isGoogleLoginInProgress) {
             return {
@@ -74,6 +85,9 @@ const Auth = {
         this._isGoogleLoginInProgress = true;
 
         try {
+            // Ensure the session persists across restarts / offline use.
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
             const provider = new firebase.auth.GoogleAuthProvider();
             provider.setCustomParameters({
                 prompt: 'select_account'
@@ -286,6 +300,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     const authAlert = document.getElementById('authAlert');
+
+    // ===== Offline-first handling on the auth page =====
+    // If the user already logged in once, a cached session exists. When the
+    // device is offline we cannot perform a fresh (Google) login, so:
+    //   - with a cached session -> go straight to the app (handled by AuthGuard)
+    //   - without a cached session -> tell the user the first login needs internet
+    const googleBtnEl = document.getElementById('googleLogin');
+
+    function updateOfflineState() {
+        const isOffline = navigator.onLine === false;
+        const cachedUser = (window.Auth && Auth.getCachedUser) ? Auth.getCachedUser() : null;
+
+        // Disable Google sign-in while offline (OAuth popup needs internet).
+        if (googleBtnEl) {
+            googleBtnEl.disabled = isOffline;
+            googleBtnEl.style.opacity = isOffline ? '0.5' : '';
+            googleBtnEl.title = isOffline
+                ? 'Login Google butuh internet. Tersedia setelah online.'
+                : '';
+        }
+
+        if (isOffline && !cachedUser) {
+            // First-ever login while offline: not possible. Inform the user.
+            showAlert('Anda sedang offline. Login pertama kali memerlukan koneksi internet. Setelah berhasil login, aplikasi bisa digunakan offline.', 'error');
+        } else if (!isOffline) {
+            // Back online: clear the offline-specific warning.
+            hideAlert();
+        }
+    }
+
+    // React to connectivity changes and run once on load.
+    window.addEventListener('online', updateOfflineState);
+    window.addEventListener('offline', updateOfflineState);
+    updateOfflineState();
 
     // Tab switching
     if (loginTab && registerTab) {
