@@ -559,6 +559,31 @@ const Views = {
                     .heeg-stat i{font-size:1.05rem;flex-shrink:0;}
                     .heeg-stat .lbl{font-size:0.66rem;color:#94a3b8;}
                     .heeg-stat .val{font-size:0.85rem;font-weight:800;color:#1e293b;}
+                    /* Muse contact gauge (shared MuseGauge) — compact, no background */
+                    .heeg-gauge{max-width:150px;margin:6px auto 12px;}
+                    .heeg-gauge .rr-gauge-wrap{max-width:150px;margin:0 auto;padding:0;background:none;}
+                    .heeg-gauge .rr-gauge{display:block;width:100%;height:auto;overflow:visible;}
+                    .heeg-gauge .rr-gauge .seg{transition:fill .3s ease,stroke .3s ease,filter .3s ease,opacity .3s ease;}
+                    .heeg-gauge .rr-batt-pct{fill:#334155;font-weight:800;}
+                    .heeg-gauge .rr-gauge-legend{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:7px;}
+                    .heeg-gauge .rr-gauge-legend .lg{display:inline-flex;align-items:center;gap:4px;font-size:0.56rem;font-weight:800;color:#475569;letter-spacing:.02em;}
+                    .heeg-gauge .rr-gauge-legend .lg .dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;transition:background .3s ease;}
+                    /* Inline recording bar */
+                    .hrec-card{padding:14px 16px;}
+                    .hrec-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+                    .hrec-info{display:flex;flex-direction:column;gap:3px;min-width:0;}
+                    .hrec-status{font-size:0.86rem;font-weight:800;color:#4c1d95;}
+                    .hrec-status.rec{color:#dc2626;} .hrec-status.pause{color:#b45309;}
+                    .hrec-meta{font-size:0.68rem;color:#94a3b8;font-weight:600;font-variant-numeric:tabular-nums;}
+                    .hrec-meta i{color:#7c3aed;}
+                    .hrec-btns{display:flex;gap:8px;flex-wrap:wrap;}
+                    .hrec-btn{display:inline-flex;align-items:center;gap:7px;font-size:0.8rem;font-weight:700;padding:9px 16px;border-radius:12px;border:none;cursor:pointer;transition:filter .18s,background .18s;}
+                    .hrec-btn.primary{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;}
+                    .hrec-btn.primary.is-rec{background:linear-gradient(135deg,#f59e0b,#f97316);}
+                    .hrec-btn.stop{background:rgba(239,68,68,0.12);color:#dc2626;}
+                    .hrec-btn.stop:hover{background:rgba(239,68,68,0.2);}
+                    .hrec-btn:hover{filter:brightness(1.05);}
+                    .hrec-btn:disabled{opacity:.6;cursor:default;filter:none;}
                     .health-page .health-actions{display:flex;gap:12px;flex-wrap:wrap;}
                     @media(max-width:640px){
                         .hdev-grid{grid-template-columns:1fr;}
@@ -682,6 +707,7 @@ const Views = {
                                 <span id="eegLive" class="health-live-badge off"><span class="dot"></span><span class="txt">${t('health.muse_off')}</span></span>
                             </div>
                         </div>
+                        <div id="healthMuseGauge" class="heeg-gauge" style="display:none;"></div>
                         <div class="heeg-cw">
                             <div style="position:relative;width:100%;height:180px;">
                                 <canvas id="eegChart"></canvas>
@@ -702,12 +728,22 @@ const Views = {
                         </div>
                     </section>
 
+                    <!-- Recording (same engine as the Raw Recorder, inline here) -->
+                    <section class="hsec hcard hrec-card">
+                        <div class="hrec-row">
+                            <div class="hrec-info">
+                                <span id="hrecStatus" class="hrec-status">${t('rr.status_ready')}</span>
+                                <span class="hrec-meta"><i class="far fa-clock"></i> <span id="hrecTime">00:00</span> · <span id="hrecFrames">0</span> ${t('rh.frame')}</span>
+                            </div>
+                            <div class="hrec-btns">
+                                <button id="hrecBtn" type="button" class="hrec-btn primary"><i class="fas fa-play"></i> <span id="hrecLabel">${t('rr.lbl_start')}</span></button>
+                                <button id="hrecStop" type="button" class="hrec-btn stop" style="display:none;"><i class="fas fa-stop"></i> <span>${t('rr.lbl_stop')}</span></button>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Quick Actions -->
                     <div class="health-actions">
-                        <button class="health-action-btn primary" onclick="Router.navigate('rawrecorder')" style="background:linear-gradient(135deg,#7c3aed,#a855f7);">
-                            <i class="fas fa-record-vinyl"></i>
-                            <span>Rekam Data</span>
-                        </button>
                         <button class="health-action-btn secondary" onclick="Router.navigate('recordhistory')">
                             <i class="fas fa-clock-rotate-left"></i>
                             <span>Riwayat Rekaman</span>

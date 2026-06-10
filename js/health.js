@@ -21,6 +21,9 @@ function initHealthPage() {
 
     // Berlangganan data live dari App ScentraVN (Firebase RTDB)
     wireHealthLiveBridge();
+
+    // Kontrol rekam inline (mesin sama dengan halaman Raw Recorder)
+    if (typeof HealthRecorder !== 'undefined') HealthRecorder.wire();
 }
 
 // ─────────────────────────────────────────────
@@ -67,6 +70,9 @@ function unwireHealthLiveBridge() {
         if (_bleConnHandler && BLEConnection.offConnectionChange) BLEConnection.offConnectionChange(_bleConnHandler);
     }
     _museMetricsHandler = _bleDataHandler = _museConnHandler = _bleConnHandler = null;
+    // Stop the recorder UI ticker (the recording itself keeps running in memory
+    // so navigating away does not interrupt an active session).
+    if (typeof HealthRecorder !== 'undefined') HealthRecorder._stopTick();
 }
 
 // ── BLE connect buttons (Muse S Gen 2 + ScentraVN Watch) ──
@@ -407,6 +413,18 @@ function renderEEG(muse) {
 
     const bat = document.getElementById('eegBattery');
     if (bat) bat.textContent = muse.battery != null ? `${Math.round(muse.battery)}%` : '--';
+
+    // Muse-app-style contact gauge (electrode quality + battery) — only with a
+    // real Muse link (the contact quality is derived from raw sample variance).
+    const gaugeEl = document.getElementById('healthMuseGauge');
+    if (gaugeEl) {
+        if (typeof MuseGauge !== 'undefined' && MuseGauge.connected()) {
+            gaugeEl.style.display = 'block';
+            MuseGauge.render(gaugeEl);
+        } else {
+            gaugeEl.style.display = 'none';
+        }
+    }
 }
 
 /** Hitung indeks kognitif tervalidasi + label status mental heuristik. */
@@ -531,6 +549,114 @@ function agoText(ms) {
     if (s < 60) return t('health.secs_ago', { s });
     return t('health.mins_ago', { m: Math.round(s / 60) });
 }
+
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// INLINE RECORDER (same engine as the Raw Recorder page, via RawRecorder)
+// Records the synchronized device streams and saves to Firestore. Start/Pause/
+// Stop behave exactly like the Raw Recorder: Pause checkpoints a draft to the
+// device; Stop uploads to the cloud and offers to open the History page.
+// ─────────────────────────────────────────────
+
+const HealthRecorder = {
+    _timer: null,
+    _busy: false,
+
+    wire() {
+        const btn = document.getElementById('hrecBtn');
+        const stop = document.getElementById('hrecStop');
+        if (!btn) return;
+        btn.onclick = () => this._toggle();
+        if (stop) stop.onclick = () => this._stop();
+        this.updateUI();
+        this._startTick();
+    },
+
+    _startTick() {
+        this._stopTick();
+        // Refresh timer/frame count once a second while a session is active.
+        this._timer = setInterval(() => {
+            if (typeof RawRecorder !== 'undefined' && RawRecorder.recording) this.updateUI();
+        }, 1000);
+    },
+    _stopTick() { if (this._timer) { clearInterval(this._timer); this._timer = null; } },
+
+    _toggle() {
+        if (typeof RawRecorder === 'undefined') return;
+        if (!RawRecorder.recording) {
+            RawRecorder.start();
+        } else if (RawRecorder.paused) {
+            RawRecorder.resume();
+        } else {
+            RawRecorder.pause();
+            RawRecorder.saveDraft().then(ok => this._toast(ok ? t('rr.toast_draft_saved') : t('rr.toast_draft_failed'), ok ? 'success' : 'error'));
+        }
+        this.updateUI();
+    },
+
+    async _stop() {
+        if (typeof RawRecorder === 'undefined' || this._busy) return;
+        const sum = RawRecorder.stop();
+        this.updateUI();
+        if (!sum || sum.total === 0) {
+            await RawRecorder.clearDraft();
+            RawRecorder.reset();
+            this.updateUI();
+            this._toast(t('rr.toast_empty'), 'warning');
+            return;
+        }
+        this._busy = true;
+        this._setStatus(t('rr.status_saving'));
+        const name = (typeof RawRecorder.prettyName === 'function') ? RawRecorder.prettyName() : 'ScentraVN Record';
+        const id = await RawRecorder.saveToFirestore({ name });
+        this._busy = false;
+        if (id) {
+            await RawRecorder.clearDraft();
+            RawRecorder.reset();
+            this.updateUI();
+            this._toast(t('rr.toast_saved', { n: sum.total }), 'success');
+            if (await this._confirm(t('rr.confirm_open_history'))) Router.navigate('recordhistory');
+        } else {
+            await RawRecorder.saveDraft();
+            this._setStatus(t('rr.status_failed'));
+            this._toast(t('rr.toast_upload_failed'), 'error');
+        }
+    },
+
+    updateUI() {
+        if (typeof RawRecorder === 'undefined') return;
+        const rec = RawRecorder.recording, paused = RawRecorder.paused;
+        const btn = document.getElementById('hrecBtn');
+        const icon = btn && btn.querySelector('i');
+        const label = document.getElementById('hrecLabel');
+        const stop = document.getElementById('hrecStop');
+        const status = document.getElementById('hrecStatus');
+        const timeEl = document.getElementById('hrecTime');
+        const framesEl = document.getElementById('hrecFrames');
+        if (icon) icon.className = (rec && !paused) ? 'fas fa-pause' : 'fas fa-play';
+        if (btn) btn.classList.toggle('is-rec', rec && !paused);
+        if (label) label.textContent = !rec ? t('rr.lbl_start') : (paused ? t('rr.lbl_resume') : t('rr.lbl_pause'));
+        if (stop) stop.style.display = rec ? 'inline-flex' : 'none';
+        if (status) {
+            status.classList.remove('rec', 'pause');
+            if (rec && !paused) status.classList.add('rec');
+            else if (paused) status.classList.add('pause');
+            status.textContent = !rec ? t('rr.status_ready') : (paused ? t('rr.status_paused') : t('rr.status_recording'));
+        }
+        const sum = RawRecorder.getSummary ? RawRecorder.getSummary() : { total: 0, durationSec: 0 };
+        if (timeEl) timeEl.textContent = this._fmtTime(RawRecorder.elapsedSec ? RawRecorder.elapsedSec() : (sum.durationSec || 0));
+        if (framesEl) framesEl.textContent = (sum.total || 0).toLocaleString();
+    },
+
+    _setStatus(tx) { const s = document.getElementById('hrecStatus'); if (s) s.textContent = tx; },
+    _fmtTime(s) { s = Math.max(0, Math.floor(s || 0)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; },
+    _toast(msg, type) { if (typeof Utils !== 'undefined' && Utils.showToast) Utils.showToast(msg, type || 'info'); },
+    async _confirm(msg) {
+        if (typeof Utils !== 'undefined' && Utils.confirmModal) return await Utils.confirmModal(msg, { confirmText: t('rr.history') || 'Riwayat', cancelText: 'Nanti' });
+        return confirm(msg);
+    },
+};
+window.HealthRecorder = HealthRecorder;
 
 // ─────────────────────────────────────────────
 // CLEANUP / EXPORT

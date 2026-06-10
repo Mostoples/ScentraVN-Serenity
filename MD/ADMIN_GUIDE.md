@@ -1,341 +1,501 @@
-# ScentraVN Admin Dashboard - Complete Guide
+# 🛡️ SCENTRAVN Admin Dashboard Guide
 
-## 📊 Overview
+## 📋 Overview
 
-The Admin Dashboard is a comprehensive management system for **API Keys**, **Users**, and **System Settings**. Only users with the `admin` role can access this panel.
-
-**Access URL:** `/#/admin`
+Admin Dashboard adalah sistem manajemen komprehensif untuk mengelola seluruh data SCENTRAVN. Dashboard ini memberikan kontrol penuh kepada administrator untuk mengelola users, patient data, dan questionnaire responses.
 
 ---
 
-## 🔐 Admin Features
+## 🔐 Akses Admin Dashboard
 
-### 1. **Dashboard Tab** (Monitoring & Analytics)
-
-#### Key Metrics
-- **Total Users**: Total registered users in the system
-- **API Calls**: Total API calls made (tracks usage across all services)
-- **System Uptime**: Current system availability (target: 99.9%)
-- **Active API Keys**: Number of active (not disabled) API keys
-
-#### Recent Activity Log
-- Real-time activity monitoring
-- Tracks: API calls, key rotations, user logins, system checks
-- Shows timestamp and status for each activity
-
----
-
-### 2. **API Keys Tab** (Management & Rotation)
-
-#### Create New API Key
-- **Name**: Descriptive name (e.g., "Gemini Production")
-- **Service**: Select from predefined services:
-  - Gemini Chat
-  - ElevenLabs TTS
-  - Firebase
-  - Custom Service
-- **Monthly Quota**: API call limit (default: 100,000)
-
-#### API Key Management Actions
-
-**View Key Details:**
-- Masked key (first 8 + last 4 characters for security)
-- Service type
-- Status (Active, Disabled, Expired)
-- Creation date
-- Last used timestamp
-
-**For Active Keys:**
-- ✅ **Rotate** - Generate new key/secret pair, invalidate old key
-  - Useful when: Quota depleting, key exposed, scheduled rotation
-  - Old key stored in history with timestamp
-
-- ✅ **Disable** - Temporarily disable key without deletion
-  - API calls using this key will fail
-  - Can be re-enabled later
-
-- ✅ **Delete** - Permanently remove key (cannot be undone)
-
-**Quota Monitoring:**
-- Visual quota bar showing usage percentage
-- Color-coded: Green (normal), Red (>80% usage)
-- Automatic alerts when approaching limit
-
-#### Key Features
-- **Secure Storage**: Keys stored in Firestore, never exposed in frontend
-- **Rotation History**: Every rotation tracked with timestamp and old key reference
-- **Usage Tracking**: Last used timestamp and total usage count
-- **Audit Trail**: All actions logged for compliance
-
----
-
-### 3. **Users Tab** (User Management & Permissions)
-
-#### User List
-Shows all registered users with:
-- Email/Username
-- User ID (first 10 chars for identification)
-- Current role
-- Account status
-
-#### User Management Actions
-
-**Change User Role:**
-- **User** - Regular user (default access to app)
-- **Admin** - Full admin access (can manage API keys, users, system)
-
-**Account Status:**
-- ✅ **Disable** - Lock account, prevent login (user is notified)
-- ✅ **Enable** - Unlock previously disabled account
-
-#### Use Cases
-- Promote trusted users to admin role
-- Disable accounts for inactive users
-- Manage access based on user tier or privileges
-
----
-
-### 4. **Settings Tab** (System Configuration)
-
-#### API Key Rotation Policy
-Configure automatic key rotation schedule:
-
-| Option | Frequency | Use Case |
-|--------|-----------|----------|
-| 30 days | Monthly | High-security environments, prod keys |
-| 60 days | Quarterly | Standard rotation for most services |
-| 90 days | Tri-annual | Low-risk services, stable keys |
-| Manual | Never | Special cases, manual rotation only |
-
-**Implementation Notes:**
-- System will send notifications 7 days before auto-rotation
-- Automatic rotation happens at midnight UTC
-- New key generated, old key disabled (not deleted)
-- Detailed logs stored for audit trail
-
-#### Other Planned Settings
-- Quota adjustment policies
-- API rate limiting thresholds
-- Activity logging level (verbose, normal, minimal)
-- Backup and recovery settings
-
----
-
-## 🔑 API Key Management Best Practices
-
-### Security Guidelines
-
-1. **Rotation Schedule**
-   - Rotate high-risk keys (Gemini Chat, TTS) every 30 days
-   - Rotate low-risk keys (Firebase) every 90 days
-   - Immediate rotation if key is exposed
-
-2. **Quota Management**
-   - Set quota based on expected monthly usage
-   - Add 20% buffer for traffic spikes
-   - Monitor usage trends to predict future needs
-
-3. **Key Naming Convention**
-   ```
-   [Service]-[Environment]-[Version]
-
-   Examples:
-   - gemini-prod-v1
-   - elevenlabs-staging-v1
-   - firebase-backup-v2
-   ```
-
-4. **Access Control**
-   - Only share keys with authorized services
-   - Use separate keys for different environments
-   - Never commit keys to git (use environment variables)
-
-### Monitoring & Alerts
-
-The system tracks:
-- **Quota Usage**: Alert at 80% usage
-- **Anomalies**: Unusual spike in API calls (possible compromised key)
-- **Rotation**: Automatic reminders 7 days before rotation
-- **Usage Patterns**: Detailed logs of when and how keys are used
-
----
-
-## 📋 Managing Gemini Chat API
-
-### Current Setup
-- **Service**: Google Gemini API (gemini-1.5-flash-8b)
-- **Current Key**: `gemini-prod-v1`
-- **Default Quota**: 100,000 calls/month
-
-### Recommended Rotation Schedule
-- **Frequency**: Every 30 days (production)
-- **Next Rotation**: [Calculate from creation date]
-- **Rotation History**: Maintained in admin panel
-
-### Quota Recommendations
-Based on expected usage:
-- 50 concurrent users = ~150,000 calls/month
-- 100 concurrent users = ~300,000 calls/month
-- 500 concurrent users = ~1,500,000 calls/month
-
-### Fallback Strategy
-If Gemini quota exceeded:
-1. Check Alternative APIs (Claude API, etc.)
-2. Implement rate limiting
-3. Queuer system for pending requests
-4. User notification (graceful degradation)
-
----
-
-## 🚀 Admin Workflows
-
-### Workflow 1: Regular API Key Rotation
-
+### URL:
 ```
-1. Open Admin Dashboard → API Keys Tab
-2. Find key due for rotation (check "Last Used" date)
-3. Click "Rotate" button
-4. Confirm rotation (old key will be disabled)
-5. New key generated automatically
-6. Deployment teams notified to update .env files
-7. Old key stored in history for 90 days
+https://your-domain.com/admin.html
 ```
 
-**Time Required:** 5 minutes
+### Requirements:
+1. **Akun dengan role `admin`**
+2. **Firebase Authentication** aktif
 
-### Workflow 2: Monitor Quota Usage
+### Cara Setup Admin User:
 
+#### Metode 1: Via Firebase Console
+1. Buka Firebase Console → Firestore Database
+2. Buka collection `users`
+3. Pilih user document yang ingin dijadikan admin
+4. Tambahkan/edit field: `role: "admin"`
+5. Save changes
+
+#### Metode 2: Via Code (One-time setup)
+```javascript
+// Jalankan di browser console setelah login
+const userId = 'USER_ID_DISINI';
+await db.collection('users').doc(userId).update({
+    role: 'admin'
+});
 ```
-1. Open Admin Dashboard → Dashboard Tab
-2. Check "API Calls" metric
-3. Open API Keys Tab
-4. Review quota bar for each key
-5. If >80% usage:
-   a. Identify peak usage patterns
-   b. Consider increasing quota
-   c. Or rotate key to reset counter
-```
-
-**Frequency:** Weekly recommended
-
-### Workflow 3: Onboard New Service
-
-```
-1. Admin Dashboard → API Keys Tab
-2. Click "Create New API Key"
-3. Fill in:
-   - Name: "service-name-v1"
-   - Service: Select or "Custom"
-   - Quota: Based on expected usage
-4. Click "Create Key"
-5. New key displayed (copy to clipboard)
-6. Share with service team securely
-7. Service team updates their config
-8. Test integration
-9. Monitor usage in dashboard
-```
-
-**Time Required:** 10-15 minutes
-
-### Workflow 4: Manage User Roles
-
-```
-1. Admin Dashboard → Users Tab
-2. Find user to modify
-3. Click role dropdown
-4. Select: User, Admin, or Custom
-5. Changes take effect immediately
-6. User receives notification (if enabled)
-```
-
-**Time Required:** 1 minute per user
 
 ---
 
-## ⚠️ Important Notes
+## 🎯 Fitur Utama
 
-### Security Considerations
-- ❌ Never share API keys publicly
-- ❌ Never commit keys to git repository
-- ✅ Store in environment variables
-- ✅ Use separate keys per environment
-- ✅ Rotate regularly (30-90 days)
-- ✅ Monitor for unusual activity
+### 1. **Dashboard** 📊
 
-### Limitations
-- Keys are one-way hashed in storage
-- Cannot retrieve previously issued keys
-- Only partial key visible for security
-- Admin role required for all operations
+**Tampilan Overview:**
+- Total Users
+- Total Patients
+- Total Questionnaires
+- Total Health Records
 
-### Support & Troubleshooting
+**Charts:**
+- User growth over time
+- Questionnaire submissions
 
-**Q: Key appears expired but still works?**
-- Status updates after 24 hours of inactivity
-- Check "Last Used" timestamp
-
-**Q: How to reset quota counter?**
-- Rotate the key to get fresh quota allocation
-- Or contact system admin for manual reset
-
-**Q: Can I recover a deleted key?**
-- No, deleted keys cannot be recovered
-- Keep audit logs for historical reference
+**Recent Activity:**
+- Real-time system events
+- API calls
+- User logins
 
 ---
 
-## 📊 API Key Analytics
+### 2. **User Management** 👥
 
-The admin panel tracks:
+**Fitur:**
+- View all registered users
+- Change user roles (user ↔ admin)
+- Enable/Disable user accounts
+- Search users
+- Export user list
 
-1. **Usage Patterns**
-   - Hourly API call distribution
-   - Peak usage times
-   - Service-specific trends
+**Actions:**
+- **Change Role:** Dropdown untuk mengubah role user
+- **Disable/Enable:** Suspend atau reactivate user account
 
-2. **Performance Metrics**
-   - Average response time per service
-   - Success/error rates
-   - Timeout frequencies
-
-3. **Cost Tracking** (future feature)
-   - Cost per API call
-   - Monthly spending by service
-   - Quota optimization recommendations
+**Use Cases:**
+- Promote user menjadi admin
+- Disable spam/malicious accounts
+- Monitor user registrations
 
 ---
 
-## 🔄 API Key Rotation Automation
+### 3. **Patient Data Management** 🏥
 
-**Planned Feature:** Automatic rotation based on schedule
+**Data yang Dikelola:**
+- Health Readings (Heart Rate, SpO2, Temperature, GSR)
+- Assessment Results
+- Journal Entries
+- Chat History
+- HEROIC Activities
+- HEROIC Scores
 
-### How It Works
+**Fitur:**
+
+#### A. View Patient List
+- Tampilkan semua pasien dengan statistik
+- Info per pasien:
+  - Nama & Email
+  - Status onboarding
+  - Jumlah health readings
+  - Jumlah assessments
+  - Jumlah journal entries
+  - Jumlah HEROIC activities
+
+#### B. View Patient Details
+Klik icon **👁️ Eye** untuk melihat detail lengkap:
+- Informasi dasar pasien
+- Ringkasan data kesehatan
+- 5 health readings terakhir dengan data sensor lengkap
+- Assessment history
+- Journal entries
+
+#### C. Export Patient Data
+Klik icon **📥 Download** untuk export:
+- Format: **JSON**
+- Berisi: Semua data pasien (health, assessments, journals, HEROIC)
+- Filename: `patient_{userId}_{date}.json`
+
+**Use Cases:**
+- Medical review
+- Research data extraction
+- Patient data portability (GDPR compliance)
+- Backup individual patient data
+
+#### D. Delete Patient Data
+Klik icon **🗑️ Trash** untuk menghapus:
+- ⚠️ **WARNING:** Permanent deletion!
+- Menghapus ALL subcollections:
+  - healthReadings
+  - assessments
+  - journals
+  - chatHistory
+  - dailySummary
+  - interventionLogs
+  - moodLogs
+  - HEROIC activities
+  - HEROIC score history
+
+**Use Cases:**
+- GDPR "Right to be forgotten"
+- Test data cleanup
+- Remove corrupted data
+
+#### E. Filter & Search
+- **Search:** Cari pasien berdasarkan nama/email
+- **Filter by Data Type:**
+  - All Data
+  - Health Readings only
+  - Assessments only
+  - Journals only
+  - HEROIC Activities only
+
+---
+
+### 4. **Questionnaire Management** 📋
+
+**Data yang Dikelola:**
+Questionnaire responses dari research study dengan metrik:
+- **SUS (System Usability Scale)** - Skor 0-100
+- **TAM (Technology Acceptance Model)** - Usefulness & Ease of Use
+- **UI/UX Ratings** - User satisfaction
+- **UEQ (User Experience Questionnaire)**
+- **Trust & Privacy scores**
+- **Therapeutic Value ratings**
+- **Engagement metrics**
+- **NPS (Net Promoter Score)** - 0-10
+
+**Fitur:**
+
+#### A. View Questionnaire List
+Table dengan info:
+- Responden name, age, gender
+- Submission date
+- **SUS Score** dengan color coding:
+  - 🟢 Green (85+): Excellent
+  - 🔵 Blue (71-84): Good
+  - 🟠 Orange (51-70): OK
+  - 🔴 Red (<51): Poor
+- TAM Average
+- UI/UX Average
+- NPS Score dengan badge:
+  - 🟢 Promoter (9-10)
+  - 🟠 Passive (7-8)
+  - 🔴 Detractor (0-6)
+
+#### B. View Questionnaire Details
+Klik icon **👁️ Eye** untuk melihat:
+- Demographic info (name, age, gender, background)
+- All scores summary
+- Open-ended responses:
+  - Liked features
+  - Confusing features
+  - Missing features
+  - Smartwatch opinion
+  - Suggestions
+
+#### C. Questionnaire Statistics
+Klik **📊 Statistics** untuk analisis agregat:
+- Total responses
+- Average scores (SUS, TAM, UEQ)
+- **NPS Breakdown:**
+  - Count of Promoters
+  - Count of Passives
+  - Count of Detractors
+  - Net Promoter Score calculation
+
+**Formula NPS:**
 ```
-Every night at 2:00 AM UTC:
-1. Check which keys are due for rotation
-2. Generate new key/secret pair
-3. Update database with new key
-4. Disable old key (keep in history)
-5. Notify admin & service owners
-6. Log rotation event
+NPS = ((Promoters - Detractors) / Total Responses) × 100
 ```
 
-### Configuration
-- Set in Settings Tab
-- Supports: 30/60/90 day intervals
-- Manual option to skip automation
+#### D. Export to CSV
+Klik **📥 Export CSV** untuk download:
+- Format: **CSV** (Excel-compatible)
+- Columns include:
+  - All demographic data
+  - All numerical scores
+  - All open-ended responses (sanitized)
+- Filename: `questionnaires_{date}.csv`
+
+**Use Cases:**
+- Statistical analysis di SPSS/Python/R
+- Research paper data
+- Stakeholder reporting
+- Backup research data
+
+#### E. Delete Responses
+- Hapus individual response
+- Untuk data cleanup / test data removal
+
+#### F. Search & Filter
+- Search by respondent name
+- Filter by date range (coming soon)
 
 ---
 
-## 📞 Getting Help
+## 🔧 Technical Details
 
-- **Admin Panel Issues**: Check browser console (F12)
-- **API Key Problems**: Review usage logs in dashboard
-- **System Errors**: Contact support with error message and timestamp
-- **Feature Requests**: Submit through GitHub issues
+### File Structure
+```
+admin.html                  # Main admin page
+js/
+├── admin.js               # Backend logic (data operations)
+└── admin-ui.js            # Frontend logic (UI rendering)
+```
+
+### Key Functions
+
+#### admin.js (AdminManager)
+```javascript
+// User Management
+AdminManager.loadUsers()
+AdminManager.updateUserRole(userId, role)
+AdminManager.disableUser(userId)
+AdminManager.enableUser(userId)
+
+// Patient Data
+AdminManager.loadPatientData()
+AdminManager.getPatientDetails(userId)
+AdminManager.getPatientHealthReadings(userId, startDate, endDate)
+AdminManager.deletePatientData(userId, dataType)
+AdminManager.exportPatientDataToJSON(userId)
+
+// Questionnaire
+AdminManager.loadQuestionnaires()
+AdminManager.getQuestionnaireStats()
+AdminManager.exportQuestionnairesToCSV()
+AdminManager.deleteQuestionnaire(questionnaireId)
+
+// System
+AdminManager.formatDate(date)
+AdminManager.logout()
+```
+
+#### admin-ui.js (AdminUI)
+```javascript
+// Tab Switching
+AdminUI.switchTab(tabName)
+
+// Rendering
+AdminUI.renderDashboard()
+AdminUI.renderUsersTab()
+AdminUI.renderPatientsTab()
+AdminUI.renderQuestionnairesTab()
+
+// Patient Actions
+AdminUI.viewPatientDetails(userId)
+AdminUI.exportPatientData(userId)
+AdminUI.deletePatientDataConfirm(userId)
+
+// Questionnaire Actions
+AdminUI.viewQuestionnaireDetails(questionnaireId)
+AdminUI.showQuestionnaireStats()
+AdminUI.exportQuestionnaires()
+AdminUI.deleteQuestionnaireConfirm(questionnaireId)
+
+// UI Helpers
+AdminUI.showSuccess(message)
+AdminUI.showError(message)
+AdminUI.closeModal()
+```
 
 ---
 
-**Last Updated:** March 2026
+## 🔒 Security & Firestore Rules
+
+### Firestore Security Rules sudah dikonfigurasi:
+
+```javascript
+// Admin-only collections
+match /apiKeys/{docId} {
+  allow read, write, delete: if isAdmin();
+}
+
+match /adminActivityLogs/{docId} {
+  allow read, write: if isAdmin();
+}
+
+// Users - admin can read all
+match /users/{userId} {
+  allow read, write: if isOwner(userId);
+  allow read, write: if isAdmin();  // Admin full access
+
+  match /{subcollection}/{docId} {
+    allow read, write: if isOwner(userId);
+    allow read: if isAdmin();  // Admin read access
+  }
+}
+
+// Questionnaire results - admin read only
+match /questionnaireResults/{docId} {
+  allow create: if isAuthenticated();
+  allow read: if isAdmin();  // Only admin can read
+}
+
+// HEROIC data - admin full access
+match /heroicActivities/{docId} {
+  allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
+  allow read, write: if isAdmin();
+}
+```
+
+### Admin Check Function:
+```javascript
+function isAdmin() {
+  return isAuthenticated() &&
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+}
+```
+
+---
+
+## 📊 Data Export Formats
+
+### Patient Data Export (JSON)
+```json
+{
+  "user": {
+    "id": "userId123",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  "healthReadings": [
+    {
+      "heartRate": 75,
+      "spo2": 98,
+      "temperature": 36.5,
+      "gsr": 45,
+      "timestamp": "..."
+    }
+  ],
+  "assessments": [...],
+  "journals": [...],
+  "heroicActivities": [...],
+  "heroicScores": [...]
+}
+```
+
+### Questionnaire Export (CSV)
+```csv
+ID,Submitted At,Name,Age Range,Gender,SUS Score,TAM Overall,UI/UX Avg,NPS Score,...
+doc123,2024-01-01,John Doe,25-34,Male,85,4.2,4.5,9,...
+```
+
+---
+
+## 🎨 UI/UX Features
+
+### Design System
+- **Colors:**
+  - Primary: `#7c3aed` (Purple)
+  - Success: `#10b981` (Green)
+  - Warning: `#f59e0b` (Orange)
+  - Error: `#ef4444` (Red)
+  - Info: `#3b82f6` (Blue)
+
+- **Effects:**
+  - Glassmorphism cards
+  - Animated gradient background
+  - Smooth transitions
+  - Hover effects
+  - Loading states
+
+### Responsive Design
+- Mobile-optimized
+- Tablet-friendly
+- Desktop full-featured
+
+### Accessibility
+- Clear labels
+- Color-coded badges
+- Icon + text buttons
+- Confirmation dialogs for destructive actions
+
+---
+
+## ⚠️ Best Practices
+
+### 1. Data Deletion
+- **Always confirm** sebelum delete
+- **Backup first** jika memungkinkan
+- **Irreversible** - tidak bisa di-undo
+- Use for: GDPR compliance, test data cleanup
+
+### 2. Export Data
+- **Regular backups** untuk research data
+- **Before deletion** - export dulu
+- **Privacy**: Jangan share exported files sembarangan
+
+### 3. User Management
+- **Minimal admin users** - hanya yang diperlukan
+- **Monitor admin activity** via logs
+- **Revoke access** segera jika tidak diperlukan
+
+### 4. Patient Privacy
+- **HIPAA/GDPR Compliance** dalam handling data
+- **Minimize access** - hanya view yang diperlukan
+- **Secure exports** - encrypt jika perlu
+
+---
+
+## 🐛 Troubleshooting
+
+### "Access Denied" Error
+**Penyebab:** User tidak memiliki role `admin`
+**Solusi:**
+1. Check Firestore → users collection
+2. Pastikan field `role: "admin"` exists
+3. Re-login setelah update role
+
+### "Loading..." Stuck
+**Penyebab:** Firestore connection/permissions issue
+**Solusi:**
+1. Check browser console for errors
+2. Verify Firestore rules deployed
+3. Check Firebase project status
+
+### Export Not Working
+**Penyebab:** Browser blocking download
+**Solusi:**
+1. Allow pop-ups untuk domain
+2. Check download folder permissions
+3. Try different browser
+
+### Modal Not Closing
+**Penyebab:** JavaScript error
+**Solusi:**
+1. Reload page
+2. Check browser console
+3. Clear cache
+
+---
+
+## 📈 Future Enhancements (Coming Soon)
+
+- [ ] Advanced search & filtering
+- [ ] Date range filters
+- [ ] Bulk operations (delete multiple, export multiple)
+- [ ] Admin activity logs viewer
+- [ ] Real-time notifications
+- [ ] Data visualization dashboards
+- [ ] Automated backup scheduling
+- [ ] PDF export reports
+- [ ] Email notifications for critical events
+- [ ] Two-factor authentication for admin
+
+---
+
+## 📞 Support
+
+Jika ada pertanyaan atau issues:
+1. Check dokumentasi ini
+2. Check browser console untuk error messages
+3. Verify Firestore rules & permissions
+4. Contact development team
+
+---
+
+**Last Updated:** 2026-04-02
 **Version:** 1.0.0
-**Next Review:** June 2026
+**Maintainer:** SCENTRAVN Development Team
