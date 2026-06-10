@@ -154,6 +154,7 @@
             af7_alpha: m.powersAF7?.alpha, af8_alpha: m.powersAF8?.alpha,
             faa: m.alphaAsymmetry, sleepStage: m.sleepStage,
             emotion: m.emotion?.label, mentalState: m.mentalState?.label,
+            ppgAmbient: m.ppg?.ambient, ppgIr: m.ppg?.ir, ppgRed: m.ppg?.red,
             battery: m.battery,
           });
           // Connected flag reflects a genuine BLE link only.

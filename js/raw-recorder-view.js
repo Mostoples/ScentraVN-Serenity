@@ -66,7 +66,7 @@
         };
         const onMet = (m) => {
           const p = m.powers || {};
-          this._live.muse = { delta: p.delta, theta: p.theta, alpha: p.alpha, beta: p.beta, gamma: p.gamma, battery: m.battery };
+          this._live.muse = { delta: p.delta, theta: p.theta, alpha: p.alpha, beta: p.beta, gamma: p.gamma, battery: m.battery, ppgIr: m.ppg?.ir };
         };
         if (MuseEEG.onRaw) { MuseEEG.onRaw(onRaw); this._subs.push(() => MuseEEG.offRaw && MuseEEG.offRaw(onRaw)); }
         MuseEEG.onMetrics(onMet); this._subs.push(() => MuseEEG.offMetrics && MuseEEG.offMetrics(onMet));
@@ -204,19 +204,86 @@
     },
     _MQ_CHANS: [['TP9', 'tp9'], ['AF7', 'af7'], ['AF8', 'af8'], ['TP10', 'tp10']],
 
+    /* ── Muse-app-style contact gauge (arc of electrode segments + battery) ── */
+    _GCFG: { cx: 200, cy: 170, rI: 78, rO: 126, start: 228, end: -48, gap: 8, order: ['tp9', 'af7', 'af8', 'tp10'] },
+    _GQ_COL: { good: '#18d8c6', noisy: '#f59e0b', flat: '#ef4444', nodata: '#94a3b8' },
+
+    /** Polar (deg, 0°=right, CCW) → screen point (y flipped so 90°=up). */
+    _polar(cx, cy, r, deg) { const a = deg * Math.PI / 180; return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; },
+    /** Ring-sector path from angle a1 (larger) to a2 (smaller). */
+    _ringSector(cx, cy, rI, rO, a1, a2) {
+      const [x1, y1] = this._polar(cx, cy, rO, a1);
+      const [x2, y2] = this._polar(cx, cy, rO, a2);
+      const [x3, y3] = this._polar(cx, cy, rI, a2);
+      const [x4, y4] = this._polar(cx, cy, rI, a1);
+      const large = (a1 - a2) > 180 ? 1 : 0;
+      return `M ${x1} ${y1} A ${rO} ${rO} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rI} ${rI} 0 ${large} 0 ${x4} ${y4} Z`;
+    },
+
+    /** Build the static gauge SVG once (geometry never changes; only colours do). */
+    _gaugeSkeleton() {
+      const c = this._GCFG;
+      const sweep = c.start - c.end;
+      const segW = (sweep - c.gap * (c.order.length - 1)) / c.order.length;
+      let a = c.start, segs = '';
+      for (let i = 0; i < c.order.length; i++) {
+        const a1 = a, a2 = a - segW;
+        segs += `<path class="seg" data-seg="${c.order[i]}" d="${this._ringSector(c.cx, c.cy, c.rI, c.rO, a1, a2)}" ` +
+          `fill="#94a3b8" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></path>`;
+        a = a2 - c.gap;
+      }
+      const bx = c.cx, by = c.cy + 4, R = 44;
+      const bars = [-16, -4, 8].map((dx, i) =>
+        `<rect class="batt-bar" data-bar="${i}" x="${bx + dx}" y="${by - 7}" width="10" height="14" rx="2" fill="#18d8c6"></rect>`).join('');
+      const title = t('rr.muse_quality_title') || 'Kualitas kontak elektroda';
+      const legend = c.order.map(ch => `<span class="lg"><span class="dot" data-leg="${ch}"></span>${ch.toUpperCase()}</span>`).join('');
+      return `<div class="rr-mq-title">${title}</div>
+        <div class="rr-gauge-wrap"><svg class="rr-gauge" viewBox="0 0 400 300" role="img" aria-label="${title}">
+          <g class="segments">${segs}</g>
+          <g class="battery">
+            <circle cx="${bx}" cy="${by}" r="${R}" fill="#f8fafc" stroke="#e2e8f0" stroke-width="3"></circle>
+            <rect class="batt-body" x="${bx - 22}" y="${by - 12}" width="42" height="24" rx="5" fill="none" stroke="#18d8c6" stroke-width="3"></rect>
+            <rect class="batt-tip" x="${bx + 22}" y="${by - 5}" width="5" height="10" rx="2" fill="#18d8c6"></rect>
+            ${bars}
+            <text class="rr-batt-pct" x="${c.cx}" y="${by + R + 24}" text-anchor="middle" font-size="26">—</text>
+          </g>
+        </svg></div>
+        <div class="rr-gauge-legend">${legend}</div>`;
+    },
+
+    /** Update segment colours (per-electrode quality) and the central battery. */
+    _updateGauge(el, quals) {
+      this._GCFG.order.forEach((ch) => {
+        const q = (quals && quals[ch]) || 'nodata';
+        const col = this._GQ_COL[q] || this._GQ_COL.nodata;
+        const p = el.querySelector(`.seg[data-seg="${ch}"]`);
+        if (p) {
+          p.setAttribute('fill', col); p.setAttribute('stroke', col);
+          p.style.filter = `drop-shadow(0 0 7px ${col}99)`;
+          p.style.opacity = q === 'nodata' ? '.45' : '1';
+        }
+        const dot = el.querySelector(`.dot[data-leg="${ch}"]`);
+        if (dot) dot.style.background = col;
+      });
+
+      // Central battery from the live Muse telemetry.
+      let pct = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.battery : null;
+      const battCol = pct == null ? '#94a3b8' : (pct > 40 ? '#18d8c6' : pct > 20 ? '#f59e0b' : '#ef4444');
+      const txt = el.querySelector('.rr-batt-pct');
+      if (txt) txt.textContent = pct == null ? '—' : Math.round(pct) + '%';
+      const filled = pct == null ? 0 : Math.max(1, Math.round(pct / 100 * 3));
+      el.querySelectorAll('.batt-bar').forEach((b, i) => b.setAttribute('fill', i < filled ? battCol : '#e2e8f0'));
+      const body = el.querySelector('.batt-body'); if (body) body.setAttribute('stroke', battCol);
+      const tip = el.querySelector('.batt-tip'); if (tip) tip.setAttribute('fill', battCol);
+    },
+
     _renderMuseQuality(show, quals) {
       const el = this._ensureMuseQuality();
       if (!el) return;
       if (!show) { el.style.display = 'none'; return; }
       el.style.display = 'block';
-      const cells = this._MQ_CHANS.map(([lab, ch]) => {
-        const m = this._MQ_META[(quals && quals[ch]) || 'nodata'];
-        const tx = t(m.k) || '';
-        return `<div class="rr-mq-chip" style="background:${m.bg};color:${m.c};" title="${lab} — ${tx}">` +
-          `<i class="fas ${m.ic}"></i><b>${lab}</b><span>${tx}</span></div>`;
-      }).join('');
-      el.innerHTML = `<div class="rr-mq-title">${t('rr.muse_quality_title') || 'Kualitas kontak elektroda'}</div>` +
-        `<div class="rr-mq-grid">${cells}</div>`;
+      if (!el.querySelector('.rr-gauge')) el.innerHTML = this._gaugeSkeleton();
+      this._updateGauge(el, quals || {});
     },
 
     /** Lazily create the readiness badge inside the hero, below the sub-text. */
@@ -431,14 +498,12 @@
 
       let pairs = [];
       if (id === 'muse') {
-        const r = this._live.museRaw || {}, m = this._live.muse || {};
+        // Per-electrode contact (TP9/AF7/AF8/TP10) and battery are shown in the
+        // stability gauge above, so the cells here focus on band power + PPG.
+        const m = this._live.muse || {};
         pairs = [
-          ['TP9', this._uv(r.tp9), 'Temporal-parietal kiri (belakang telinga kiri)'],
-          ['AF7', this._uv(r.af7), 'Anterior-frontal kiri (dahi kiri)'],
-          ['AF8', this._uv(r.af8), 'Anterior-frontal kanan (dahi kanan)'],
-          ['TP10', this._uv(r.tp10), 'Temporal-parietal kanan (belakang telinga kanan)'],
           ['Delta', this._n(m.delta, 1)], ['Theta', this._n(m.theta, 1)], ['Alpha', this._n(m.alpha, 1)], ['Beta', this._n(m.beta, 1)], ['Gamma', this._n(m.gamma, 1)],
-          ['Bat', m.battery != null ? Math.round(m.battery) + '%' : '—'],
+          ['PPG', m.ppgIr != null ? this._fmtNum(Math.round(m.ppgIr)) : '—', 'PPG inframerah (sensor optik detak jantung)'],
         ];
       } else if (id === 'scentra') {
         const d = this._live.scentra || {};

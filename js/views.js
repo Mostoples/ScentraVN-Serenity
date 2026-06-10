@@ -2915,6 +2915,14 @@ const Views = {
                     .rr-mq-chip i{font-size:0.92rem;}
                     .rr-mq-chip b{font-size:0.66rem;font-weight:800;letter-spacing:.02em;}
                     .rr-mq-chip span{font-size:0.54rem;font-weight:700;opacity:.9;}
+                    /* Muse-app-style contact gauge (arc + battery) — compact, no background */
+                    .rr-gauge-wrap{margin:2px auto 0;max-width:150px;padding:0;background:none;}
+                    .rr-gauge{display:block;width:100%;height:auto;overflow:visible;}
+                    .rr-gauge .seg{transition:fill .3s ease,stroke .3s ease,filter .3s ease,opacity .3s ease;}
+                    .rr-batt-pct{fill:#334155;font-weight:800;}
+                    .rr-gauge-legend{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:7px;}
+                    .rr-gauge-legend .lg{display:inline-flex;align-items:center;gap:4px;font-size:0.56rem;font-weight:800;color:#475569;letter-spacing:.02em;}
+                    .rr-gauge-legend .lg .dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;transition:background .3s ease;}
                     .rr-dev-hint{margin-top:11px;font-size:0.7rem;color:#475569;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#eef2f7;border:1px solid #e2e8f0;border-radius:10px;padding:9px 11px;}
                     .rr-dev-hint i{color:#7c3aed;}
                     .rr-dev-hint a{color:#6d28d9;font-weight:700;cursor:pointer;text-decoration:underline;}

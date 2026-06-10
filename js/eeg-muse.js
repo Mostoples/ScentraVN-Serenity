@@ -19,7 +19,17 @@ const MUSE_CHAR = {
     battery:    '273e000b-4c4d-454d-96be-f03bac821358',
     gyroscope:  '273e0009-4c4d-454d-96be-f03bac821358',
     accelero:   '273e000a-4c4d-454d-96be-f03bac821358',
+    /* PPG (Muse S / Muse 2 have an optical heart sensor): 3 channels @ 64 Hz,
+       24-bit samples. ppg1=ambient, ppg2=infrared, ppg3=red. */
+    ppg1:       '273e000f-4c4d-454d-96be-f03bac821358',
+    ppg2:       '273e0010-4c4d-454d-96be-f03bac821358',
+    ppg3:       '273e0011-4c4d-454d-96be-f03bac821358',
 };
+
+/* Standard BLE Battery Service (0x180F / 0x2A19) — Muse exposes a clean 0-100%
+   level here, which we prefer over the quirky proprietary telemetry scaling. */
+const BATTERY_SERVICE = 0x180f;
+const BATTERY_LEVEL_CHAR = 0x2a19;
 
 /* Muse streams at 256 Hz; each EEG packet = 12 samples (12-bit each) */
 const MUSE_SAMPLE_RATE  = 256;
@@ -83,6 +93,7 @@ const MuseEEG = {
         stressLevel:    'low',   // 'low' | 'medium' | 'high'
         focusState:     'low',   // 'low' | 'moderate' | 'good'
         battery:        null,
+        ppg:            { ambient: null, ir: null, red: null },  // latest optical PPG sample per channel
         packetCount:    0,
     },
 
@@ -119,7 +130,7 @@ const MuseEEG = {
                     { namePrefix: 'Muse' },
                     { services: [MUSE_SERVICE] }
                 ],
-                optionalServices: [MUSE_SERVICE],
+                optionalServices: [MUSE_SERVICE, BATTERY_SERVICE],
             });
 
             this.device.addEventListener('gattserverdisconnected', () => this._onDisconnected());
@@ -155,42 +166,82 @@ const MuseEEG = {
                 } catch (_) { /* not present on all firmware */ }
             }
 
-            /* Start streaming. Muse S Gen 2 ("Athena", fw 2024+) streams EEG on
-               preset p1035/p1034; older Muse 2 / Muse S Gen 1 use p21. Send the
-               Gen 2 preset first, then fall back to p21 if no packets arrive. */
+            /* Subscribe to PPG (optical heart sensor — Muse S / Muse 2). */
+            this._ppgCount = 0;
+            this._ppgSubs = 0;
+            for (const ch of ['ppg1', 'ppg2', 'ppg3']) {
+                try {
+                    const c = await this.service.getCharacteristic(MUSE_CHAR[ch]);
+                    await c.startNotifications();
+                    c.addEventListener('characteristicvaluechanged', (e) => this._onPPGPacket(ch, e.target.value));
+                    this._ppgSubs++;
+                } catch (err) { console.warn('[Muse] PPG', ch, 'unavailable:', err && err.message); }
+            }
+            console.debug('[Muse] PPG characteristics subscribed:', this._ppgSubs, '/ 3');
+
+            /* Start streaming. Muse S Gen 2 ("Athena", fw 2024+) streams EEG+PPG+IMU
+               on preset p1035. Older Muse 2 / Muse S Gen 1 use the 50-series preset
+               (p50) which ALSO enables PPG — so we fall back to p50 (not the EEG-only
+               p21) to keep the optical heart sensor streaming on classic devices. */
             await this._startPreset(this.PRESET_GEN2);   // 'p1035'
             await this._sendCommand('s');
             await this._sendCommand('d');
 
-            /* If no EEG packets within 2.5s, retry with the legacy preset. */
+            /* If no EEG packets within 2.5s, retry with the PPG-capable legacy preset. */
             this._presetFallbackTimer = setTimeout(async () => {
                 if (this._packetsSeen === 0 && this.device?.gatt?.connected) {
-                    console.warn('[Muse] No EEG on', this.PRESET_GEN2, '→ retrying with p21 (Gen 1 / Muse 2)');
+                    console.warn('[Muse] No EEG on', this.PRESET_GEN2, '→ retrying with p50 (Gen 1 / Muse 2, EEG+PPG)');
                     try {
                         await this._sendCommand('h');
                         await this._delay(150);
-                        await this._startPreset('p21');
+                        await this._startPreset('p50');
                         await this._sendCommand('s');
                         await this._sendCommand('d');
                     } catch (_) {}
                 }
             }, 2500);
 
-            /* Battery characteristic (273e000b). The level is a 16-bit big-endian
-               value at offset 0, scaled so raw/512 = percent — matching the
-               project's authoritative decoder (js/muse/decoder.js → decodeBattery).
-               The previous code read offset 2 (a different telemetry field), which
-               reported ~1% on Muse S Gen 2 instead of the real charge.
-               NOTE: the DataView is e.target.VALUE, not e.target. */
+            /* Surface whether PPG packets actually arrived (helps diagnose presets). */
+            setTimeout(() => {
+                if (this.device?.gatt?.connected) {
+                    console.debug('[Muse] PPG packets after 6s:', this._ppgCount,
+                        this._ppgCount ? '(streaming ✓)' : '(none — sensor/preset may not expose PPG on this unit)');
+                }
+            }, 6000);
+
+            /* ── Battery ──
+               Prefer the STANDARD BLE Battery Service (0x180F → 0x2A19): a clean
+               uint8 percentage. If present it is authoritative and we ignore the
+               proprietary telemetry (which uses a quirky scale). */
+            this._stdBattery = false;
+            try {
+                const battSvc = await this.server.getPrimaryService(BATTERY_SERVICE);
+                const battChar = await battSvc.getCharacteristic(BATTERY_LEVEL_CHAR);
+                const apply = (dv) => { if (dv && dv.byteLength >= 1) this.metrics.battery = Math.max(0, Math.min(100, dv.getUint8(0))); };
+                apply(await battChar.readValue());
+                this._stdBattery = true;
+                try {
+                    await battChar.startNotifications();
+                    battChar.addEventListener('characteristicvaluechanged', (e) => apply(e.target.value));
+                } catch (_) { /* read-only is fine */ }
+            } catch (_) { /* no standard battery service → use proprietary telemetry */ }
+
+            /* Proprietary telemetry (273e000b). The battery level sits at offset 2
+               (after the 2-byte sequence). Muse S Gen 2 (Athena) encodes it in a
+               0-512 range (raw/512×100 = %), while classic Muse 2 / S use a larger
+               0-51200 range (raw/512 = %). We pick the scale from the magnitude so
+               a full Athena battery reads ~100% instead of ~1%. Only used when the
+               standard battery service above is unavailable. */
             try {
                 const bat = await this.service.getCharacteristic(MUSE_CHAR.battery);
                 await bat.startNotifications();
                 bat.addEventListener('characteristicvaluechanged', (e) => {
+                    if (this._stdBattery) return;
                     const dv = e.target.value;
-                    if (!dv || dv.byteLength < 2) return;
-                    const pct = (typeof MuseDecoder !== 'undefined' && MuseDecoder.decodeBattery)
-                        ? MuseDecoder.decodeBattery(dv)
-                        : dv.getUint16(0, false) / 512;
+                    if (!dv || dv.byteLength < 4) return;
+                    const raw = dv.getUint16(2, false);
+                    const pct = raw > 1024 ? raw / 512 : raw / 5.12;   // 0-51200 vs 0-512 encoding
+                    if (!this._battLogged) { this._battLogged = true; console.debug('[Muse] battery telemetry raw@2 =', raw, '→', Math.round(pct) + '%'); }
                     this.metrics.battery = Math.max(0, Math.min(100, pct));
                 });
             } catch(_) { /* battery not always available */ }
@@ -608,6 +659,25 @@ const MuseEEG = {
                 ]);
             }
             const frame = { t: Date.now(), ch: channel, samples: out };
+            for (const fn of this._rawListeners) { try { fn(frame); } catch (_) {} }
+        } catch (_) {}
+    },
+
+    /* PPG packets (Muse optical heart sensor): 2-byte sequence + 24-bit big-endian
+       unsigned samples (6 per packet @ 64 Hz). ppg1=ambient, ppg2=IR, ppg3=red.
+       We keep the latest sample per channel (metrics.ppg) and forward the samples
+       to raw listeners so a recording can capture the full PPG waveform. */
+    _onPPGPacket(channel, dataView) {
+        try {
+            const samples = [];
+            for (let i = 2; i + 2 < dataView.byteLength; i += 3) {
+                samples.push((dataView.getUint8(i) << 16) | (dataView.getUint8(i + 1) << 8) | dataView.getUint8(i + 2));
+            }
+            if (!samples.length) return;
+            this._ppgCount = (this._ppgCount || 0) + 1;
+            const key = channel === 'ppg1' ? 'ambient' : channel === 'ppg2' ? 'ir' : 'red';
+            this.metrics.ppg[key] = samples[samples.length - 1];
+            const frame = { t: Date.now(), ch: channel, samples };
             for (const fn of this._rawListeners) { try { fn(frame); } catch (_) {} }
         } catch (_) {}
     },

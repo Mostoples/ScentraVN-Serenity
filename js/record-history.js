@@ -196,7 +196,8 @@
         XLSX.utils.book_append_sheet(wb, wsLegend, 'Keterangan');
 
         /* ── EEG raw (long format): one row per sample ── */
-        const eegRows = [], motionRows = [];
+        const PPG_CH = { ppg1: 'ambient', ppg2: 'ir', ppg3: 'red' };
+        const eegRows = [], motionRows = [], ppgRows = [];
         for (const f of (streams.museRaw || [])) {
           const el = MUSE_ELECTRODES[f.ch];
           if (el) {
@@ -205,11 +206,15 @@
             (f.samples || []).forEach((uv, i) => eegRows.push({
               t: f.t, channel: el.name, region: el.region, seq: f.seq, i, uV: uv,
             }));
+          } else if (PPG_CH[f.ch]) {
+            // PPG optik Muse (64 Hz, 24-bit). ppg1=ambient, ppg2=IR, ppg3=merah.
+            (f.samples || []).forEach((v, i) => ppgRows.push({ t: f.t, channel: PPG_CH[f.ch], i, value: v }));
           } else {
             (f.samples || []).forEach((s, i) => motionRows.push({ t: f.t, ch: f.ch, i, x: s[0], y: s[1], z: s[2] }));
           }
         }
         if (eegRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20', subtitle), 'EEG_Raw');
+        if (ppgRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(ppgRows, 'PPG Raw — sensor optik (64 Hz) · ambient/IR/merah', subtitle), 'PPG_Raw');
         if (motionRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(motionRows, 'Muse Motion — accel/gyro', subtitle), 'Muse_Motion');
 
         /* ── Other streams (arrays flattened to pipe-joined strings) ── */
