@@ -559,6 +559,11 @@ const Views = {
                     .heeg-stat i{font-size:1.05rem;flex-shrink:0;}
                     .heeg-stat .lbl{font-size:0.66rem;color:#94a3b8;}
                     .heeg-stat .val{font-size:0.85rem;font-weight:800;color:#1e293b;}
+                    .heeg-tutor-btn{width:30px;height:30px;flex-shrink:0;border:none;border-radius:50%;cursor:pointer;background:rgba(124,58,237,0.12);color:#7c3aed;display:inline-flex;align-items:center;justify-content:center;font-size:0.9rem;transition:background .15s;}
+                    .heeg-tutor-btn:hover{background:rgba(124,58,237,0.22);}
+                    .heeg-sub{font-size:0.52rem;font-weight:700;color:#94a3b8;}
+                    .heeg-info-btn{flex-shrink:0;width:26px;height:26px;border:none;border-radius:50%;cursor:pointer;background:rgba(245,158,11,0.18);color:#b45309;display:inline-flex;align-items:center;justify-content:center;font-size:0.8rem;transition:background .15s;}
+                    .heeg-info-btn:hover{background:rgba(245,158,11,0.3);}
                     /* Muse contact gauge (shared MuseGauge) — compact, no background */
                     .heeg-gauge{max-width:150px;margin:6px auto 12px;}
                     .heeg-gauge .rr-gauge-wrap{max-width:150px;margin:0 auto;padding:0;background:none;}
@@ -721,6 +726,7 @@ const Views = {
                         <div class="hsec-head">
                             <h2><i class="fas fa-brain"></i> ${t('health.eeg_title')}</h2>
                             <div style="display:flex;align-items:center;gap:8px;">
+                                <button id="eegTutorBtn" type="button" class="heeg-tutor-btn" title="Tutorial pakai Muse S Gen 2" aria-label="Tutorial Muse S Gen 2"><i class="fas fa-circle-play"></i></button>
                                 <span id="eegMentalChip" class="hvit-badge" style="display:none;">—</span>
                                 <span id="eegLive" class="health-live-badge off"><span class="dot"></span><span class="txt">${t('health.muse_off')}</span></span>
                             </div>
@@ -740,8 +746,8 @@ const Views = {
                             <div class="heeg-band"><div class="v" id="eegGamma" style="color:#ef4444;">--</div><div class="n">Gamma</div><div class="h">30–100Hz</div><div class="heeg-bar"><span id="eegBar-gamma" style="background:#ef4444;"></span></div></div>
                         </div>
                         <div class="heeg-status">
-                            <div class="heeg-stat"><i class="fas fa-droplet" style="color:#ef4444;"></i><div><div class="lbl">PPG (IR)</div><div class="val" id="eegPpgIr">--</div></div></div>
-                            <div class="heeg-stat"><i class="fas fa-stopwatch" style="color:#0891b2;"></i><div><div class="lbl">HRV (RMSSD)</div><div class="val" id="eegHrv">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-droplet" style="color:#ef4444;"></i><div><div class="lbl">PPG (IR) <span id="eegPpgBits" class="heeg-sub"></span></div><div class="val" id="eegPpgIr">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-stopwatch" style="color:#0891b2;"></i><div style="flex:1;min-width:0;"><div class="lbl">HRV (RMSSD)</div><div class="val" id="eegHrv">--</div></div><button id="eegHrvInfo" type="button" class="heeg-info-btn" style="display:none;" title="Cara memperkuat sinyal" aria-label="Info sinyal PPG"><i class="fas fa-circle-info"></i></button></div>
                             <div class="heeg-stat"><i class="fas fa-battery-half" style="color:#3b82f6;"></i><div><div class="lbl">${t('health.muse_battery')}</div><div class="val" id="eegBattery">--</div></div></div>
                         </div>
                         <div class="heeg-insight">
@@ -772,6 +778,10 @@ const Views = {
 
                     <!-- Quick Actions -->
                     <div class="health-actions">
+                        <button class="health-action-btn secondary" onclick="window.location.href='ppg/index.html'">
+                            <i class="fas fa-droplet"></i>
+                            <span>Monitor PPG (Detak/SpO₂)</span>
+                        </button>
                         <button class="health-action-btn secondary" onclick="Router.navigate('recordhistory')">
                             <i class="fas fa-clock-rotate-left"></i>
                             <span>Riwayat Rekaman</span>

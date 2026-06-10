@@ -62,9 +62,12 @@ const App = {
             }
 
             const unsubscribe = auth.onAuthStateChanged(async (user) => {
-                this.currentUser = user;
-                
-                // Check onboarding status
+                // Fall back to a local guest session (no Firebase account) so the
+                // app UI has a "user" and all data flows through the offline-first
+                // local-storage paths until the guest upgrades online.
+                this.currentUser = user || (typeof GuestSession !== 'undefined' ? GuestSession.get() : null);
+
+                // Check onboarding status (real Firebase users only)
                 if (user && typeof db !== 'undefined') {
                     try {
                         const userDoc = await db.collection('users').doc(user.uid).get();

@@ -29,7 +29,7 @@ service cloud.firestore {
       // recordingHistory, rawRecordings, chatHistory, assessments,
       // interventionLogs, emergencyPlans, academyProgress, safetyPlans,
       // moodLogs, musicTherapyLogs, sessions, journals, interventions,
-      // sleepSessions
+      // sleepSessions, ppgMeasurements
       match /{subcollection}/{docId} {
         allow read, write: if isOwner(userId);
         allow read, write: if isAdmin(); // Admin can write subcollections too

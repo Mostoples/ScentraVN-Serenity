@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scentra-2 · Monitor Detak Jantung & Oksigen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ===== Scentra Serenity · Light Purple Design System ===== */
+  :root{
+    --primary-400:#a78bfa; --primary-500:#8b5cf6; --primary-600:#7c3aed; --primary-700:#6d28d9;
+    --ok:#10b981; --ok-d:#059669; --warn:#f59e0b; --warn-d:#d97706; --bad:#ef4444; --bad-d:#dc2626;
+    --acc:#3b82f6; --info:#3b82f6;
+    --bg1:#F0F4F7; --bg2:#F5F3FF; --card:rgba(255,255,255,.85); --card-solid:#fff;
+    --txt:#333; --txt2:#64748b; --mut:#8E8E8E; --muted:#94a3b8;
+    --line:rgba(139,92,246,.15); --line2:rgba(139,92,246,.08);
+    --grad:linear-gradient(135deg,#8B5CF6 0%,#7C3AED 100%);
+    --grad-light:linear-gradient(135deg,#8B5CF6 0%,#A78BFA 50%,#C4B5FD 100%);
+    --grad-ok:linear-gradient(135deg,#059669 0%,#10b981 100%);
+    --shadow:0 4px 16px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.03);
+    --shadow-lg:0 8px 24px rgba(0,0,0,.08);
+    --glass:0 8px 32px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.6);
+    --r-sm:12px; --r-md:16px; --r-lg:20px; --r-xl:24px; --r-full:9999px;
+    /* alias warna utk chart & JS */
+    --ppg:#8b5cf6; --ir:#3b82f6; --red:#ef4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Poppins',-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--txt);
+       background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);min-height:100vh;
+       padding:20px;max-width:1000px;margin:0 auto;-webkit-font-smoothing:antialiased;line-height:1.6;}
+
+  .head{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+  .logo{width:48px;height:48px;border-radius:14px;background:var(--grad);display:flex;
+        align-items:center;justify-content:center;font-size:24px;color:#fff;flex:none;
+        box-shadow:0 6px 20px rgba(139,92,246,.35);}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.02em;
+     background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .sub{color:var(--txt2);font-size:13.5px;margin:2px 0 20px;line-height:1.55;}
+
+  /* Tombol */
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;
+       padding:12px 20px;border-radius:var(--r-md);font-family:inherit;font-size:14px;font-weight:600;
+       transition:all .2s cubic-bezier(.4,0,.2,1);}
+  .btn-primary{background:var(--grad);color:#fff;box-shadow:0 6px 20px rgba(139,92,246,.35);}
+  .btn-primary:hover:not(:disabled){transform:translateY(-3px) scale(1.02);box-shadow:0 10px 32px rgba(139,92,246,.45);}
+  .btn-secondary{background:rgba(255,255,255,.9);color:var(--txt);border:1px solid var(--line);box-shadow:var(--shadow);}
+  .btn-secondary:hover:not(:disabled){background:#fff;border-color:var(--primary-400);color:var(--primary-600);transform:translateY(-2px);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .status{font-size:13px;color:var(--txt2);display:inline-flex;align-items:center;}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--bad);margin-right:7px;}
+  .dot.on{background:var(--ok);box-shadow:0 0 0 0 rgba(16,185,129,.5);animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.5);}70%{box-shadow:0 0 0 8px rgba(16,185,129,0);}100%{box-shadow:0 0 0 0 rgba(16,185,129,0);}}
+
+  /* Kartu dasar (glass) */
+  .card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+        border:1px solid rgba(255,255,255,.5);border-radius:var(--r-xl);box-shadow:var(--glass);}
+
+  /* Banner status */
+  .banner{padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;
+          border-left:5px solid var(--muted);transition:border-color .3s;}
+  .banner.ok{border-left-color:var(--ok);} .banner.warn{border-left-color:var(--warn);} .banner.bad{border-left-color:var(--bad);}
+  .banner .ic{width:46px;height:46px;border-radius:14px;background:rgba(139,92,246,.1);
+              display:flex;align-items:center;justify-content:center;font-size:24px;flex:none;}
+  .banner .bt{font-size:16px;font-weight:700;}
+  .banner .bs{font-size:13px;color:var(--txt2);margin-top:2px;}
+
+  /* Ringkasan kesehatan */
+  .health{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+  @media(max-width:620px){.health{grid-template-columns:1fr;}}
+  .hpill{padding:16px 18px;display:flex;align-items:center;gap:14px;background:var(--card-solid);
+         border:1px solid var(--line2);border-radius:var(--r-lg);box-shadow:var(--shadow);}
+  .hpill .hic{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+              font-size:22px;flex:none;}
+  .hic.hr{background:rgba(239,68,68,.12);color:var(--bad);}
+  .hic.o2{background:rgba(59,130,246,.12);color:var(--acc);}
+  .hic.q{background:rgba(139,92,246,.12);color:var(--primary-500);}
+  .hpill .hk{font-size:12px;color:var(--mut);font-weight:500;}
+  .hpill .hv{font-size:19px;font-weight:700;letter-spacing:-.01em;}
+  .hpill .hs{font-size:12px;font-weight:600;}
+
+  /* Kartu grafik */
+  .chartcard{padding:16px 18px 10px;margin-bottom:16px;background:var(--card-solid);
+             border:1px solid var(--line2);border-radius:var(--r-lg);box-shadow:var(--shadow);}
+  .chartcard .lbl{font-size:12px;color:var(--mut);font-weight:600;letter-spacing:.3px;text-transform:uppercase;
+                  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .chartcard .tag{font-weight:700;font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;}
+  canvas{width:100%;display:block;}
+  canvas.ppg{height:150px;} canvas.raw{height:108px;} canvas.hist{height:118px;}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.twocol{grid-template-columns:1fr;}}
+
+  /* Kartu metrik besar */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+  @media(max-width:560px){.grid{grid-template-columns:1fr;}}
+  .metric{padding:20px;background:var(--card-solid);border:1px solid var(--line2);
+          border-radius:var(--r-xl);box-shadow:var(--shadow);position:relative;overflow:hidden;
+          transition:transform .3s,box-shadow .3s;}
+  .metric:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+  .metric::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--bargrad,var(--grad));}
+  .metric .top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .metric .micon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;}
+  .micon.hr{background:rgba(239,68,68,.12);color:var(--bad);}
+  .micon.o2{background:rgba(59,130,246,.12);color:var(--acc);}
+  .metric .name{font-size:13px;color:var(--mut);font-weight:600;}
+  .metric .unit{font-size:13px;color:var(--mut);}
+  .metric .val{font-size:48px;font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
+  .metric .tag{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:4px 12px;
+               border-radius:var(--r-full);margin-top:10px;}
+  .metric .rng{font-size:12px;color:var(--mut);margin-top:10px;}
+  .tag.ok{background:rgba(16,185,129,.12);color:var(--ok-d);}
+  .tag.warn{background:rgba(245,158,11,.12);color:var(--warn-d);}
+  .tag.bad{background:rgba(239,68,68,.12);color:var(--bad-d);}
+  .tag.idle{background:rgba(148,163,184,.14);color:var(--mut);}
+
+  /* Kualitas 4 level */
+  .quality{padding:18px;margin-bottom:18px;background:var(--card-solid);border:1px solid var(--line2);
+           border-radius:var(--r-lg);box-shadow:var(--shadow);}
+  .quality .qhead{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:600;margin-bottom:12px;}
+  .qbadge{font-size:13px;font-weight:700;padding:5px 14px;border-radius:var(--r-full);background:rgba(148,163,184,.14);color:var(--mut);}
+  .qsteps{display:flex;gap:7px;}
+  .qstep{flex:1;height:11px;border-radius:var(--r-full);background:rgba(139,92,246,.1);transition:background .25s;}
+  .qhint{font-size:12.5px;color:var(--mut);margin-top:12px;line-height:1.5;}
+
+  /* Penjelasan */
+  details{background:var(--card-solid);border:1px solid var(--line2);border-radius:var(--r-md);margin-bottom:12px;box-shadow:var(--shadow);}
+  summary{cursor:pointer;padding:14px 18px;font-size:14px;font-weight:600;list-style:none;color:var(--txt);}
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:"＋ ";color:var(--primary-500);font-weight:700;}
+  details[open] summary::before{content:"− ";}
+  .dbody{padding:0 18px 16px;font-size:13.5px;color:var(--txt2);line-height:1.7;}
+  .dbody b{color:var(--txt);}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;}
+  .legend span{display:inline-flex;align-items:center;gap:7px;color:var(--txt2);}
+  .sw{width:12px;height:12px;border-radius:4px;display:inline-block;}
+
+  /* Tabel hasil */
+  .secttl{font-size:16px;font-weight:700;margin:0;}
+  .wrap{max-height:330px;overflow:auto;border:1px solid var(--line2);border-radius:var(--r-lg);background:var(--card-solid);box-shadow:var(--shadow);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{text-align:right;padding:11px 14px;border-bottom:1px solid var(--line2);white-space:nowrap;}
+  th{color:var(--mut);font-weight:600;position:sticky;top:0;background:#faf8ff;font-size:12px;text-transform:uppercase;letter-spacing:.3px;}
+  td:first-child,th:first-child{text-align:left;}
+  td{color:var(--txt);}
+  tr.flash td{animation:flashrow 1s ease;}
+  @keyframes flashrow{from{background:rgba(139,92,246,.12);}to{background:transparent;}}
+  .count{font-size:13px;color:var(--mut);margin-left:auto;font-weight:500;}
+  .pillval{font-weight:700;}
+  .footer{font-size:11.5px;color:var(--mut);margin-top:24px;line-height:1.7;text-align:center;}
+  .footer code{background:rgba(139,92,246,.08);padding:1px 6px;border-radius:6px;}
+
+  /* ===== Responsif / Mode Android (mobile) ===== */
+  html{-webkit-text-size-adjust:100%;}
+  button,a,.qstep{-webkit-tap-highlight-color:transparent;}
+  @media(max-width:600px){
+    body{padding:14px 12px;}
+    .head{gap:11px;margin-bottom:4px;}
+    .logo{width:42px;height:42px;font-size:21px;border-radius:12px;}
+    h1{font-size:20px;}
+    .sub{font-size:12.5px;margin-bottom:16px;}
+    /* tombol koneksi: lebar penuh & mudah disentuh */
+    .bar{gap:8px;}
+    #btnConnect{flex:1 1 100%;}
+    #btnDisconnect{flex:1 1 auto;}
+    .btn{padding:13px 16px;min-height:46px;}
+    .status{flex:1 1 100%;margin-top:2px;}
+    .banner{padding:14px;gap:11px;}
+    .banner .ic{width:42px;height:42px;font-size:21px;}
+    .banner .bt{font-size:15px;}
+    .health{gap:10px;}
+    .hpill{padding:13px 14px;gap:12px;}
+    .hpill .hic{width:44px;height:44px;font-size:20px;}
+    .twocol{gap:12px;}
+    .grid{gap:12px;}
+    .metric{padding:16px;}
+    .metric .val{font-size:42px;}
+    .chartcard{padding:14px 14px 8px;}
+    canvas.ppg{height:130px;} canvas.raw{height:96px;} canvas.hist{height:104px;}
+    /* baris tombol hasil: rapikan agar tidak melebar */
+    .secttl{flex:1 1 100%;}
+    #btnDownload,#btnClearAll{flex:1 1 auto;}
+    .count{flex:1 1 100%;margin-left:0;text-align:right;}
+    th,td{padding:9px 10px;font-size:12.5px;}
+  }
+  @media(max-width:380px){
+    .health{grid-template-columns:1fr;}
+    .metric .val{font-size:38px;}
+    h1{font-size:18px;}
+  }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="logo">♥</div>
+    <div>
+      <h1>Scentra-2 Monitor</h1>
+    </div>
+  </div>
+  <div class="sub">Pemantau <b>detak jantung (BPM)</b> dan <b>kadar oksigen darah (SpO₂)</b>.
+    Hubungkan via Bluetooth, tempelkan jari di sensor dan <b>tahan diam</b> sampai alat menulis "SELESAI".
+    Gunakan browser <b>Chrome</b> atau <b>Edge</b>.</div>
+
+  <div class="bar">
+    <a href="../app.html#health" class="btn btn-secondary" style="text-decoration:none;">← Health</a>
+    <button id="btnConnect" class="btn btn-primary">🔗 Hubungkan Bluetooth</button>
+    <button id="btnDisconnect" class="btn btn-secondary" disabled>Putuskan</button>
+    <span class="status"><span id="dot" class="dot"></span><span id="statusText">Belum terhubung</span></span>
+  </div>
+
+  <!-- Banner status -->
+  <div class="card banner" id="banner">
+    <span class="ic" id="bnIc">🩺</span>
+    <div>
+      <div class="bt" id="bnTitle">Menunggu koneksi</div>
+      <div class="bs" id="bnSub">Tekan "Hubungkan Bluetooth" untuk mulai.</div>
+    </div>
+  </div>
+
+  <!-- Ringkasan kesehatan -->
+  <div class="health">
+    <div class="hpill"><span class="hic hr">♥</span><div><div class="hk">Heart Rate</div><div class="hv" id="sumHr">—</div><div class="hs" id="sumHrS" style="color:var(--mut)">menunggu</div></div></div>
+    <div class="hpill"><span class="hic o2">🫁</span><div><div class="hk">SpO₂</div><div class="hv" id="sumO2">—</div><div class="hs" id="sumO2S" style="color:var(--mut)">menunggu</div></div></div>
+    <div class="hpill"><span class="hic q">📶</span><div><div class="hk">Signal Quality</div><div class="hv" id="sumQ">—</div><div class="hs" id="sumQS" style="color:var(--mut)">kontak jari</div></div></div>
+  </div>
+
+  <!-- Waveform PPG -->
+  <div class="chartcard">
+    <div class="lbl"><span>Waveform PPG · gelombang denyut (live)</span><span class="tag" id="ppgBpm" style="color:var(--primary-600)"></span></div>
+    <canvas id="ppg" class="ppg"></canvas>
+  </div>
+
+  <!-- Sinyal mentah + riwayat BPM -->
+  <div class="twocol">
+    <div class="chartcard">
+      <div class="lbl"><span>Sinyal mentah sensor</span>
+        <span class="tag"><span style="color:var(--ir)">● IR</span> <span style="color:var(--red)">● RED</span></span></div>
+      <canvas id="raw" class="raw"></canvas>
+    </div>
+    <div class="chartcard">
+      <div class="lbl"><span>Riwayat BPM (real-time)</span><span class="tag" id="histHrTag" style="color:var(--bad)"></span></div>
+      <canvas id="histHr" class="hist"></canvas>
+    </div>
+  </div>
+  <div class="chartcard">
+    <div class="lbl"><span>Riwayat SpO₂ (real-time)</span><span class="tag" id="histO2Tag" style="color:var(--acc)"></span></div>
+    <canvas id="histO2" class="hist"></canvas>
+  </div>
+
+  <!-- Kartu metrik -->
+  <div class="grid">
+    <div class="metric" id="hrCard" style="--bargrad:linear-gradient(135deg,#f87171,#ef4444)">
+      <div class="top"><span class="micon hr">♥</span><div><div class="name">DETAK JANTUNG</div><div class="unit">denyut / menit</div></div></div>
+      <div class="val" id="hrVal">—</div>
+      <span class="tag idle" id="hrTag">menunggu</span>
+      <div class="rng">Normal dewasa istirahat: <b>60–100 bpm</b></div>
+    </div>
+    <div class="metric" id="o2Card" style="--bargrad:linear-gradient(135deg,#60a5fa,#3b82f6)">
+      <div class="top"><span class="micon o2">🫁</span><div><div class="name">OKSIGEN DARAH</div><div class="unit">SpO₂ (%)</div></div></div>
+      <div class="val" id="o2Val">—</div>
+      <span class="tag idle" id="o2Tag">menunggu</span>
+      <div class="rng">Normal: <b>95–100%</b></div>
+    </div>
+  </div>
+
+  <!-- Kualitas 4 level -->
+  <div class="quality">
+    <div class="qhead"><span>Kualitas sinyal / kontak jari</span><span class="qbadge" id="qBadge">—</span></div>
+    <div class="qsteps">
+      <div class="qstep" id="qs0"></div><div class="qstep" id="qs1"></div>
+      <div class="qstep" id="qs2"></div><div class="qstep" id="qs3"></div>
+    </div>
+    <div class="qhint" id="qHint">Poor → Fair → Good → Excellent. Tempelkan jari menutupi sensor, jangan terlalu ditekan, dan jangan bergerak. Sinyal Excellent = hasil paling akurat.</div>
+  </div>
+
+  <!-- Hasil per orang -->
+  <div class="bar" style="margin-top:8px;align-items:center">
+    <span class="secttl">Hasil per orang</span>
+    <button id="btnSave" class="btn btn-secondary">☁ Sinkron</button>
+    <button id="btnDownload" class="btn btn-secondary" disabled>⬇ Download CSV</button>
+    <button id="btnClearAll" class="btn btn-secondary" disabled>Hapus Semua</button>
+    <span class="count" id="count">0 orang</span>
+    <span class="count" id="ppgSync" style="display:none;"></span>
+  </div>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr><th>Orang</th><th>Waktu</th><th>HR (bpm)</th><th>Status</th><th>SpO₂ (%)</th><th>Status</th><th>Kualitas</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    Scentra-2 · data via Bluetooth Low Energy · Format: <code>status,millis,HR,vHR,SpO₂,vSpO₂,IR,RED,PPG,QUAL,PIx100,nGood</code><br>
+    Alat menghitung median dari banyak denyut konsisten tiap orang — hasil "--" berarti sinyal kurang, silakan ulangi.
+  </div>
+
+<!-- Firebase (untuk simpan ke cloud + offline persistence, sama seperti SPA) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="../js/config.keys.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/firebase-config.js"></script>
+
+<script>
+const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const CHAR_UUID    = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+let device=null, characteristic=null;
+const decoder=new TextDecoder();
+const $=id=>document.getElementById(id);
+
+let personCount=0;
+const results=[];
+
+/* ---------------- Klasifikasi ---------------- */
+function hrClass(hr){
+  if(hr==null) return {cls:"idle",txt:"—",col:"var(--mut)"};
+  if(hr<60)  return {cls:"warn",txt:"Rendah (bradikardia)",col:"var(--warn-d)"};
+  if(hr<=100)return {cls:"ok",  txt:"Normal",col:"var(--ok-d)"};
+  if(hr<=120)return {cls:"warn",txt:"Agak tinggi",col:"var(--warn-d)"};
+  return {cls:"bad",txt:"Tinggi (takikardia)",col:"var(--bad-d)"};
+}
+function o2Class(o2){
+  if(o2==null) return {cls:"idle",txt:"—",col:"var(--mut)"};
+  if(o2>=95) return {cls:"ok",  txt:"Normal",col:"var(--ok-d)"};
+  if(o2>=90) return {cls:"warn",txt:"Perlu perhatian",col:"var(--warn-d)"};
+  return {cls:"bad",txt:"Rendah",col:"var(--bad-d)"};
+}
+function qualClass(q){
+  if(q>=75) return {lvl:3,txt:"Excellent",col:"var(--ok)"};
+  if(q>=50) return {lvl:2,txt:"Good",     col:"var(--ok)"};
+  if(q>=25) return {lvl:1,txt:"Fair",     col:"var(--warn)"};
+  return        {lvl:0,txt:"Poor",     col:"var(--bad)"};
+}
+
+/* ---------------- Canvas util ---------------- */
+function setupCanvas(cv){
+  const dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth, h=cv.clientHeight;
+  cv.width=w*dpr; cv.height=h*dpr;
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w,h};
+}
+function gridLines(ctx,w,h){
+  ctx.strokeStyle="rgba(139,92,246,.07)"; ctx.lineWidth=1;
+  for(let y=0;y<h;y+=22){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+}
+function drawLine(ctx,w,h,arr,color,fill,minFix,maxFix){
+  const vals=arr.filter(v=>v!=null && isFinite(v));
+  if(vals.length<2) return;
+  let mn=(minFix!=null)?minFix:Math.min(...vals);
+  let mx=(maxFix!=null)?maxFix:Math.max(...vals);
+  if(mx-mn<1e-6) mx=mn+1;
+  const pad=8, n=arr.length;
+  const x=i=>i/(n-1)*w;
+  const y=v=>h-pad-((v-mn)/(mx-mn))*(h-2*pad);
+  // area fill lembut
+  if(fill){
+    ctx.beginPath(); let st=false;
+    for(let i=0;i<n;i++){const v=arr[i];if(v==null||!isFinite(v)){st=false;continue;}
+      const px=x(i),py=y(v); if(!st){ctx.moveTo(px,h);ctx.lineTo(px,py);st=true;}else ctx.lineTo(px,py);}
+    ctx.lineTo(x(n-1),h); ctx.closePath();
+    const g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,color+"33"); g.addColorStop(1,color+"00");
+    ctx.fillStyle=g; ctx.fill();
+  }
+  ctx.lineWidth=2.4; ctx.strokeStyle=color; ctx.lineJoin="round";
+  ctx.beginPath(); let started=false;
+  for(let i=0;i<n;i++){
+    const v=arr[i]; if(v==null||!isFinite(v)){started=false;continue;}
+    const px=x(i),py=y(v);
+    if(!started){ctx.moveTo(px,py);started=true;} else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+}
+function hex(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+/* ---------------- Buffer ---------------- */
+const PPGW=260, RAWW=200;
+const ppgBuf=[], irBuf=[], redBuf=[], histHr=[], histO2=[];
+function push(arr,v,max){arr.push(v); while(arr.length>max) arr.shift();}
+function normSelf(arr){
+  const vals=arr.filter(v=>v!=null&&isFinite(v));
+  if(vals.length<2) return arr.map(()=>null);
+  let mn=Math.min(...vals),mx=Math.max(...vals); if(mx-mn<1)mx=mn+1;
+  return arr.map(v=>v==null?null:(v-mn)/(mx-mn));
+}
+
+/* ---------------- Render ---------------- */
+function render(){
+  {const {ctx,w,h}=setupCanvas($("ppg"));ctx.clearRect(0,0,w,h);gridLines(ctx,w,h);
+   if(ppgBuf.filter(v=>v!=null).length<2){
+     ctx.fillStyle="#b9aee0";ctx.font="13px Poppins,system-ui";
+     ctx.fillText("Tempelkan jari untuk melihat denyut…",14,h/2);
+   } else drawLine(ctx,w,h,ppgBuf,hex('--ppg'),true);}
+  {const {ctx,w,h}=setupCanvas($("raw"));ctx.clearRect(0,0,w,h);gridLines(ctx,w,h);
+   drawLine(ctx,w,h,normSelf(irBuf),hex('--ir'),false,0,1);
+   drawLine(ctx,w,h,normSelf(redBuf),hex('--red'),false,0,1);}
+  {const {ctx,w,h}=setupCanvas($("histHr"));ctx.clearRect(0,0,w,h);gridLines(ctx,w,h);
+   drawLine(ctx,w,h,histHr,hex('--bad'),true,40,140);}
+  {const {ctx,w,h}=setupCanvas($("histO2"));ctx.clearRect(0,0,w,h);gridLines(ctx,w,h);
+   drawLine(ctx,w,h,histO2,hex('--acc'),true,85,100);}
+  requestAnimationFrame(render);
+}
+
+/* ---------------- BLE & status ---------------- */
+let liveHR=null;
+function setPpgBpm(){ $("ppgBpm").textContent = liveHR? ("♥ "+liveHR+" bpm") : ""; }
+
+function setConnected(on){
+  $("dot").classList.toggle("on",on);
+  $("statusText").textContent = on ? ("Terhubung: "+(device?.name||"device")) : "Belum terhubung";
+  $("btnConnect").disabled=on; $("btnDisconnect").disabled=!on;
+  if(!on){ banner("","🩺","Terputus","Hubungkan kembali untuk melanjutkan."); resetLive(); }
+}
+function banner(cls,ic,t,s){
+  $("bnIc").textContent=ic;$("bnTitle").textContent=t;$("bnSub").textContent=s;
+  $("banner").className="card banner "+(cls||"");
+}
+
+function resetLive(){
+  liveHR=null; setPpgBpm();
+  setMetric("hr",null); setMetric("o2",null);
+  setQuality(0,false); updateSummary(null,null,0,false);
+}
+function setMetric(which,val){
+  const isHr=which==="hr";
+  const c=isHr?hrClass(val):o2Class(val);
+  $(isHr?"hrVal":"o2Val").textContent = val==null?"—":val;
+  const tag=$(isHr?"hrTag":"o2Tag"); tag.textContent=c.txt; tag.className="tag "+c.cls;
+}
+function setQuality(q,active){
+  const c=qualClass(q);
+  for(let i=0;i<4;i++) $("qs"+i).style.background=(active&&i<=c.lvl)?c.col:"rgba(139,92,246,.1)";
+  const b=$("qBadge"); b.textContent=active? c.txt : "—";
+  b.style.background=active? "transparent":"rgba(148,163,184,.14)";
+  b.style.color=active? c.col : "var(--mut)";
+  b.style.border=active? ("1.5px solid "+c.col):"0";
+}
+function updateSummary(hr,o2,q,active){
+  const hc=hrClass(hr), oc=o2Class(o2), qc=qualClass(q);
+  $("sumHr").textContent = (hr==null?"—":hr)+" BPM";
+  $("sumHrS").textContent = hr==null?"menunggu":hc.txt; $("sumHrS").style.color=hr==null?"var(--mut)":hc.col;
+  $("sumO2").textContent = (o2==null?"—":o2)+" %";
+  $("sumO2S").textContent = o2==null?"menunggu":oc.txt; $("sumO2S").style.color=o2==null?"var(--mut)":oc.col;
+  $("sumQ").textContent  = active? qc.txt : "—";
+  $("sumQS").textContent = active?"kualitas sinyal":"kontak jari"; $("sumQS").style.color=active?qc.col:"var(--mut)";
+}
+
+async function connect(){
+  if(!navigator.bluetooth){alert("Browser ini tidak mendukung Web Bluetooth. Pakai Chrome / Edge.");return;}
+  try{
+    $("statusText").textContent="Memilih perangkat...";
+    device=await navigator.bluetooth.requestDevice({filters:[{name:"Scentra-2"}],optionalServices:[SERVICE_UUID]});
+    device.addEventListener("gattserverdisconnected",()=>{setConnected(false);characteristic=null;});
+    const server=await device.gatt.connect();
+    const service=await server.getPrimaryService(SERVICE_UUID);
+    characteristic=await service.getCharacteristic(CHAR_UUID);
+    await characteristic.startNotifications();
+    characteristic.addEventListener("characteristicvaluechanged",onData);
+    setConnected(true);
+    banner("","👆","Letakkan jari","Tempelkan jari di sensor dan tahan diam.");
+  }catch(e){$("statusText").textContent="Gagal: "+e.message;}
+}
+async function disconnect(){if(device&&device.gatt.connected)device.gatt.disconnect();}
+
+/* CSV: status,millis,HR,vHR,SpO2,vSpO2,IR,RED,PPG,QUAL,PIx100,nGood */
+let histTick=0;
+function onData(ev){
+  const p=decoder.decode(ev.target.value).trim().split(",");
+  if(p.length<10) return;
+  const status=+p[0];
+  const hr=+p[2], vhr=p[3]==="1", spo2=+p[4], vspo2=p[5]==="1";
+  const ir=+p[6], red=+p[7], ppg=+p[8], qual=+p[9];
+  const ngood=p.length>11? +p[11] : 0;
+
+  push(ppgBuf, (ir>5000)? ppg : null, PPGW);
+  push(irBuf,  (ir>5000)? ir  : null, RAWW);
+  push(redBuf, (ir>5000)? red : null, RAWW);
+  setQuality(qual, status!==0 && ir>5000);
+
+  if(status===0){
+    banner("","👆","Letakkan jari","Tempelkan jari menutupi sensor, lalu tahan diam.");
+    liveHR=null; setPpgBpm();
+    setMetric("hr",null); setMetric("o2",null);
+    updateSummary(null,null,qual,false);
+  }else if(status===1){
+    banner("","⏳","Sedang mengukur orang #"+(personCount+1),
+           "Tahan jari diam, tunggu sampai data stabil… "+(ngood?("("+ngood+" sampel bagus)"):"mengumpulkan sinyal…"));
+    const h=vhr?hr:null, o=vspo2?spo2:null;
+    liveHR = vhr? hr : liveHR; setPpgBpm();
+    setMetric("hr", h); setMetric("o2", o);
+    updateSummary(h,o,qual,true);
+    if((histTick++ %4)===0){
+      push(histHr, h, 120); push(histO2, o, 120);
+      $("histHrTag").textContent = h!=null? (h+" bpm"):"";
+      $("histO2Tag").textContent = o!=null? (o+" %"):"";
+    }
+  }else if(status===2){
+    personCount++;
+    const r={person:personCount,time:new Date().toLocaleTimeString(),
+             hr:vhr?hr:null, spo2:vspo2?spo2:null, qual, ngood};
+    results.push(r); addResultRow(r);
+    $("count").textContent=results.length+" orang";
+    $("btnDownload").disabled=false; $("btnClearAll").disabled=false;
+    if (typeof autoSaveResult === 'function') autoSaveResult(r);   // simpan otomatis (cloud/lokal)
+
+    setMetric("hr",r.hr); setMetric("o2",r.spo2);
+    updateSummary(r.hr,r.spo2,qual,true);
+    liveHR=r.hr; setPpgBpm();
+    const kurang=(r.hr==null||r.spo2==null);
+    if(kurang){
+      banner("warn","🔁","Selesai #"+personCount+" — sinyal kurang","Beberapa nilai tidak terbaca. Lepas jari lalu ulangi dengan kontak lebih baik.");
+    }else{
+      const hc=hrClass(r.hr), oc=o2Class(r.spo2);
+      const allok=(hc.cls==="ok"&&oc.cls==="ok");
+      banner(allok?"ok":"warn",allok?"✅":"⚠️","Selesai #"+personCount+(allok?" — kondisi normal":" — periksa hasil"),
+             "HR "+r.hr+" bpm ("+hc.txt+"), SpO₂ "+r.spo2+"% ("+oc.txt+"). Lepas jari untuk orang berikutnya.");
+    }
+  }
+}
+
+function tagHTML(c){return `<span class="pillval" style="color:${c.col}">${c.txt}</span>`;}
+function addResultRow(r){
+  const tr=document.createElement("tr"); tr.className="flash";
+  const hc=hrClass(r.hr), oc=o2Class(r.spo2);
+  const q=qualClass(r.qual);
+  tr.innerHTML=
+    `<td>#${r.person}</td><td>${r.time}</td>`+
+    `<td>${r.hr??"--"}</td><td>${r.hr==null?'<span style="color:var(--mut)">—</span>':tagHTML(hc)}</td>`+
+    `<td>${r.spo2??"--"}</td><td>${r.spo2==null?'<span style="color:var(--mut)">—</span>':tagHTML(oc)}</td>`+
+    `<td style="color:${q.col};font-weight:700">${q.txt}</td>`;
+  $("rows").appendChild(tr); tr.scrollIntoView({block:"nearest"});
+}
+
+function downloadCSV(){
+  if(!results.length) return;
+  let csv="orang,waktu,HR_bpm,HR_status,SpO2_persen,SpO2_status,SignalQuality,sampel_bagus\n";
+  results.forEach(r=>{
+    csv+=[r.person,r.time,r.hr??"",hrClass(r.hr).txt,r.spo2??"",o2Class(r.spo2).txt,qualClass(r.qual).txt,r.ngood].join(",")+"\n";
+  });
+  const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const stamp=new Date().toISOString().replace(/[:.]/g,"-").slice(0,19);
+  a.href=url; a.download=`scentra-hasil_${stamp}.csv`; a.click(); URL.revokeObjectURL(url);
+}
+function clearAll(){
+  results.length=0; personCount=0; $("rows").innerHTML="";
+  $("count").textContent="0 orang"; $("btnDownload").disabled=true; $("btnClearAll").disabled=true;
+  histHr.length=0; histO2.length=0;
+}
+
+$("btnConnect").addEventListener("click",connect);
+$("btnDisconnect").addEventListener("click",disconnect);
+$("btnDownload").addEventListener("click",downloadCSV);
+$("btnClearAll").addEventListener("click",clearAll);
+
+/* ===================================================================
+   Simpan ke Cloud (offline-first, sama seperti halaman Health)
+   - Online + login  → langsung ke Firestore (users/{uid}/ppgMeasurements)
+   - Offline / belum login → antre di localStorage
+   - Saat kembali online / login → otomatis tersinkron ke Firestore
+   =================================================================== */
+const PPG_PENDING_KEY = 'scentra_ppg_pending';
+const getPending = () => { try { return JSON.parse(localStorage.getItem(PPG_PENDING_KEY) || '[]'); } catch (e) { return []; } };
+const setPending = (a) => localStorage.setItem(PPG_PENDING_KEY, JSON.stringify(a));
+
+function toast(msg){
+  let t=document.getElementById('ppgToast');
+  if(!t){ t=document.createElement('div'); t.id='ppgToast';
+    t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999;opacity:0;transition:opacity .25s;max-width:90%;text-align:center;';
+    document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._h); t._h=setTimeout(()=>{ t.style.opacity='0'; }, 3500);
+}
+let _savedCloud=0;
+function updateSyncBadge(){
+  const n=getPending().length, el=$('ppgSync'); if(!el) return;
+  if(n>0){ el.style.display='inline-flex'; el.textContent='⏳ '+n+' menunggu unggah'; el.style.color='var(--warn-d)'; }
+  else if(_savedCloud>0){ el.style.display='inline-flex'; el.textContent='☁ tersinkron'; el.style.color='var(--ok-d)'; }
+  else el.style.display='none';
+}
+function _recordOf(r){
+  return { startedAtISO:new Date().toISOString(), device:(device&&device.name)||'Scentra-2',
+           person:r.person, time:r.time, hr:r.hr, spo2:r.spo2, qual:r.qual, ngood:r.ngood };
+}
+function _cloudAdd(uid, rec){
+  return db.collection('users').doc(uid).collection('ppgMeasurements')
+           .add(Object.assign({}, rec, { createdAt: firebase.firestore.FieldValue.serverTimestamp() }));
+}
+function _queueLocal(rec){ const p=getPending(); p.push(rec); setPending(p); updateSyncBadge(); }
+
+/* AUTO-SAVE: dipanggil otomatis tiap pengukuran selesai.
+   Online + login → langsung Firestore. Offline / belum login → localStorage. */
+async function autoSaveResult(r){
+  const rec=_recordOf(r);
+  const user=(typeof auth!=='undefined')?auth.currentUser:null;
+  const offline=(typeof navigator!=='undefined' && navigator.onLine===false);
+  if(offline || !user || typeof db==='undefined'){ _queueLocal(rec); return; }
+  try { await _cloudAdd(user.uid, rec); _savedCloud++; updateSyncBadge(); }
+  catch(e){ _queueLocal(rec); }
+}
+
+/* Unggah antrean lokal saat online / login kembali. */
+let _ppgSyncing=false;
+async function syncPending(){
+  if(_ppgSyncing) return;
+  if(typeof navigator!=='undefined' && navigator.onLine===false) return;
+  const user=(typeof auth!=='undefined')?auth.currentUser:null;
+  if(!user || typeof db==='undefined') return;
+  let p=getPending(); if(!p.length) return;
+  _ppgSyncing=true; const remain=[];
+  for(const rec of p){ try{ await _cloudAdd(user.uid, rec); _savedCloud++; }catch(e){ remain.push(rec); } }
+  setPending(remain); updateSyncBadge(); _ppgSyncing=false;
+  const done=p.length-remain.length;
+  if(done>0) toast(done+' pengukuran offline terunggah ke cloud ✓');
+}
+
+// Tombol "Sinkron" = paksa unggah antrean sekarang.
+$('btnSave').addEventListener('click', ()=>{
+  if(getPending().length===0){ toast('Tidak ada data yang menunggu — semua sudah tersimpan.'); return; }
+  if(typeof navigator!=='undefined' && navigator.onLine===false){ toast('Masih offline — akan otomatis terunggah saat online.'); return; }
+  syncPending();
+});
+window.addEventListener('online', ()=>{ toast('Online kembali — menyinkronkan…'); syncPending(); });
+if(typeof auth!=='undefined' && auth.onAuthStateChanged) auth.onAuthStateChanged(u=>{ if(u) syncPending(); });
+updateSyncBadge();
+
+setQuality(0,false);
+render();
+</script>
+</body>
+</html>

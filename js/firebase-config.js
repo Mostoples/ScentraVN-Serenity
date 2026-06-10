@@ -59,6 +59,8 @@ if (firebase.firestore.persistentLocalCache && firebase.firestore.persistentMult
 auth.onAuthStateChanged((user) => {
     if (user) {
         console.log('User logged in:', user.email);
+        // A real Firebase user now exists → drop any local-guest marker.
+        try { localStorage.removeItem('scentravn_local_guest'); } catch (e) {}
         // Store user data in localStorage for quick access
         localStorage.setItem('scentravn_user', JSON.stringify({
             uid: user.uid,
@@ -68,7 +70,12 @@ auth.onAuthStateChanged((user) => {
         }));
     } else {
         console.log('User logged out');
-        localStorage.removeItem('scentravn_user');
+        // Do NOT wipe a local-guest session — it is stored under scentravn_user
+        // too, and there is no Firebase user for a local guest by design.
+        try {
+            const u = JSON.parse(localStorage.getItem('scentravn_user') || 'null');
+            if (!u || !u.isLocalGuest) localStorage.removeItem('scentravn_user');
+        } catch (e) { localStorage.removeItem('scentravn_user'); }
     }
 });
 

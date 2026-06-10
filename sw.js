@@ -16,7 +16,7 @@
  *  - Navigasi: network-first -> halaman ter-cache -> offline.html.
  */
 
-const APP_VERSION = '2.4.2';
+const APP_VERSION = '2.5.4';
 const PRECACHE = `scentravn-precache-v${APP_VERSION}`;
 const RUNTIME = `scentravn-runtime-v${APP_VERSION}`;
 
@@ -32,6 +32,7 @@ const LOCAL_ASSETS = [
     '/auth.html',
     '/offline.html',
     '/manifest.json',
+    '/ppg/index.html',
 
     // CSS
     '/css/styles.css',
@@ -53,6 +54,7 @@ const LOCAL_ASSETS = [
     '/js/utils.js',
     '/js/i18n.js',
     '/js/firebase-config.js',
+    '/js/guest-session.js',
     '/js/firebase-live.js',
     '/js/local-bridge.js',
     '/js/auth-guard.js',
@@ -86,6 +88,7 @@ const LOCAL_ASSETS = [
     '/js/synachat.js',
 
     // JS - EEG / sleep / biolab
+    '/js/ppg-hrv.js',
     '/js/eeg-muse.js',
     '/js/muse-gauge.js',
     '/js/math-utilities.js',

@@ -94,6 +94,10 @@ const MuseEEG = {
         focusState:     'low',   // 'low' | 'moderate' | 'good'
         battery:        null,
         ppg:            { ambient: null, ir: null, red: null },  // latest optical PPG sample per channel
+        hr:             null,   // heart rate (BPM) from PPG IR pipeline
+        rmssd:          null,   // HRV RMSSD (ms) from PPG IR pipeline
+        ppgSqi:         0,      // PPG signal-quality index 0..1
+        ppgBits:        null,   // PPG decode bit-depth in use (16 or 24)
         packetCount:    0,
     },
 
@@ -169,6 +173,7 @@ const MuseEEG = {
             /* Subscribe to PPG (optical heart sensor — Muse S / Muse 2). */
             this._ppgCount = 0;
             this._ppgSubs = 0;
+            if (this._ppgProc) this._ppgProc.reset();   // fresh HRV state per session
             for (const ch of ['ppg1', 'ppg2', 'ppg3']) {
                 try {
                     const c = await this.service.getCharacteristic(MUSE_CHAR[ch]);
@@ -239,6 +244,7 @@ const MuseEEG = {
             try {
                 const battSvc = await this.server.getPrimaryService(BATTERY_SERVICE);
                 const battChar = await battSvc.getCharacteristic(BATTERY_LEVEL_CHAR);
+                this._battStdChar = battChar;
                 const apply = (dv) => { if (dv && dv.byteLength >= 1) this.metrics.battery = Math.max(0, Math.min(100, dv.getUint8(0))); };
                 apply(await battChar.readValue());
                 this._stdBattery = true;
@@ -251,30 +257,26 @@ const MuseEEG = {
                 console.log('[Muse] BLE Battery Service standar TIDAK tersedia → memakai telemetry proprietary (lihat raw di bawah).');
             }
 
-            /* Proprietary telemetry (273e000b). The battery level sits at offset 2
-               (after the 2-byte sequence). Classic Muse 2 / S use a large 0-51200
-               range (raw/512 = %). Muse S Gen 2 (Athena) uses a small range that we
-               calibrated against the official Muse app: raw 414 → 89% → divisor 4.65
-               (raw/4.65 = %). Telemetry is coarse so ±1% vs the app is expected.
-               We pick the scale from the magnitude. Only used when the standard
-               battery service above is unavailable. */
+            /* Proprietary telemetry (273e000b). On this firmware the real battery
+               level is at OFFSET 4 with the classic Muse scale raw/512 (see
+               _applyPropBattery). Only used when the standard battery service above
+               is unavailable. */
             try {
                 const bat = await this.service.getCharacteristic(MUSE_CHAR.battery);
+                this._battPropChar = bat;
                 await bat.startNotifications();
                 bat.addEventListener('characteristicvaluechanged', (e) => {
                     if (this._stdBattery) return;
-                    const dv = e.target.value;
-                    if (!dv || dv.byteLength < 4) return;
-                    const raw = dv.getUint16(2, false);
-                    const pct = raw > 1024 ? raw / 512 : raw / 4.65;   // classic vs Athena (calibrated)
-                    if (!this._battLogged) {
-                        this._battLogged = true;
-                        console.log('[Muse] Baterai telemetry proprietary — raw@2 =', raw, '→', Math.round(pct) + '%.',
-                            'Jika app Muse menampilkan angka berbeda, beri tahu raw ini + angka app agar skala dikalibrasi tepat.');
-                    }
-                    this.metrics.battery = Math.max(0, Math.min(100, pct));
+                    this._applyPropBattery(e.target.value, '(notify)');
                 });
             } catch(_) { /* battery not always available */ }
+
+            /* Some Muse units only notify the battery sparsely (or once), which
+               makes the % look frozen. Poll it every 30 s so it refreshes as the
+               device drains. Reads are cheap and don't disturb the data stream. */
+            if (this._battPoll) clearInterval(this._battPoll);
+            this._battPoll = setInterval(() => this._pollBattery(), 30000);
+            this._pollBattery();
 
             this.isConnected  = true;
             this.isConnecting = false;
@@ -714,15 +716,62 @@ const MuseEEG = {
             }
             if (!samples.length) return;
             this._ppgCount = (this._ppgCount || 0) + 1;
+            this.metrics.ppgBits = bits;
             if (!this._ppgLogged) {
                 this._ppgLogged = true;
                 console.log(`[Muse] PPG paket pertama diterima — ch=${channel}, byteLength=${n}, mode=${bits}-bit, ${samples.length} sampel ✓`);
             }
             const key = channel === 'ppg1' ? 'ambient' : channel === 'ppg2' ? 'ir' : 'red';
             this.metrics.ppg[key] = samples[samples.length - 1];
+
+            // IR is the strong pulsatile channel → feed the HRV pipeline (PPGProcessor).
+            // Uses performance.now() so BLE jitter doesn't distort beat timing.
+            if (channel === 'ppg2') {
+                if (!this._ppgProc && typeof MusePPG !== 'undefined') this._ppgProc = new MusePPG({ fs: 64 });
+                if (this._ppgProc) {
+                    this._ppgProc.pushPacket(samples, (typeof performance !== 'undefined' ? performance.now() : Date.now()));
+                    this.metrics.hr = this._ppgProc.bpm;
+                    this.metrics.rmssd = this._ppgProc.rmssd;
+                    this.metrics.ppgSqi = this._ppgProc.sqi;
+                }
+            }
+
             const frame = { t: Date.now(), ch: channel, samples };
             for (const fn of this._rawListeners) { try { fn(frame); } catch (_) {} }
         } catch (_) {}
+    },
+
+    /** Apply a proprietary-telemetry battery frame.
+     *  On this Muse S Gen 2 (Athena) firmware the real, drain-tracking battery
+     *  level is the 16-bit big-endian value at OFFSET 4, using the classic Muse
+     *  scale raw/512 (verified: raw 45976 → 89.8% ≈ Muse app 90%). Offset 2 was a
+     *  different, sticky field that made the % look frozen. */
+    _applyPropBattery(dv, source) {
+        if (!dv || dv.byteLength < 6) return;
+        const raw = dv.getUint16(4, false);
+        const pct = raw / 512;
+        if (raw !== this._lastBattRaw) {
+            this._lastBattRaw = raw;
+            console.log(`[Muse] Baterai ${source || ''} — raw@4=${raw} → ${Math.round(pct)}%`);
+        }
+        this.metrics.battery = Math.max(0, Math.min(100, pct));
+    },
+
+    /** Re-read the battery so the % refreshes even if the device notifies rarely. */
+    async _pollBattery() {
+        try {
+            if (!this.isConnected || !this.device || !this.device.gatt || !this.device.gatt.connected) return;
+            if (this._stdBattery && this._battStdChar) {
+                const dv = await this._battStdChar.readValue();
+                if (dv && dv.byteLength >= 1) {
+                    const pct = dv.getUint8(0);
+                    if (pct !== this._lastBattRaw) { this._lastBattRaw = pct; console.log('[Muse] Baterai (poll, BLE standar):', pct + '%'); }
+                    this.metrics.battery = Math.max(0, Math.min(100, pct));
+                }
+            } else if (this._battPropChar) {
+                this._applyPropBattery(await this._battPropChar.readValue(), '(poll)');
+            }
+        } catch (_) { /* characteristic not readable / transient BLE error */ }
     },
 
     async _sendCommand(cmd) {
@@ -744,6 +793,8 @@ const MuseEEG = {
         this.isConnecting = false;
         this.device = this.server = this.service = this.controlChar = null;
         if (this._presetFallbackTimer) { clearTimeout(this._presetFallbackTimer); this._presetFallbackTimer = null; }
+        if (this._battPoll) { clearInterval(this._battPoll); this._battPoll = null; }
+        this._battStdChar = this._battPropChar = null;
         this._packetsSeen = 0;
         this._ctrlBuf = '';
         for (const ch of Object.keys(this.buffers)) this.buffers[ch] = [];

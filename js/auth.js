@@ -155,6 +155,7 @@ const Auth = {
      */
     async logout() {
         try {
+            if (typeof GuestSession !== 'undefined') GuestSession.clear();   // drop any local guest
             await auth.signOut();
             localStorage.removeItem('scentravn_user');
             return { success: true };
@@ -563,27 +564,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Guest / anonymous login
+    // Guest login — works WITHOUT internet via a local guest session.
     const guestBtn = document.getElementById('guestLogin');
     if (guestBtn) {
         const guestOriginal = guestBtn.innerHTML;
+        const goLocalGuest = (msg) => {
+            if (typeof GuestSession !== 'undefined') GuestSession.create();
+            showAlert(msg || 'Masuk sebagai Tamu (lokal). Data tersimpan di perangkat & tersinkron saat online.', 'success');
+            setTimeout(() => { window.location.href = 'app.html'; }, 1000);
+        };
         guestBtn.addEventListener('click', async () => {
-            if (navigator.onLine === false) {
-                showAlert('Login tamu membutuhkan koneksi internet untuk pertama kali.', 'error');
+            // Offline → local guest immediately (no Firebase needed).
+            if (navigator.onLine === false || typeof auth === 'undefined') {
+                goLocalGuest('Masuk sebagai Tamu (offline). Data tersimpan di perangkat & akan tersinkron saat online.');
                 return;
             }
+            // Online → real Firebase anonymous (cloud-synced).
             guestBtn.disabled = true;
             guestBtn.innerHTML = `<div class="spinner"></div> ${typeof t !== 'undefined' ? t('auth.connecting') : 'Menghubungkan...'}`;
-
             const result = await Auth.loginAnonymous();
-
             if (result.success) {
                 showAlert('Masuk sebagai tamu! Mengalihkan...', 'success');
                 setTimeout(() => { window.location.href = 'app.html'; }, 1000);
             } else {
+                // Anonymous auth not enabled / failed → fall back to local guest.
                 guestBtn.disabled = false;
                 guestBtn.innerHTML = guestOriginal;
-                showAlert(result.error, 'error');
+                goLocalGuest('Masuk sebagai Tamu (lokal). Akan tersinkron ke cloud saat tersedia.');
             }
         });
     }

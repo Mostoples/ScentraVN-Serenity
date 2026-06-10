@@ -35,6 +35,10 @@ const AuthGuard = {
 
                 if (user) {
                     allow(user);
+                } else if (cachedUser && cachedUser.isLocalGuest) {
+                    // Local guest session (no Firebase account) — allowed online OR
+                    // offline; it upgrades to a real account in the background.
+                    allow(cachedUser);
                 } else if (isOffline && cachedUser) {
                     // Offline and we have a previously cached session: trust the
                     // cache and let the user in. Firebase cannot reach its auth
@@ -102,9 +106,8 @@ const AuthGuard = {
             const cachedUser = this.getCachedUser();
             const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
 
-            // Offline with a cached session: no point staying on the login page
-            // (Google sign-in needs internet). Go straight to the app.
-            if (isOffline && cachedUser) {
+            // A local guest, or offline with a cached session → straight to the app.
+            if ((cachedUser && cachedUser.isLocalGuest) || (isOffline && cachedUser)) {
                 settled = true;
                 window.location.href = 'app.html';
                 resolve(true);

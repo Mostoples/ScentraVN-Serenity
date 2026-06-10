@@ -24,6 +24,49 @@ function initHealthPage() {
 
     // Kontrol rekam inline (mesin sama dengan halaman Raw Recorder)
     if (typeof HealthRecorder !== 'undefined') HealthRecorder.wire();
+
+    // Tombol info "sinyal lemah" pada card HRV
+    document.getElementById('eegHrvInfo')?.addEventListener('click', showPpgSignalTips);
+    // Tombol tutorial Muse S Gen 2 (video) pada card EEG
+    document.getElementById('eegTutorBtn')?.addEventListener('click', showMuseTutorial);
+}
+
+/** Modal video tutorial penggunaan Muse S Gen 2 (auto-play). */
+function showMuseTutorial() {
+    if (document.getElementById('museTutorOverlay')) return;
+    const ov = document.createElement('div');
+    ov.id = 'museTutorOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(15,12,40,.80);backdrop-filter:blur(4px);padding:16px;';
+    ov.innerHTML =
+        '<div style="position:relative;width:100%;max-width:760px;background:#000;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);">' +
+          '<button id="museTutorClose" aria-label="Tutup" style="position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:1.05rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-xmark"></i></button>' +
+          '<video id="museTutorVideo" src="tutor.mp4" controls autoplay playsinline preload="auto" style="width:100%;height:auto;max-height:78vh;display:block;background:#000;"></video>' +
+          '<div style="padding:10px 14px;background:#0f0c28;color:#cbd5e1;font-size:.74rem;text-align:center;font-weight:600;">Tutorial penggunaan Muse S Gen 2</div>' +
+        '</div>';
+    document.body.appendChild(ov);
+
+    const vid = document.getElementById('museTutorVideo');
+    // Klik tombol = gesture pengguna → coba auto-play bersuara; jika diblokir, mute lalu play.
+    const p = vid.play && vid.play();
+    if (p && p.catch) p.catch(() => { vid.muted = true; const q = vid.play(); if (q && q.catch) q.catch(() => {}); });
+
+    const close = () => { try { vid.pause(); } catch (e) {} ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.getElementById('museTutorClose').addEventListener('click', close);
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    document.addEventListener('keydown', onKey);
+}
+
+/** Tips to strengthen a weak Muse PPG signal (shown from the HRV card info button). */
+function showPpgSignalTips() {
+    const msg = 'Sinyal PPG (HRV) terlalu lemah untuk dihitung. Cara menguatkannya:\n\n'
+        + '• Lap dahi dari keringat & minyak\n'
+        + '• Singkirkan rambut / poni yang menutupi sensor di dahi\n'
+        + '• Pasang headband lebih erat agar sensor menempel kulit\n'
+        + '• Diam beberapa detik — gerakan merusak sinyal PPG\n\n'
+        + 'Setelah nilai PPG (IR) naik & stabil, HRV akan muncul (kisaran wajar ~20–60 ms).';
+    if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal(msg, { title: 'Perkuat Sinyal PPG' });
+    else alert(msg);
 }
 
 // ─────────────────────────────────────────────
@@ -429,10 +472,35 @@ function renderEEG(muse) {
     // PPG cards (replaced Focus/Relax): live IR sample + HRV (RMSSD).
     const ppg = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.ppg : null;
     const irEl = document.getElementById('eegPpgIr');
-    if (irEl) irEl.textContent = (museReal && ppg && ppg.ir != null) ? Math.round(ppg.ir).toLocaleString() : '--';
+    if (irEl) irEl.textContent = (museReal && ppg && ppg.ir != null) ? Math.round(ppg.ir).toLocaleString('id-ID') : '--';
+    // Show which bit-depth the PPG packets are being decoded as (16 or 24).
+    const bitsEl = document.getElementById('eegPpgBits');
+    const bits = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.ppgBits : null;
+    if (bitsEl) bitsEl.textContent = (museReal && bits) ? `· decode ${bits}-bit` : '';
     const hrvEl = document.getElementById('eegHrv');
-    const rmssd = (typeof EEGInsight !== 'undefined' && EEGInsight.last) ? EEGInsight.last.rmssd : null;
-    if (hrvEl) hrvEl.textContent = (museReal && rmssd != null && isFinite(rmssd)) ? Math.round(rmssd) + ' ms' : '--';
+    const hrvInfo = document.getElementById('eegHrvInfo');
+    // HRV from the dedicated PPG→HRV pipeline (MusePPG), but ONLY when the signal
+    // quality is good — a weak/poorly-seated PPG produces erratic, meaningless RMSSD.
+    const sqi = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? (MuseEEG.metrics.ppgSqi || 0) : 0;
+    const rmssd = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.rmssd : null;
+    let weak = false;
+    if (hrvEl) {
+      // Plausible resting RMSSD on consumer forehead PPG ≈ 5–150 ms; anything far
+      // above that with a low SQI is artefact, not real HRV.
+      if (museReal && rmssd != null && isFinite(rmssd) && rmssd >= 5 && rmssd <= 150 && sqi >= 0.5) {
+        hrvEl.textContent = Math.round(rmssd) + ' ms';
+        hrvEl.style.color = '';
+      } else if (museReal && (MuseEEG.metrics.ppg && MuseEEG.metrics.ppg.ir != null)) {
+        hrvEl.textContent = 'sinyal lemah';   // PPG present but quality too low for HRV
+        hrvEl.style.color = '#b45309';
+        weak = true;
+      } else {
+        hrvEl.textContent = '--';
+        hrvEl.style.color = '';
+      }
+    }
+    // Info button appears only when the signal is weak (tells how to strengthen it).
+    if (hrvInfo) hrvInfo.style.display = weak ? 'inline-flex' : 'none';
 
     // Pre-conditioning baseline + auto-insight follow the real Muse link.
     if (typeof EEGInsight !== 'undefined') {
