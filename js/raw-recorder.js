@@ -424,6 +424,61 @@
       return { meta, streams };
     },
 
+    /**
+     * Overwrite an existing recording's full streams (used by the spectra editor
+     * after the user removes noisy segments). Recomputes counts/bytes, replaces
+     * ALL chunks (old chunks are deleted first so a shorter result can't leave
+     * stale tail chunks that would corrupt reassembly), and updates metadata.
+     */
+    async updateRecording(id, streams) {
+      if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') {
+        throw new Error('Login diperlukan untuk menyimpan perubahan.');
+      }
+      const uid = auth.currentUser.uid;
+      const ref = db.collection('users').doc(uid).collection('rawRecordings').doc(id);
+
+      const counts = {
+        muse: (streams.muse || []).length,
+        museRaw: (streams.museRaw || []).length,
+        scentra: (streams.scentra || []).length,
+        galaxy: (streams.galaxy || []).length,
+      };
+      const total = counts.muse + counts.museRaw + counts.scentra + counts.galaxy;
+
+      const json = JSON.stringify(streams);
+      const parts = [];
+      for (let i = 0; i < json.length; i += CHUNK_BYTES) parts.push(json.slice(i, i + CHUNK_BYTES));
+
+      const chunksCol = ref.collection('chunks');
+
+      /* 1) delete every existing chunk */
+      const old = await chunksCol.get();
+      let batch = db.batch(); let ops = 0;
+      for (const c of old.docs) {
+        batch.delete(c.ref);
+        if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
+      }
+      if (ops > 0) await batch.commit();
+
+      /* 2) write the new chunks */
+      batch = db.batch(); ops = 0;
+      for (let i = 0; i < parts.length; i++) {
+        batch.set(chunksCol.doc(String(i).padStart(5, '0')), { i, part: parts[i] });
+        if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
+      }
+      if (ops > 0) await batch.commit();
+
+      /* 3) update metadata */
+      await ref.update({
+        counts, total,
+        bytes: json.length,
+        chunkCount: parts.length,
+        editedAt: new Date().toISOString(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      return true;
+    },
+
     async deleteRecording(id) {
       if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') return false;
       const ref = db.collection('users').doc(auth.currentUser.uid).collection('rawRecordings').doc(id);

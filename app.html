@@ -197,8 +197,11 @@
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
     <script src="https://unpkg.com/fflate@0.7.3/umd/index.js"></script>
-    <!-- SheetJS (xlsx) — export RAW recordings to Excel -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- SheetJS (xlsx) — export RAW recordings to Excel. Served locally so the
+         Excel download also works fully offline (precached by the service worker).
+         Falls back to the CDN only if the local file is somehow missing. -->
+    <script src="js/vendor/xlsx.full.min.js"
+            onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';document.head.appendChild(s);"></script>
 
     <!-- App Scripts -->
     <script src="js/theme-manager.js"></script>
@@ -261,6 +264,7 @@
     <script src="js/raw-recorder.js"></script>
     <script src="js/raw-recorder-view.js"></script>
     <script src="js/record-history.js"></script>
+    <script src="js/spectra-editor.js"></script>
 
     <!-- Sleep Session Recorder + UI -->
     <script src="js/sleep-session.js"></script>

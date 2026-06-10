@@ -312,6 +312,13 @@ const App = {
             if (typeof RecordHistory !== 'undefined') RecordHistory.init();
         });
 
+        Router.register('spectra', () => {
+            const nav = document.querySelector('.bottom-nav');
+            if (nav) nav.style.display = 'flex';
+            Router.render(Views.spectraEditor());
+            if (typeof SpectraEditor !== 'undefined') SpectraEditor.init();
+        });
+
         Router.register('sleepsession', () => {
             const nav = document.querySelector('.bottom-nav');
             if (nav) nav.style.display = 'flex';
@@ -936,6 +943,9 @@ const App = {
         }
         if (previousRoute === 'rawrecorder' && typeof RawRecorderView !== 'undefined' && RawRecorderView.destroy) {
             RawRecorderView.destroy();
+        }
+        if (previousRoute === 'spectra' && typeof SpectraEditor !== 'undefined' && SpectraEditor.destroy) {
+            SpectraEditor.destroy();
         }
     }
 };

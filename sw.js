@@ -16,7 +16,7 @@
  *  - Navigasi: network-first -> halaman ter-cache -> offline.html.
  */
 
-const APP_VERSION = '2.1.4';
+const APP_VERSION = '2.1.8';
 const PRECACHE = `scentravn-precache-v${APP_VERSION}`;
 const RUNTIME = `scentravn-runtime-v${APP_VERSION}`;
 
@@ -103,6 +103,8 @@ const LOCAL_ASSETS = [
     '/js/raw-recorder.js',
     '/js/raw-recorder-view.js',
     '/js/record-history.js',
+    '/js/spectra-editor.js',
+    '/js/vendor/xlsx.full.min.js',
     '/js/sleep-session.js',
     '/js/sleep-session-ui.js',
 
@@ -170,7 +172,6 @@ const CDN_ASSETS = [
     'https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js',
     'https://unpkg.com/three@0.128.0/examples/js/loaders/FBXLoader.js',
     'https://unpkg.com/fflate@0.7.3/umd/index.js',
-    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
