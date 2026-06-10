@@ -177,7 +177,8 @@ const MuseEEG = {
                     this._ppgSubs++;
                 } catch (err) { console.warn('[Muse] PPG', ch, 'unavailable:', err && err.message); }
             }
-            console.debug('[Muse] PPG characteristics subscribed:', this._ppgSubs, '/ 3');
+            console.log('[Muse] PPG karakteristik ter-subscribe:', this._ppgSubs, '/ 3',
+                this._ppgSubs === 0 ? '← chars PPG tidak ada di firmware ini' : '');
 
             /* Start streaming. Muse S Gen 2 ("Athena", fw 2024+) streams EEG+PPG+IMU
                on preset p1035. Older Muse 2 / Muse S Gen 1 use the 50-series preset
@@ -201,11 +202,32 @@ const MuseEEG = {
                 }
             }, 2500);
 
-            /* Surface whether PPG packets actually arrived (helps diagnose presets). */
-            setTimeout(() => {
-                if (this.device?.gatt?.connected) {
-                    console.debug('[Muse] PPG packets after 6s:', this._ppgCount,
-                        this._ppgCount ? '(streaming ✓)' : '(none — sensor/preset may not expose PPG on this unit)');
+            /* Surface whether PPG packets actually arrived. If EEG flows but PPG
+               doesn't, try the PPG-capable presets once (some Athena units need a
+               different preset to turn the optical sensor on). EEG keeps streaming. */
+            setTimeout(async () => {
+                if (!this.device?.gatt?.connected) return;
+                if (this._ppgCount > 0) {
+                    console.log('[Muse] PPG streaming ✓ —', this._ppgCount, 'paket dalam 6 dtk');
+                    return;
+                }
+                console.warn('[Muse] PPG belum ada paket setelah 6 dtk (subscribed ' + this._ppgSubs + '/3). Mencoba preset yang mengaktifkan PPG…');
+                for (const preset of ['p1044', 'p1045', 'p50']) {
+                    if (this._ppgCount > 0) break;
+                    try {
+                        await this._sendCommand('h');
+                        await this._delay(150);
+                        await this._startPreset(preset);
+                        await this._sendCommand('s');
+                        await this._sendCommand('d');
+                        await this._delay(2500);
+                        if (this._ppgCount > 0) { console.log('[Muse] PPG aktif dengan preset', preset, '✓'); break; }
+                    } catch (_) {}
+                }
+                if (this._ppgCount === 0) {
+                    // Restore the known-good EEG preset so we never leave EEG broken.
+                    try { await this._sendCommand('h'); await this._delay(150); await this._startPreset(this.PRESET_GEN2); await this._sendCommand('s'); await this._sendCommand('d'); } catch (_) {}
+                    console.warn('[Muse] PPG tetap tidak streaming — unit/firmware ini mungkin tidak mengekspos PPG. EEG dikembalikan ke', this.PRESET_GEN2, '.');
                 }
             }, 6000);
 
@@ -220,18 +242,22 @@ const MuseEEG = {
                 const apply = (dv) => { if (dv && dv.byteLength >= 1) this.metrics.battery = Math.max(0, Math.min(100, dv.getUint8(0))); };
                 apply(await battChar.readValue());
                 this._stdBattery = true;
+                console.log('[Muse] Baterai dari BLE Battery Service standar (0x2A19):', this.metrics.battery + '%  ← sumber paling akurat (sama dengan app Muse)');
                 try {
                     await battChar.startNotifications();
                     battChar.addEventListener('characteristicvaluechanged', (e) => apply(e.target.value));
                 } catch (_) { /* read-only is fine */ }
-            } catch (_) { /* no standard battery service → use proprietary telemetry */ }
+            } catch (_) {
+                console.log('[Muse] BLE Battery Service standar TIDAK tersedia → memakai telemetry proprietary (lihat raw di bawah).');
+            }
 
             /* Proprietary telemetry (273e000b). The battery level sits at offset 2
-               (after the 2-byte sequence). Muse S Gen 2 (Athena) encodes it in a
-               0-512 range (raw/512×100 = %), while classic Muse 2 / S use a larger
-               0-51200 range (raw/512 = %). We pick the scale from the magnitude so
-               a full Athena battery reads ~100% instead of ~1%. Only used when the
-               standard battery service above is unavailable. */
+               (after the 2-byte sequence). Classic Muse 2 / S use a large 0-51200
+               range (raw/512 = %). Muse S Gen 2 (Athena) uses a small range that we
+               calibrated against the official Muse app: raw 414 → 89% → divisor 4.65
+               (raw/4.65 = %). Telemetry is coarse so ±1% vs the app is expected.
+               We pick the scale from the magnitude. Only used when the standard
+               battery service above is unavailable. */
             try {
                 const bat = await this.service.getCharacteristic(MUSE_CHAR.battery);
                 await bat.startNotifications();
@@ -240,8 +266,12 @@ const MuseEEG = {
                     const dv = e.target.value;
                     if (!dv || dv.byteLength < 4) return;
                     const raw = dv.getUint16(2, false);
-                    const pct = raw > 1024 ? raw / 512 : raw / 5.12;   // 0-51200 vs 0-512 encoding
-                    if (!this._battLogged) { this._battLogged = true; console.debug('[Muse] battery telemetry raw@2 =', raw, '→', Math.round(pct) + '%'); }
+                    const pct = raw > 1024 ? raw / 512 : raw / 4.65;   // classic vs Athena (calibrated)
+                    if (!this._battLogged) {
+                        this._battLogged = true;
+                        console.log('[Muse] Baterai telemetry proprietary — raw@2 =', raw, '→', Math.round(pct) + '%.',
+                            'Jika app Muse menampilkan angka berbeda, beri tahu raw ini + angka app agar skala dikalibrasi tepat.');
+                    }
                     this.metrics.battery = Math.max(0, Math.min(100, pct));
                 });
             } catch(_) { /* battery not always available */ }
@@ -669,12 +699,25 @@ const MuseEEG = {
        to raw listeners so a recording can capture the full PPG waveform. */
     _onPPGPacket(channel, dataView) {
         try {
+            const n = dataView.byteLength;
+            if (n < 4) return;
+            const body = n - 2;   // bytes after the 2-byte sequence
+            // Muse S Gen 2 (Athena) PPG = 16-bit samples → 14-byte packet (per the
+            // project's authoritative decoder.js). Classic Muse 2 / S use 24-bit →
+            // 20-byte packet. Pick the format from the packet length.
+            const bits = (n >= 20 && body % 3 === 0) ? 24 : 16;
             const samples = [];
-            for (let i = 2; i + 2 < dataView.byteLength; i += 3) {
-                samples.push((dataView.getUint8(i) << 16) | (dataView.getUint8(i + 1) << 8) | dataView.getUint8(i + 2));
+            if (bits === 24) {
+                for (let i = 2; i + 2 < n; i += 3) samples.push((dataView.getUint8(i) << 16) | (dataView.getUint8(i + 1) << 8) | dataView.getUint8(i + 2));
+            } else {
+                for (let i = 2; i + 1 < n; i += 2) samples.push(dataView.getUint16(i, false));
             }
             if (!samples.length) return;
             this._ppgCount = (this._ppgCount || 0) + 1;
+            if (!this._ppgLogged) {
+                this._ppgLogged = true;
+                console.log(`[Muse] PPG paket pertama diterima — ch=${channel}, byteLength=${n}, mode=${bits}-bit, ${samples.length} sampel ✓`);
+            }
             const key = channel === 'ppg1' ? 'ambient' : channel === 'ppg2' ? 'ir' : 'red';
             this.metrics.ppg[key] = samples[samples.length - 1];
             const frame = { t: Date.now(), ch: channel, samples };

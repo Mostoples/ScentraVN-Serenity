@@ -223,23 +223,36 @@
     /** Build the static gauge SVG once (geometry never changes; only colours do). */
     _gaugeSkeleton() {
       const c = this._GCFG;
+      // Layout: tp9, af7, [PPG], af8, tp10 — PPG is a narrow slot with the SAME
+      // 8° gap to its neighbours as between the electrode segments.
+      const PPG_W = 16;
       const sweep = c.start - c.end;
-      const segW = (sweep - c.gap * (c.order.length - 1)) / c.order.length;
-      let a = c.start, segs = '';
-      for (let i = 0; i < c.order.length; i++) {
-        const a1 = a, a2 = a - segW;
-        segs += `<path class="seg" data-seg="${c.order[i]}" d="${this._ringSector(c.cx, c.cy, c.rI, c.rO, a1, a2)}" ` +
-          `fill="#94a3b8" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></path>`;
-        a = a2 - c.gap;
+      const nGaps = c.order.length;            // 5 items → 4 gaps
+      const segW = (sweep - c.gap * nGaps - PPG_W) / c.order.length;
+      const seq = ['tp9', 'af7', '__ppg__', 'af8', 'tp10'];
+      let a = c.start, segs = '', ppgArc = '';
+      for (const item of seq) {
+        if (item === '__ppg__') {
+          ppgArc = `<path class="rr-gauge-ppg" d="${this._ringSector(c.cx, c.cy, c.rI, c.rO, a, a - PPG_W)}" fill="#cbd5e1" stroke="#cbd5e1" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></path>`;
+          a = a - PPG_W - c.gap;
+        } else {
+          segs += `<path class="seg" data-seg="${item}" d="${this._ringSector(c.cx, c.cy, c.rI, c.rO, a, a - segW)}" ` +
+            `fill="#94a3b8" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></path>`;
+          a = a - segW - c.gap;
+        }
       }
       const bx = c.cx, by = c.cy + 4, R = 44;
       const bars = [-16, -4, 8].map((dx, i) =>
         `<rect class="batt-bar" data-bar="${i}" x="${bx + dx}" y="${by - 7}" width="10" height="14" rx="2" fill="#18d8c6"></rect>`).join('');
       const title = t('rr.muse_quality_title') || 'Kualitas kontak elektroda';
       const legend = c.order.map(ch => `<span class="lg"><span class="dot" data-leg="${ch}"></span>${ch.toUpperCase()}</span>`).join('');
+      const heart = '<path class="rr-gauge-heart" d="M12 21 C12 21 4 13.6 4 8.6 C4 5.9 6 4 8.3 4 C9.9 4 11.2 5 12 6.3 C12.8 5 14.1 4 15.7 4 C18 4 20 5.9 20 8.6 C20 13.6 12 21 12 21 Z" '
+        + `transform="translate(${c.cx - 12 * 1.15} 0) scale(1.15)" fill="#cbd5e1"></path>`;
       return `<div class="rr-mq-title">${title}</div>
-        <div class="rr-gauge-wrap"><svg class="rr-gauge" viewBox="0 0 400 300" role="img" aria-label="${title}">
+        <div class="rr-gauge-wrap"><svg class="rr-gauge" viewBox="0 0 400 300" role="img" aria-label="${title} + PPG">
           <g class="segments">${segs}</g>
+          ${ppgArc}
+          ${heart}
           <g class="battery">
             <circle cx="${bx}" cy="${by}" r="${R}" fill="#f8fafc" stroke="#e2e8f0" stroke-width="3"></circle>
             <rect class="batt-body" x="${bx - 22}" y="${by - 12}" width="42" height="24" rx="5" fill="none" stroke="#18d8c6" stroke-width="3"></rect>
@@ -275,6 +288,16 @@
       el.querySelectorAll('.batt-bar').forEach((b, i) => b.setAttribute('fill', i < filled ? battCol : '#e2e8f0'));
       const body = el.querySelector('.batt-body'); if (body) body.setAttribute('stroke', battCol);
       const tip = el.querySelector('.batt-tip'); if (tip) tip.setAttribute('fill', battCol);
+
+      // PPG indicator (thin red arc + heart): red + glow when PPG is streaming.
+      const ppg = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.ppg : null;
+      const live = !!(ppg && ppg.ir != null);
+      const col = live ? '#ef4444' : '#cbd5e1';
+      const glow = live ? 'drop-shadow(0 0 6px rgba(239,68,68,.8))' : 'none';
+      const arc = el.querySelector('.rr-gauge-ppg');
+      if (arc) { arc.setAttribute('fill', col); arc.setAttribute('stroke', col); arc.style.filter = glow; }
+      const heart = el.querySelector('.rr-gauge-heart');
+      if (heart) { heart.setAttribute('fill', col); heart.style.filter = glow; }
     },
 
     _renderMuseQuality(show, quals) {

@@ -740,8 +740,8 @@ const Views = {
                             <div class="heeg-band"><div class="v" id="eegGamma" style="color:#ef4444;">--</div><div class="n">Gamma</div><div class="h">30–100Hz</div><div class="heeg-bar"><span id="eegBar-gamma" style="background:#ef4444;"></span></div></div>
                         </div>
                         <div class="heeg-status">
-                            <div class="heeg-stat"><i class="fas fa-bullseye" style="color:#10b981;"></i><div><div class="lbl">${t('health.eeg_focus')}</div><div class="val" id="eegFocusState">--</div></div></div>
-                            <div class="heeg-stat"><i class="fas fa-spa" style="color:#7c3aed;"></i><div><div class="lbl">${t('health.eeg_relax')}</div><div class="val" id="eegArousal">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-droplet" style="color:#ef4444;"></i><div><div class="lbl">PPG (IR)</div><div class="val" id="eegPpgIr">--</div></div></div>
+                            <div class="heeg-stat"><i class="fas fa-stopwatch" style="color:#0891b2;"></i><div><div class="lbl">HRV (RMSSD)</div><div class="val" id="eegHrv">--</div></div></div>
                             <div class="heeg-stat"><i class="fas fa-battery-half" style="color:#3b82f6;"></i><div><div class="lbl">${t('health.muse_battery')}</div><div class="val" id="eegBattery">--</div></div></div>
                         </div>
                         <div class="heeg-insight">

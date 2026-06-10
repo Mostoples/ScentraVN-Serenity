@@ -426,6 +426,14 @@ function renderEEG(muse) {
         else { gaugeEl.style.display = 'none'; }
     }
 
+    // PPG cards (replaced Focus/Relax): live IR sample + HRV (RMSSD).
+    const ppg = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.ppg : null;
+    const irEl = document.getElementById('eegPpgIr');
+    if (irEl) irEl.textContent = (museReal && ppg && ppg.ir != null) ? Math.round(ppg.ir).toLocaleString() : '--';
+    const hrvEl = document.getElementById('eegHrv');
+    const rmssd = (typeof EEGInsight !== 'undefined' && EEGInsight.last) ? EEGInsight.last.rmssd : null;
+    if (hrvEl) hrvEl.textContent = (museReal && rmssd != null && isFinite(rmssd)) ? Math.round(rmssd) + ' ms' : '--';
+
     // Pre-conditioning baseline + auto-insight follow the real Muse link.
     if (typeof EEGInsight !== 'undefined') {
         if (museReal && !_insightOn) {
