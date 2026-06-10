@@ -23,6 +23,15 @@
   const RecordHistory = {
     init() {
       document.getElementById('histRefresh')?.addEventListener('click', () => this.load());
+      // Reload the list when offline recordings finish uploading.
+      if (!this._wiredSync) {
+        this._wiredSync = true;
+        window.addEventListener('recordings-synced', () => { if (document.getElementById('histList')) this.load(); });
+      }
+      // Opportunistic: if online, push any pending local recordings to the cloud.
+      if (typeof RawRecorder !== 'undefined' && RawRecorder.syncLocalRecordings && navigator.onLine !== false) {
+        RawRecorder.syncLocalRecordings();
+      }
       this.load();
     },
 
@@ -86,6 +95,7 @@
                         <span class="sep">·</span><span><i class="fas fa-stopwatch"></i> ${dur}</span>
                         ${kb ? `<span class="sep">·</span><span><i class="fas fa-database"></i> ${kb}</span>` : ''}
                     </div>
+                    ${(it._local || it.pending) ? `<span class="rh-pending"><i class="fas fa-cloud-arrow-up"></i> ${t('rh.pending')}</span>` : ''}
                 </div>
                 <span class="rh-frames">${this._fmtNum(it.total || 0)} ${t('rh.frame')}</span>
             </div>

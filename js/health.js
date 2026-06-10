@@ -73,6 +73,9 @@ function unwireHealthLiveBridge() {
     // Stop the recorder UI ticker (the recording itself keeps running in memory
     // so navigating away does not interrupt an active session).
     if (typeof HealthRecorder !== 'undefined') HealthRecorder._stopTick();
+    // Stop the auto-insight pipeline (worker + timers).
+    if (typeof EEGInsight !== 'undefined' && EEGInsight.running) EEGInsight.stop();
+    _insightOn = false;
 }
 
 // ── BLE connect buttons (Muse S Gen 2 + ScentraVN Watch) ──
@@ -417,14 +420,59 @@ function renderEEG(muse) {
     // Muse-app-style contact gauge (electrode quality + battery) — only with a
     // real Muse link (the contact quality is derived from raw sample variance).
     const gaugeEl = document.getElementById('healthMuseGauge');
+    const museReal = (typeof MuseGauge !== 'undefined') && MuseGauge.connected();
     if (gaugeEl) {
-        if (typeof MuseGauge !== 'undefined' && MuseGauge.connected()) {
-            gaugeEl.style.display = 'block';
-            MuseGauge.render(gaugeEl);
-        } else {
-            gaugeEl.style.display = 'none';
+        if (museReal) { gaugeEl.style.display = 'block'; MuseGauge.render(gaugeEl); }
+        else { gaugeEl.style.display = 'none'; }
+    }
+
+    // Pre-conditioning baseline + auto-insight follow the real Muse link.
+    if (typeof EEGInsight !== 'undefined') {
+        if (museReal && !_insightOn) {
+            _insightOn = true;
+            EEGInsight.start({ onInsight: _onAutoInsight, onBaseline: _onBaselineState });
+        } else if (!museReal && _insightOn) {
+            _insightOn = false;
+            EEGInsight.stop();
+            _resetInsightUI();
         }
     }
+}
+
+// ── Auto-insight + pre-conditioning UI ──
+let _insightOn = false;
+
+function _onAutoInsight(label) {
+    const ins = document.getElementById('eegInsight');
+    if (ins && label) { ins.textContent = label.label; ins.className = 'heeg-auto-val tone-' + (label.tone || 'neutral'); }
+}
+
+function _onBaselineState(s) {
+    const el = document.getElementById('eegBaseline');
+    if (el) {
+        el.style.display = 'flex';
+        el.classList.remove('ready', 'warn');
+        if (s.phase === 'ready') {
+            el.classList.add('ready');
+            el.innerHTML = '<i class="fas fa-circle-check"></i> Baseline siap — READY untuk merekam';
+        } else if (s.phase === 'waiting_contact') {
+            el.classList.add('warn');
+            el.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Perbaiki kontak elektroda dahi (AF7/AF8)…';
+        } else {
+            const pct = Math.min(100, Math.round((s.elapsed / s.total) * 100));
+            const sec = Math.max(0, Math.ceil((s.total - s.elapsed) / 1000));
+            el.innerHTML = `<i class="far fa-clock"></i> Kalibrasi baseline… ${sec}s <span class="bar"><span style="width:${pct}%"></span></span>`;
+        }
+    }
+    if (typeof HealthRecorder !== 'undefined') HealthRecorder.setGate({ museConnected: true, ready: !!s.ready });
+}
+
+function _resetInsightUI() {
+    const el = document.getElementById('eegBaseline');
+    if (el) el.style.display = 'none';
+    const ins = document.getElementById('eegInsight');
+    if (ins) { ins.textContent = '—'; ins.className = 'heeg-auto-val tone-neutral'; }
+    if (typeof HealthRecorder !== 'undefined') HealthRecorder.setGate({ museConnected: false, ready: false });
 }
 
 /** Hitung indeks kognitif tervalidasi + label status mental heuristik. */
@@ -561,6 +609,11 @@ function agoText(ms) {
 const HealthRecorder = {
     _timer: null,
     _busy: false,
+    _gate: { museConnected: false, ready: false },
+
+    /** Pre-conditioning gate: block Start until the 30 s baseline is READY
+     *  (only while a real Muse link is present). */
+    setGate(g) { this._gate = Object.assign({}, this._gate, g); this.updateUI(); },
 
     wire() {
         const btn = document.getElementById('hrecBtn');
@@ -568,15 +621,44 @@ const HealthRecorder = {
         if (!btn) return;
         btn.onclick = () => this._toggle();
         if (stop) stop.onclick = () => this._stop();
+        const csv = document.getElementById('hrecCsv');
+        if (csv) csv.onclick = () => this._exportCsv();
         this.updateUI();
         this._startTick();
     },
 
+    async _exportCsv() {
+        if (typeof SessionStore === 'undefined') { this._toast('Penyimpanan sesi tidak tersedia', 'error'); return; }
+        const btn = document.getElementById('hrecCsv');
+        const orig = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CSV'; }
+        const stamp = this._stamp();
+        const fname = `scentravn-muse-${stamp}.csv`;
+        const blob = await SessionStore.exportCsv('muse', fname);
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+        if (!blob || blob.size <= 0) { this._toast('Belum ada data sesi untuk diekspor', 'warning'); return; }
+        this._download(blob, fname);
+        this._toast('CSV diekspor', 'success');
+    },
+
+    _download(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
+    _stamp() { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; },
+
     _startTick() {
         this._stopTick();
-        // Refresh timer/frame count once a second while a session is active.
+        // Once a second: refresh UI AND flush new frames to the storage worker
+        // (IndexedDB) so the session is persisted off the main thread.
         this._timer = setInterval(() => {
-            if (typeof RawRecorder !== 'undefined' && RawRecorder.recording) this.updateUI();
+            if (typeof RawRecorder !== 'undefined' && RawRecorder.recording) {
+                this.updateUI();
+                if (typeof SessionStore !== 'undefined') SessionStore.flush(RawRecorder.streams);
+            }
         }, 1000);
     },
     _stopTick() { if (this._timer) { clearInterval(this._timer); this._timer = null; } },
@@ -585,10 +667,12 @@ const HealthRecorder = {
         if (typeof RawRecorder === 'undefined') return;
         if (!RawRecorder.recording) {
             RawRecorder.start();
+            if (typeof SessionStore !== 'undefined') SessionStore.begin();
         } else if (RawRecorder.paused) {
             RawRecorder.resume();
         } else {
             RawRecorder.pause();
+            if (typeof SessionStore !== 'undefined') SessionStore.flush(RawRecorder.streams);
             RawRecorder.saveDraft().then(ok => this._toast(ok ? t('rr.toast_draft_saved') : t('rr.toast_draft_failed'), ok ? 'success' : 'error'));
         }
         this.updateUI();
@@ -597,6 +681,9 @@ const HealthRecorder = {
     async _stop() {
         if (typeof RawRecorder === 'undefined' || this._busy) return;
         const sum = RawRecorder.stop();
+        // Final flush so the storage worker (IndexedDB) holds the whole session
+        // for CSV export before the in-memory streams are reset.
+        if (typeof SessionStore !== 'undefined') await SessionStore.flush(RawRecorder.streams);
         this.updateUI();
         if (!sum || sum.total === 0) {
             await RawRecorder.clearDraft();
@@ -608,19 +695,20 @@ const HealthRecorder = {
         this._busy = true;
         this._setStatus(t('rr.status_saving'));
         const name = (typeof RawRecorder.prettyName === 'function') ? RawRecorder.prettyName() : 'ScentraVN Record';
-        const id = await RawRecorder.saveToFirestore({ name });
+        // Offline-safe commit: never blocks on the network. Returns immediately
+        // with a draft when offline; auto-uploads once the connection returns.
+        const res = await RawRecorder.commitSession({ name });
         this._busy = false;
-        if (id) {
-            await RawRecorder.clearDraft();
-            RawRecorder.reset();
-            this.updateUI();
-            this._toast(t('rr.toast_saved', { n: sum.total }), 'success');
-            if (await this._confirm(t('rr.confirm_open_history'))) Router.navigate('recordhistory');
-        } else {
-            await RawRecorder.saveDraft();
-            this._setStatus(t('rr.status_failed'));
-            this._toast(t('rr.toast_upload_failed'), 'error');
-        }
+        RawRecorder.reset();
+        this.updateUI();
+        this._setStatus(res.status === 'saved' ? t('rr.status_saved') : t('rr.status_ready'));
+
+        // Go straight to the History page; show the result toast over it.
+        if (typeof Router !== 'undefined') Router.navigate('recordhistory');
+        const saved = res.status === 'saved';
+        setTimeout(() => {
+            this._toast(saved ? t('rr.toast_saved', { n: sum.total }) : t('rr.toast_local'), saved ? 'success' : 'info');
+        }, 300);
     },
 
     updateUI() {
@@ -633,9 +721,11 @@ const HealthRecorder = {
         const status = document.getElementById('hrecStatus');
         const timeEl = document.getElementById('hrecTime');
         const framesEl = document.getElementById('hrecFrames');
+        // Block starting a fresh session until the baseline is READY (Muse only).
+        const gateBlock = !rec && this._gate.museConnected && !this._gate.ready;
         if (icon) icon.className = (rec && !paused) ? 'fas fa-pause' : 'fas fa-play';
-        if (btn) btn.classList.toggle('is-rec', rec && !paused);
-        if (label) label.textContent = !rec ? t('rr.lbl_start') : (paused ? t('rr.lbl_resume') : t('rr.lbl_pause'));
+        if (btn) { btn.classList.toggle('is-rec', rec && !paused); btn.disabled = gateBlock || this._busy; }
+        if (label) label.textContent = gateBlock ? 'Kalibrasi…' : (!rec ? t('rr.lbl_start') : (paused ? t('rr.lbl_resume') : t('rr.lbl_pause')));
         if (stop) stop.style.display = rec ? 'inline-flex' : 'none';
         if (status) {
             status.classList.remove('rec', 'pause');

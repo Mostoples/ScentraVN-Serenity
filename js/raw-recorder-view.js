@@ -387,27 +387,23 @@
       this._setText('rawStatus', t('rr.status_saving'));
 
       const name = this._recName();
-      const id = await RawRecorder.saveToFirestore({ name });
+      // Offline-safe: checkpoints to device first, only awaits the cloud when
+      // online (with a timeout), and never freezes waiting for the network.
+      const res = await RawRecorder.commitSession({ name });
 
       if (btn) btn.innerHTML = orig;
       this._busy = false;
 
-      if (id) {
-        await RawRecorder.clearDraft();
-        // Session saved → wipe the in-memory streams so the hero returns to 00:00
-        // / no data. (Stop kept them only so a failed upload could be retried.)
-        RawRecorder.reset();
-        this._render(RawRecorder.getSummary(), RawRecorder.devices);
-        this._setText('rawStatus', t('rr.status_saved'));
-        this._toast(t('rr.toast_saved', { n: sum.total }), 'success');
-        if (await this._confirm(t('rr.confirm_open_history'), { title: t('rr.history'), confirmText: t('rr.history') || 'Riwayat', cancelText: 'Nanti' })) Router.navigate('recordhistory');
-      } else {
-        this._setText('rawStatus', t('rr.status_failed'));
-        // Keep a device-side checkpoint so data isn't lost
-        await RawRecorder.saveDraft();
-        this._toast(t('rr.toast_upload_failed'), 'error');
-        this._checkDraft();
-      }
+      RawRecorder.reset();
+      this._render(RawRecorder.getSummary(), RawRecorder.devices);
+      this._setText('rawStatus', res.status === 'saved' ? t('rr.status_saved') : t('rr.status_ready'));
+
+      // Go straight to the History page; show the result toast over it.
+      const saved = res.status === 'saved';
+      Router.navigate('recordhistory');
+      setTimeout(() => {
+        this._toast(saved ? t('rr.toast_saved', { n: sum.total }) : t('rr.toast_local'), saved ? 'success' : 'info');
+      }, 300);
     },
 
     /* ── Draft (device storage) banner ── */

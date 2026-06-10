@@ -568,6 +568,22 @@ const Views = {
                     .heeg-gauge .rr-gauge-legend{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:7px;}
                     .heeg-gauge .rr-gauge-legend .lg{display:inline-flex;align-items:center;gap:4px;font-size:0.56rem;font-weight:800;color:#475569;letter-spacing:.02em;}
                     .heeg-gauge .rr-gauge-legend .lg .dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;transition:background .3s ease;}
+                    /* Auto-insight + baseline (pre-conditioning) */
+                    .heeg-insight{margin-top:14px;}
+                    .heeg-baseline{display:flex;align-items:center;gap:10px;font-size:0.72rem;font-weight:700;color:#6d28d9;background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.12);border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+                    .heeg-baseline.ready{color:#047857;background:rgba(16,185,129,0.10);border-color:rgba(16,185,129,0.25);}
+                    .heeg-baseline.warn{color:#b45309;background:rgba(245,158,11,0.10);border-color:rgba(245,158,11,0.25);}
+                    .heeg-baseline .bar{flex:1;height:6px;background:rgba(124,58,237,0.12);border-radius:99px;overflow:hidden;}
+                    .heeg-baseline .bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:99px;transition:width .4s ease;}
+                    .heeg-auto{display:flex;align-items:center;gap:9px;background:#faf8ff;border:1px solid rgba(124,58,237,0.08);border-radius:12px;padding:12px;}
+                    .heeg-auto>i{color:#f59e0b;font-size:1rem;}
+                    .heeg-auto .lbl{font-size:0.62rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;}
+                    .heeg-auto-val{margin-left:auto;font-size:0.92rem;font-weight:800;}
+                    .heeg-auto-val.tone-neutral{color:#475569;}
+                    .heeg-auto-val.tone-focus{color:#dc2626;}
+                    .heeg-auto-val.tone-relax{color:#7c3aed;}
+                    .heeg-auto-val.tone-positive{color:#059669;}
+                    .heeg-auto-note{font-size:0.58rem;color:#94a3b8;margin-top:6px;text-align:center;}
                     /* Inline recording bar */
                     .hrec-card{padding:14px 16px;}
                     .hrec-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
@@ -582,6 +598,8 @@ const Views = {
                     .hrec-btn.primary.is-rec{background:linear-gradient(135deg,#f59e0b,#f97316);}
                     .hrec-btn.stop{background:rgba(239,68,68,0.12);color:#dc2626;}
                     .hrec-btn.stop:hover{background:rgba(239,68,68,0.2);}
+                    .hrec-btn.ghost{background:transparent;border:1px solid rgba(124,58,237,0.25);color:#6d28d9;}
+                    .hrec-btn.ghost:hover{background:rgba(124,58,237,0.08);}
                     .hrec-btn:hover{filter:brightness(1.05);}
                     .hrec-btn:disabled{opacity:.6;cursor:default;filter:none;}
                     .health-page .health-actions{display:flex;gap:12px;flex-wrap:wrap;}
@@ -726,6 +744,15 @@ const Views = {
                             <div class="heeg-stat"><i class="fas fa-spa" style="color:#7c3aed;"></i><div><div class="lbl">${t('health.eeg_relax')}</div><div class="val" id="eegArousal">--</div></div></div>
                             <div class="heeg-stat"><i class="fas fa-battery-half" style="color:#3b82f6;"></i><div><div class="lbl">${t('health.muse_battery')}</div><div class="val" id="eegBattery">--</div></div></div>
                         </div>
+                        <div class="heeg-insight">
+                            <div id="eegBaseline" class="heeg-baseline" style="display:none;"></div>
+                            <div class="heeg-auto">
+                                <i class="fas fa-lightbulb"></i>
+                                <span class="lbl">Auto-Insight</span>
+                                <span id="eegInsight" class="heeg-auto-val tone-neutral">—</span>
+                            </div>
+                            <div class="heeg-auto-note">Estimasi indikatif dari EEG konsumen — bukan diagnosis medis.</div>
+                        </div>
                     </section>
 
                     <!-- Recording (same engine as the Raw Recorder, inline here) -->
@@ -738,6 +765,7 @@ const Views = {
                             <div class="hrec-btns">
                                 <button id="hrecBtn" type="button" class="hrec-btn primary"><i class="fas fa-play"></i> <span id="hrecLabel">${t('rr.lbl_start')}</span></button>
                                 <button id="hrecStop" type="button" class="hrec-btn stop" style="display:none;"><i class="fas fa-stop"></i> <span>${t('rr.lbl_stop')}</span></button>
+                                <button id="hrecCsv" type="button" class="hrec-btn ghost" title="Unduh CSV sesi (dari IndexedDB)"><i class="fas fa-file-csv"></i> CSV</button>
                             </div>
                         </div>
                     </section>
@@ -3061,6 +3089,7 @@ const Views = {
                     .rh-card-meta{font-size:0.68rem;color:#64748b;font-weight:600;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
                     .rh-card-meta .sep{color:#cbd5e1;}
                     .rh-frames{flex-shrink:0;background:rgba(124,58,237,0.08);color:#6d28d9;font-size:0.66rem;font-weight:800;padding:5px 11px;border-radius:99px;white-space:nowrap;}
+                    .rh-pending{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:0.6rem;font-weight:800;color:#b45309;background:rgba(245,158,11,0.14);border:1px solid rgba(245,158,11,0.28);padding:3px 9px;border-radius:99px;}
 
                     .rh-chips{display:flex;gap:6px;flex-wrap:wrap;}
                     .rh-chip{font-size:0.62rem;font-weight:700;padding:4px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:5px;}

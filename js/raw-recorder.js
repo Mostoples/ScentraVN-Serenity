@@ -23,7 +23,9 @@
   const CHUNK_BYTES = 600 * 1024;   // ~600KB per chunk (Firestore doc limit 1MB)
   const IDB_NAME = 'scentravn-recorder';
   const IDB_STORE = 'drafts';
+  const IDB_REC_STORE = 'recordings';   // finished local recordings pending cloud upload
   const DRAFT_KEY = 'current';
+  const LOCAL_PREFIX = 'local-';
 
   const RawRecorder = {
     recording: false,
@@ -347,12 +349,52 @@
       return lines.join('\n');
     },
 
+    /**
+     * Stop-and-save orchestration that NEVER blocks the UI on the network.
+     *   1) Always checkpoint to device storage first (instant, crash-safe).
+     *   2) Offline → don't touch Firestore (it would hang until reconnect); keep
+     *      the draft so it can upload automatically when the connection returns.
+     *   3) Online → upload, but cap the wait so a mid-save disconnect can't freeze
+     *      the UI; on timeout/failure the draft is kept for the reconnect sync.
+     * Returns { status: 'saved'|'offline'|'queued'|'noauth', id? }.
+     */
+    async commitSession(meta = {}) {
+      const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+      const noauth = typeof auth === 'undefined' || !auth.currentUser;
+
+      // Can't upload now → store a FULL local recording so it shows in History
+      // immediately and uploads automatically once online.
+      if (offline || noauth) {
+        const localId = await this.saveLocalRecording(meta);
+        await this.clearDraft();
+        return { status: noauth ? 'noauth' : 'offline', localId };
+      }
+
+      // Online: upload, but cap the wait so a mid-save disconnect can't hang the UI.
+      let id = null;
+      try { id = await this._withTimeout(this.saveToFirestore(meta, { silent: true }), 60000); }
+      catch (e) { id = null; }
+      if (id) { await this.clearDraft(); return { status: 'saved', id }; }
+
+      // Upload failed/slow → keep it as a local recording for the reconnect sync.
+      const localId = await this.saveLocalRecording(meta);
+      await this.clearDraft();
+      return { status: 'queued', localId };
+    },
+
+    _withTimeout(promise, ms) {
+      return Promise.race([promise, new Promise((res) => setTimeout(() => res(null), ms))]);
+    },
+
     /* ── Firestore save (FULL resolution, chunked) ────────────────── */
-    async saveToFirestore(meta = {}) {
+    async saveToFirestore(meta = {}, opts = {}) {
+      const silent = !!opts.silent;
       try {
         if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') {
-          if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal('Login diperlukan untuk menyimpan ke cloud.', { danger: true });
-          else alert('Login diperlukan untuk menyimpan ke cloud.');
+          if (!silent) {
+            if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal('Login diperlukan untuk menyimpan ke cloud.', { danger: true });
+            else alert('Login diperlukan untuk menyimpan ke cloud.');
+          }
           return null;
         }
         const uid = auth.currentUser.uid;
@@ -396,22 +438,32 @@
         return docRef.id;
       } catch (e) {
         console.error('Firestore save failed:', e);
-        if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal('Gagal menyimpan ke cloud: ' + e.message, { danger: true });
-        else alert('Gagal menyimpan ke cloud: ' + e.message);
+        if (!silent) {
+          if (typeof Utils !== 'undefined' && Utils.alertModal) Utils.alertModal('Gagal menyimpan ke cloud: ' + e.message, { danger: true });
+          else alert('Gagal menyimpan ke cloud: ' + e.message);
+        }
         return null;
       }
     },
 
     /* ── Firestore history API ────────────────────────────────────── */
     async listRecordings() {
-      if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') return [];
-      const snap = await db.collection('users').doc(auth.currentUser.uid)
-        .collection('rawRecordings').orderBy('createdAt', 'desc').limit(100).get();
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Local (pending) recordings show first — available even offline.
+      const local = await this.listLocalRecordings();
+      let cloud = [];
+      if (typeof auth !== 'undefined' && auth.currentUser && typeof db !== 'undefined') {
+        try {
+          const snap = await db.collection('users').doc(auth.currentUser.uid)
+            .collection('rawRecordings').orderBy('createdAt', 'desc').limit(100).get();
+          cloud = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { /* offline / unreachable → just show local */ }
+      }
+      return [...local, ...cloud];
     },
 
     /** Load a recording's full streams by reassembling its chunks. */
     async loadRecording(id) {
+      if (id && id.indexOf(LOCAL_PREFIX) === 0) return this.loadLocalRecording(id);
       if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') return null;
       const ref = db.collection('users').doc(auth.currentUser.uid).collection('rawRecordings').doc(id);
       const metaSnap = await ref.get();
@@ -432,6 +484,21 @@
      * stale tail chunks that would corrupt reassembly), and updates metadata.
      */
     async updateRecording(id, streams) {
+      // Local (pending) recording → update in IndexedDB.
+      if (id && id.indexOf(LOCAL_PREFIX) === 0) {
+        const r = await this._idbGet(id, IDB_REC_STORE);
+        if (!r) return false;
+        r.streams = streams;
+        r.counts = {
+          muse: (streams.muse || []).length, museRaw: (streams.museRaw || []).length,
+          scentra: (streams.scentra || []).length, galaxy: (streams.galaxy || []).length,
+        };
+        r.total = r.counts.muse + r.counts.museRaw + r.counts.scentra + r.counts.galaxy;
+        r.bytes = JSON.stringify(streams).length;
+        r.editedAt = new Date().toISOString();
+        await this._idbPut(r, IDB_REC_STORE);
+        return true;
+      }
       if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') {
         throw new Error('Login diperlukan untuk menyimpan perubahan.');
       }
@@ -481,6 +548,7 @@
     },
 
     async deleteRecording(id) {
+      if (id && id.indexOf(LOCAL_PREFIX) === 0) return this.deleteLocalRecording(id);
       if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') return false;
       const ref = db.collection('users').doc(auth.currentUser.uid).collection('rawRecordings').doc(id);
       const chunks = await ref.collection('chunks').get();
@@ -495,41 +563,145 @@
     _openIDB() {
       return new Promise((resolve, reject) => {
         if (!('indexedDB' in window)) { reject(new Error('IndexedDB tidak didukung')); return; }
-        const req = indexedDB.open(IDB_NAME, 1);
+        const req = indexedDB.open(IDB_NAME, 2);   // v2 adds the 'recordings' store
         req.onupgradeneeded = () => {
-          const db = req.result;
-          if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+          const d = req.result;
+          if (!d.objectStoreNames.contains(IDB_STORE)) d.createObjectStore(IDB_STORE, { keyPath: 'id' });
+          if (!d.objectStoreNames.contains(IDB_REC_STORE)) d.createObjectStore(IDB_REC_STORE, { keyPath: 'id' });
         };
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
     },
 
-    _idbPut(value) {
+    _idbPut(value, storeName = IDB_STORE) {
       return this._openIDB().then(db => new Promise((resolve, reject) => {
-        const tx = db.transaction(IDB_STORE, 'readwrite');
-        tx.objectStore(IDB_STORE).put(value);
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).put(value);
         tx.oncomplete = () => { db.close(); resolve(true); };
         tx.onerror = () => { db.close(); reject(tx.error); };
       }));
     },
 
-    _idbGet(id) {
+    _idbGet(id, storeName = IDB_STORE) {
       return this._openIDB().then(db => new Promise((resolve, reject) => {
-        const tx = db.transaction(IDB_STORE, 'readonly');
-        const r = tx.objectStore(IDB_STORE).get(id);
+        const tx = db.transaction(storeName, 'readonly');
+        const r = tx.objectStore(storeName).get(id);
         r.onsuccess = () => { db.close(); resolve(r.result || null); };
         r.onerror = () => { db.close(); reject(r.error); };
       }));
     },
 
-    _idbDel(id) {
+    _idbGetAll(storeName = IDB_STORE) {
       return this._openIDB().then(db => new Promise((resolve, reject) => {
-        const tx = db.transaction(IDB_STORE, 'readwrite');
-        tx.objectStore(IDB_STORE).delete(id);
+        const tx = db.transaction(storeName, 'readonly');
+        const r = tx.objectStore(storeName).getAll();
+        r.onsuccess = () => { db.close(); resolve(r.result || []); };
+        r.onerror = () => { db.close(); reject(r.error); };
+      }));
+    },
+
+    _idbDel(id, storeName = IDB_STORE) {
+      return this._openIDB().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).delete(id);
         tx.oncomplete = () => { db.close(); resolve(true); };
         tx.onerror = () => { db.close(); reject(tx.error); };
       }));
+    },
+
+    /* ── Local recordings store (IndexedDB) — finished sessions that appear in
+       the History page immediately, even offline, and upload when online. ── */
+    async saveLocalRecording(meta = {}) {
+      const summary = this.getSummary();
+      const json = JSON.stringify(this.streams);
+      const id = LOCAL_PREFIX + Date.now();
+      const rec = {
+        id, _local: true, pending: true,
+        name: meta.name || this.prettyName(),
+        note: meta.note || '',
+        createdAtMs: Date.now(),
+        startedAt: this.startedAt ? new Date(this.startedAt).toISOString() : null,
+        endedAt: new Date().toISOString(),
+        durationSec: summary.durationSec,
+        counts: summary.counts,
+        total: summary.total,
+        devices: JSON.parse(JSON.stringify(this.devices)),
+        bytes: json.length,
+        schemaVersion: 2,
+        streams: this.streams,
+      };
+      try { await this._idbPut(rec, IDB_REC_STORE); return id; }
+      catch (e) { console.warn('saveLocalRecording failed:', e.message); return null; }
+    },
+
+    /** Metadata of locally-stored (pending) recordings, newest first. */
+    async listLocalRecordings() {
+      try {
+        const all = await this._idbGetAll(IDB_REC_STORE);
+        return all.map(r => { const { streams, ...meta } = r; return meta; })
+          .sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
+      } catch (e) { return []; }
+    },
+
+    async loadLocalRecording(id) {
+      try {
+        const r = await this._idbGet(id, IDB_REC_STORE);
+        if (!r) return null;
+        const { streams, ...meta } = r;
+        return { meta, streams: streams || { galaxy: [], muse: [], museRaw: [], scentra: [] } };
+      } catch (e) { return null; }
+    },
+
+    async deleteLocalRecording(id) { try { await this._idbDel(id, IDB_REC_STORE); return true; } catch (e) { return false; } },
+
+    /** Upload one stored local recording to Firestore (chunked). Returns doc id. */
+    async _uploadRecord(rec) {
+      const uid = auth.currentUser.uid;
+      const docRef = db.collection('users').doc(uid).collection('rawRecordings').doc();
+      const json = JSON.stringify(rec.streams || {});
+      const parts = [];
+      for (let i = 0; i < json.length; i += CHUNK_BYTES) parts.push(json.slice(i, i + CHUNK_BYTES));
+      await docRef.set({
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        startedAt: rec.startedAt || null,
+        endedAt: rec.endedAt || new Date().toISOString(),
+        durationSec: rec.durationSec || 0,
+        counts: rec.counts || {}, total: rec.total || 0,
+        devices: rec.devices || {},
+        name: rec.name || this.prettyName(), note: rec.note || '',
+        schemaVersion: 2, chunkCount: parts.length, bytes: json.length,
+      });
+      const chunksCol = docRef.collection('chunks');
+      let batch = db.batch(), ops = 0;
+      for (let i = 0; i < parts.length; i++) {
+        batch.set(chunksCol.doc(String(i).padStart(5, '0')), { i, part: parts[i] });
+        if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
+      }
+      if (ops > 0) await batch.commit();
+      return docRef.id;
+    },
+
+    /** Upload all pending local recordings to Firestore (called when online). */
+    async syncLocalRecordings() {
+      if (this._syncing) return 0;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return 0;
+      if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') return 0;
+      this._syncing = true;
+      let uploaded = 0;
+      try {
+        const all = await this._idbGetAll(IDB_REC_STORE);
+        for (const rec of all) {
+          try { if (await this._uploadRecord(rec)) { await this.deleteLocalRecording(rec.id); uploaded++; } }
+          catch (e) { /* keep for the next attempt */ }
+        }
+      } catch (e) { /* ignore */ }
+      finally { this._syncing = false; }
+      if (uploaded && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('recordings-synced', { detail: { count: uploaded } }));
+        if (typeof Utils !== 'undefined' && Utils.showToast) Utils.showToast(`${uploaded} rekaman offline terunggah ke cloud.`, 'success');
+      }
+      return uploaded;
     },
 
     /** Persist the current session to device storage (checkpoint on pause). */
@@ -584,5 +756,9 @@
     },
   };
 
-  if (typeof window !== 'undefined') window.RawRecorder = RawRecorder;
+  if (typeof window !== 'undefined') {
+    window.RawRecorder = RawRecorder;
+    // When the connection returns, auto-upload any pending local recordings.
+    window.addEventListener('online', () => { try { RawRecorder.syncLocalRecordings(); } catch (_) {} });
+  }
 })();

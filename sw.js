@@ -16,7 +16,7 @@
  *  - Navigasi: network-first -> halaman ter-cache -> offline.html.
  */
 
-const APP_VERSION = '2.2.3';
+const APP_VERSION = '2.3.4';
 const PRECACHE = `scentravn-precache-v${APP_VERSION}`;
 const RUNTIME = `scentravn-runtime-v${APP_VERSION}`;
 
@@ -88,6 +88,9 @@ const LOCAL_ASSETS = [
     // JS - EEG / sleep / biolab
     '/js/eeg-muse.js',
     '/js/muse-gauge.js',
+    '/js/math-utilities.js',
+    '/js/feature-worker.js',
+    '/js/eeg-insight.js',
     '/js/sleep-timeline.js',
     '/js/biolab.js',
 
@@ -105,6 +108,8 @@ const LOCAL_ASSETS = [
     '/js/raw-recorder-view.js',
     '/js/record-history.js',
     '/js/spectra-editor.js',
+    '/js/session-store.js',
+    '/js/storage-worker.js',
     '/js/vendor/xlsx.full.min.js',
     '/js/sleep-session.js',
     '/js/sleep-session-ui.js',

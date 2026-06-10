@@ -26,24 +26,33 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((e) => {
     console.warn('Auth persistence (LOCAL) could not be set:', e && e.message);
 });
 
-// Enable offline persistence using the current cache settings API. The older
-// enablePersistence()/enableMultiTabIndexedDbPersistence() is deprecated in
-// Firebase 10.x; FirestoreSettings.cache replaces it. Must run before the first
-// Firestore operation. Falls back to the legacy API on older SDKs.
-try {
-    db.settings({
-        cache: firebase.firestore.persistentLocalCache({
-            tabManager: firebase.firestore.persistentMultipleTabManager()
-        })
-    });
-} catch (e) {
-    db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-        if (err.code === 'failed-precondition') {
-            console.log('Firestore: Multiple tabs open, using memory cache');
-        } else if (err.code === 'unimplemented') {
-            console.log('Firestore: Persistence not supported');
-        }
-    });
+// Enable offline persistence — CRITICAL for offline-first: with persistence,
+// writes commit to the local IndexedDB cache and resolve immediately even when
+// offline (Firestore syncs to the server in the background). Without it, offline
+// writes hang until the connection returns.
+//
+// The new FirestoreSettings.cache API isn't exposed on the Firebase 10.x *compat*
+// build, so we feature-detect: use it if present (no deprecation warning), else
+// fall back to enablePersistence() (works, but logs a deprecation notice).
+if (firebase.firestore.persistentLocalCache && firebase.firestore.persistentMultipleTabManager) {
+    try {
+        db.settings({
+            cache: firebase.firestore.persistentLocalCache({
+                tabManager: firebase.firestore.persistentMultipleTabManager(),
+            }),
+        });
+        console.log('Firestore: persistent cache enabled (cache API)');
+    } catch (e) {
+        console.warn('Firestore cache settings failed:', e && e.message);
+    }
+} else {
+    db.enablePersistence({ synchronizeTabs: true })
+        .then(() => console.log('Firestore: offline persistence enabled'))
+        .catch((err) => {
+            if (err.code === 'failed-precondition') console.warn('Firestore persistence OFF: multiple tabs open — offline writes will queue until online.');
+            else if (err.code === 'unimplemented') console.warn('Firestore persistence not supported by this browser.');
+            else console.warn('Firestore persistence error:', err && err.message);
+        });
 }
 
 // Auth state change listener
