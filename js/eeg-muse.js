@@ -176,16 +176,21 @@ const MuseEEG = {
                 }
             }, 2500);
 
-            /* Battery characteristic (telemetry 273e000b).
-               Packet: [0-1]=sequence, [2-3]=battery (÷512 → %), [4-5]=voltage…
+            /* Battery characteristic (273e000b). The level is a 16-bit big-endian
+               value at offset 0, scaled so raw/512 = percent — matching the
+               project's authoritative decoder (js/muse/decoder.js → decodeBattery).
+               The previous code read offset 2 (a different telemetry field), which
+               reported ~1% on Muse S Gen 2 instead of the real charge.
                NOTE: the DataView is e.target.VALUE, not e.target. */
             try {
                 const bat = await this.service.getCharacteristic(MUSE_CHAR.battery);
                 await bat.startNotifications();
                 bat.addEventListener('characteristicvaluechanged', (e) => {
                     const dv = e.target.value;
-                    if (!dv || dv.byteLength < 4) return;
-                    const pct = dv.getUint16(2, false) / 512;
+                    if (!dv || dv.byteLength < 2) return;
+                    const pct = (typeof MuseDecoder !== 'undefined' && MuseDecoder.decodeBattery)
+                        ? MuseDecoder.decodeBattery(dv)
+                        : dv.getUint16(0, false) / 512;
                     this.metrics.battery = Math.max(0, Math.min(100, pct));
                 });
             } catch(_) { /* battery not always available */ }
