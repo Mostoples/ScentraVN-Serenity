@@ -552,6 +552,22 @@ input {
     flex-shrink: 0;
 }
 
+.social-btn.guest {
+    border-style: dashed;
+    color: var(--text-secondary, #64748b);
+}
+
+.social-btn.guest i {
+    color: var(--primary-500, #8b5cf6);
+}
+
+.social-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
 /* ===== Alert Messages ===== */
 .auth-alert {
     padding: 14px 18px;

@@ -780,13 +780,35 @@ const App = {
      */
     initProfileView() {
         if (this.currentUser) {
-            this.updateElementText('profileName', this.currentUser.displayName || 'User');
-            this.updateElementText('profileEmail', this.currentUser.email || '');
+            const u = this.currentUser;
+            const name = u.displayName
+                || (u.email ? u.email.split('@')[0] : (u.isAnonymous ? 'Tamu' : 'User'));
+            this.updateElementText('profileName', name);
+            this.updateElementText('profileEmail', u.email || (u.isAnonymous ? 'Akun Tamu' : ''));
 
-            // Set avatar
+            // Set avatar — fill the circular container, fall back to the user's
+            // initial if there is no photo or the photo fails to load.
             const avatarContainer = document.getElementById('avatarContainer');
-            if (avatarContainer && this.currentUser.photoURL) {
-                avatarContainer.innerHTML = `<img src="${this.currentUser.photoURL}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            if (avatarContainer) {
+                const photo = u.photoURL || null;
+                const initials = (name || 'U').trim().charAt(0).toUpperCase() || 'U';
+                const showInitials = () => {
+                    avatarContainer.innerHTML = `<span style="font-size:2.5rem;">${initials}</span>`;
+                };
+                if (photo) {
+                    // Build the <img> via DOM (not an inline onerror attribute) so the
+                    // fallback markup never collides with attribute quoting.
+                    const img = document.createElement('img');
+                    img.src = photo.replace(/=s\d+(-c)?$/, '=s256-c');  // crisper Google avatar
+                    img.alt = 'Avatar';
+                    img.referrerPolicy = 'no-referrer';
+                    img.style.cssText = 'width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;border-radius:50%;display:block;';
+                    img.onerror = showInitials;
+                    avatarContainer.innerHTML = '';
+                    avatarContainer.appendChild(img);
+                } else {
+                    showInitials();
+                }
             }
 
             // Set joined date

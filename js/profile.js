@@ -32,12 +32,17 @@ async function loadProfileData() {
         const avatarContainer = document.getElementById('avatarContainer');
         const editNameInput = document.getElementById('editName');
 
+        // Guests (anonymous sign-in) have no email — fall back gracefully.
+        const isGuest = user.isAnonymous || (!user.email && !userData?.email);
+        const displayName = userData?.name || user.displayName
+            || (user.email ? user.email.split('@')[0] : (isGuest ? 'Tamu' : 'Pengguna'));
+
         if (nameElement) {
-            nameElement.textContent = userData?.name || user.displayName || user.email.split('@')[0];
+            nameElement.textContent = displayName;
         }
 
         if (emailElement) {
-            emailElement.textContent = user.email;
+            emailElement.textContent = user.email || userData?.email || (isGuest ? 'Akun Tamu' : '');
         }
 
         if (joinedElement && userData?.createdAt) {
@@ -46,11 +51,24 @@ async function loadProfileData() {
         }
 
         if (avatarContainer) {
-            if (user.photoURL) {
-                avatarContainer.innerHTML = `<img src="${user.photoURL}" alt="Avatar">`;
-            } else {
-                const initials = (userData?.name || user.email)[0].toUpperCase();
+            const photo = user.photoURL || userData?.avatar || null;
+            const initials = (displayName || 'U').trim().charAt(0).toUpperCase() || 'U';
+            const showInitials = () => {
                 avatarContainer.innerHTML = `<span style="font-size: 2.5rem;">${initials}</span>`;
+            };
+            if (photo) {
+                // Build the <img> via DOM (not an inline onerror attribute) so the
+                // fallback markup never collides with attribute quoting.
+                const img = document.createElement('img');
+                img.src = photo.replace(/=s\d+(-c)?$/, '=s256-c');  // crisper Google avatar
+                img.alt = 'Avatar';
+                img.referrerPolicy = 'no-referrer';
+                img.style.cssText = 'width:100%;height:100%;aspect-ratio:1/1;object-fit:cover;border-radius:50%;display:block;';
+                img.onerror = showInitials;
+                avatarContainer.innerHTML = '';
+                avatarContainer.appendChild(img);
+            } else {
+                showInitials();
             }
         }
 

@@ -92,6 +92,7 @@
             <div class="rh-chips">${chips || `<span class="rh-chip" style="color:#94a3b8;background:#f1f5f9;">${t('rh.no_streams')}</span>`}</div>
             <div class="rh-card-foot">
                 <button class="rh-dl hist-xlsx" data-id="${it.id}" type="button"><i class="fas fa-file-excel"></i> ${t('rh.download_excel')}</button>
+                <button class="rh-ico-btn spectra hist-spectra" data-id="${it.id}" type="button" title="${t('rh.spectra')}"><i class="fas fa-chart-line"></i></button>
                 <button class="rh-ico-btn hist-json" data-id="${it.id}" type="button" title="${t('rh.download_json')}"><i class="fas fa-file-code"></i></button>
                 <button class="rh-ico-btn danger hist-del" data-id="${it.id}" type="button" title="${t('rh.delete')}"><i class="fas fa-trash"></i></button>
             </div>
@@ -101,6 +102,7 @@
     _wireCards(items) {
       const byId = id => items.find(x => x.id === id);
       document.querySelectorAll('.hist-xlsx').forEach(b => b.addEventListener('click', (e) => this._downloadExcel(e.currentTarget, byId(e.currentTarget.dataset.id))));
+      document.querySelectorAll('.hist-spectra').forEach(b => b.addEventListener('click', (e) => this._showSpectra(e.currentTarget, byId(e.currentTarget.dataset.id))));
       document.querySelectorAll('.hist-json').forEach(b => b.addEventListener('click', (e) => this._downloadJSON(e.currentTarget, byId(e.currentTarget.dataset.id))));
       document.querySelectorAll('.hist-del').forEach(b => b.addEventListener('click', (e) => this._delete(e.currentTarget.dataset.id)));
     },
@@ -221,6 +223,194 @@
         XLSX.writeFile(wb, `${this._slug(recName)}-${it.id}.xlsx`);
       } catch (e) { console.error(e); this._alert(t('rh.xlsx_failed', { msg: e.message }), { danger: true }); }
       btn.disabled = false; btn.innerHTML = orig;
+    },
+
+    /* ── Spectra viewer ───────────────────────────────────────────────
+     * Visualises the recorded EEG band powers from the `muse` metrics stream as
+     * a multi-line time-series — identical in style to the live EEG chart on the
+     * Health page (delta/theta/alpha/beta/gamma, one thin line each). No extra fetch.
+     */
+    BANDS_ORDER: ['delta', 'theta', 'alpha', 'beta', 'gamma'],
+    BAND_META: {
+      delta: { color: '#3b82f6', label: 'Delta' },
+      theta: { color: '#8b5cf6', label: 'Theta' },
+      alpha: { color: '#10b981', label: 'Alpha' },
+      beta:  { color: '#f59e0b', label: 'Beta' },
+      gamma: { color: '#ef4444', label: 'Gamma' },
+    },
+    MAX_POINTS: 360,    // time-series points after bucket-downsampling
+
+    async _showSpectra(btn, it) {
+      if (typeof Chart === 'undefined') { this._alert(t('rh.chart_missing'), { danger: true }); return; }
+      btn.disabled = true;   // brief lock while loading — no spinner animation
+      try {
+        const { streams } = await this._fetch(it.id);
+        const spec = this._computeBands(streams.muse || []);
+        this._spectraModal(it, spec);
+      } catch (e) { console.error(e); this._alert(t('rh.fail', { msg: e.message }), { danger: true }); }
+      btn.disabled = false;
+    },
+
+    /**
+     * Build per-band time-series from the recorded `muse` metrics frames.
+     * Returns the bands actually present plus a bucket-downsampled value series
+     * per band (≤ MAX_POINTS) so long sessions still render smoothly.
+     */
+    _computeBands(muse) {
+      const frames = (muse || []).filter(f => f && f.t != null);
+      const bands = [], raw = {};
+      for (const b of this.BANDS_ORDER) {
+        const vals = frames.map(f => Number(f[b]));
+        if (!vals.some(v => Number.isFinite(v))) continue;
+        bands.push(b);
+        raw[b] = vals.map(v => (Number.isFinite(v) ? v : null));
+      }
+      if (!bands.length) return { count: frames.length, bands: [], series: {}, times: [] };
+
+      const t0 = frames[0].t;
+      const n = frames.length;
+      const step = Math.max(1, Math.ceil(n / this.MAX_POINTS));
+      const series = {}, times = [];
+      bands.forEach(b => (series[b] = []));
+      for (let i = 0; i < n; i += step) {
+        const end = Math.min(i + step, n);
+        let ts = 0;
+        for (let j = i; j < end; j++) ts += (frames[j].t - t0);
+        times.push((ts / (end - i)) / 1000);          // bucket mean elapsed seconds
+        for (const b of bands) {
+          let s = 0, c = 0;
+          for (let j = i; j < end; j++) { const v = raw[b][j]; if (v != null) { s += v; c++; } }
+          series[b].push(c ? s / c : null);
+        }
+      }
+      return { count: frames.length, bands, series, times };
+    },
+
+    /** Elapsed seconds → "m:ss" clock label for the time axis. */
+    _fmtClock(sec) {
+      const s = Math.max(0, Math.round(sec));
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    },
+
+    _spectraModal(it, spec) {
+      this._injectSpectraStyles();
+      const name = it.name || t('rh.rec_default');
+      const sub = this._fmtDate(it.createdAt) || this._fmtISO(it.startedAt) || '';
+      const hasData = spec.bands.length > 0;
+
+      const ov = document.createElement('div');
+      ov.className = 'rh-sp-overlay';
+      ov.innerHTML = `
+        <div class="rh-sp-modal" role="dialog" aria-modal="true">
+          <div class="rh-sp-head">
+            <div class="rh-sp-titles">
+              <div class="rh-sp-title"><i class="fas fa-chart-line"></i> ${t('rh.spectra')}</div>
+              <div class="rh-sp-sub">${this._esc(name)}${sub ? ' · ' + sub : ''}</div>
+            </div>
+            <button class="rh-sp-x" type="button" aria-label="${t('rh.sp_close')}"><i class="fas fa-xmark"></i></button>
+          </div>
+          <div class="rh-sp-body">
+            ${hasData ? `
+              <div class="rh-sp-section-t">${t('rh.sp_band')}</div>
+              <div class="rh-sp-canvaswrap"><canvas id="rhSpBand"></canvas></div>
+              <div class="rh-sp-hint">${t('rh.sp_band_hint')}</div>
+            ` : `
+              <div class="rh-sp-empty">
+                <i class="fas fa-wave-square"></i>
+                <p>${t('rh.sp_empty')}</p>
+              </div>`}
+          </div>
+        </div>`;
+      document.body.appendChild(ov);
+      requestAnimationFrame(() => ov.classList.add('show'));
+
+      const charts = [];
+      const close = () => {
+        charts.forEach(c => { try { c.destroy(); } catch (_) {} });
+        ov.classList.remove('show');
+        document.removeEventListener('keydown', onKey);
+        setTimeout(() => ov.remove(), 200);
+      };
+      const onKey = (e) => { if (e.key === 'Escape') close(); };
+      ov.querySelector('.rh-sp-x').addEventListener('click', close);
+      ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+      document.addEventListener('keydown', onKey);
+
+      if (hasData) {
+        charts.push(this._drawBandSpectrum(ov.querySelector('#rhSpBand'), spec));
+      }
+    },
+
+    /**
+     * Multi-line EEG band spectrum — same look as the live chart on the Health
+     * page: one thin line per band over the session timeline, legend at bottom,
+     * hidden X axis, faint purple Y grid, no entry animation.
+     */
+    _drawBandSpectrum(canvas, spec) {
+      return new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: spec.times.map(s => this._fmtClock(s)),
+          datasets: spec.bands.map(b => ({
+            label: this.BAND_META[b].label,
+            data: spec.series[b],
+            borderColor: this.BAND_META[b].color,
+            backgroundColor: 'transparent',
+            borderWidth: 1.5, pointRadius: 0, tension: 0.3, spanGaps: true,
+          })),
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } },
+            tooltip: { enabled: true, callbacks: { title: (items) => `${t('rh.sp_axis_time')}: ${items[0]?.label || ''}` } },
+          },
+          scales: {
+            x: {
+              display: true, title: { display: true, text: t('rh.sp_axis_time'), font: { size: 10 }, color: '#94a3b8' },
+              grid: { display: false },
+              ticks: { maxTicksLimit: 8, autoSkip: true, maxRotation: 0, color: '#94a3b8', font: { size: 10 } },
+            },
+            y: {
+              display: true, beginAtZero: true,
+              grid: { color: 'rgba(124,58,237,0.08)' },
+              ticks: { maxTicksLimit: 5, color: '#94a3b8', font: { size: 10 } },
+            },
+          },
+        },
+      });
+    },
+
+    _injectSpectraStyles() {
+      if (document.getElementById('rh-spectra-styles')) return;
+      const s = document.createElement('style');
+      s.id = 'rh-spectra-styles';
+      s.textContent = `
+        .rh-sp-overlay{position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;
+          background:rgba(30,12,60,.55);backdrop-filter:blur(3px);opacity:0;transition:opacity .2s ease;padding:16px;}
+        .rh-sp-overlay.show{opacity:1;}
+        .rh-sp-modal{width:100%;max-width:760px;max-height:90vh;display:flex;flex-direction:column;background:#fff;
+          border-radius:20px;box-shadow:0 24px 60px rgba(76,29,149,.35);transform:translateY(12px) scale(.98);
+          transition:transform .2s ease;overflow:hidden;}
+        .rh-sp-overlay.show .rh-sp-modal{transform:translateY(0) scale(1);}
+        .rh-sp-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #f1f5f9;
+          background:linear-gradient(135deg,#faf5ff,#fff);}
+        .rh-sp-titles{flex:1;min-width:0;}
+        .rh-sp-title{font-size:1rem;font-weight:800;color:#3b0764;display:flex;align-items:center;gap:8px;}
+        .rh-sp-sub{font-size:.72rem;color:#64748b;font-weight:600;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .rh-sp-x{width:38px;height:38px;flex-shrink:0;border:none;border-radius:11px;cursor:pointer;font-size:1rem;
+          background:rgba(124,58,237,.1);color:#6d28d9;display:inline-flex;align-items:center;justify-content:center;transition:background .15s;}
+        .rh-sp-x:hover{background:rgba(124,58,237,.2);}
+        .rh-sp-body{padding:16px 18px 20px;overflow-y:auto;}
+        .rh-sp-section-t{font-size:.78rem;font-weight:800;color:#1e293b;margin:6px 0 10px;}
+        .rh-sp-section-t:not(:first-child){margin-top:22px;}
+        .rh-sp-canvaswrap{position:relative;height:260px;width:100%;}
+        .rh-sp-hint{font-size:.68rem;color:#94a3b8;margin-top:8px;line-height:1.5;}
+        .rh-sp-empty{text-align:center;padding:40px 16px;color:#94a3b8;}
+        .rh-sp-empty i{font-size:2.2rem;color:#c4b5fd;margin-bottom:12px;}
+        .rh-sp-empty p{margin:0;font-size:.85rem;}`;
+      document.head.appendChild(s);
     },
 
     /**

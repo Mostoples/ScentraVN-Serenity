@@ -16,7 +16,7 @@
  *  - Navigasi: network-first -> halaman ter-cache -> offline.html.
  */
 
-const APP_VERSION = '2.1.1';
+const APP_VERSION = '2.1.4';
 const PRECACHE = `scentravn-precache-v${APP_VERSION}`;
 const RUNTIME = `scentravn-runtime-v${APP_VERSION}`;
 
@@ -363,6 +363,10 @@ self.addEventListener('fetch', (event) => {
 
     // Media besar: biarkan jaringan menangani (Range request).
     if (isMedia(url)) return;
+
+    // Foto profil lintas-domain (Google/Gravatar): biarkan browser ambil langsung
+    // dari jaringan. Cache opaque SW bisa basi/rusak dan membuat avatar gagal muat.
+    if (url.hostname.endsWith('googleusercontent.com') || url.hostname.endsWith('gravatar.com')) return;
 
     // Navigasi halaman.
     if (request.mode === 'navigate') {

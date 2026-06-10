@@ -840,7 +840,7 @@ const Views = {
                 <!-- Profile Header -->
                 <div class="featured-card" style="text-align: center; margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) var(--space-6); border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);">
                     <div class="content">
-                        <div id="avatarContainer" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4); font-size: 2.5rem; color: white; border: 4px solid rgba(255,255,255,0.3);">
+                        <div id="avatarContainer" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4); font-size: 2.5rem; color: white; border: 4px solid rgba(255,255,255,0.3); overflow: hidden;">
                             <i class="fas fa-user"></i>
                         </div>
                         <div id="profileName" style="font-size: var(--text-2xl); font-weight: var(--font-bold); color: white; margin-bottom: var(--space-1);">Loading...</div>
@@ -3027,6 +3027,9 @@ const Views = {
                     .rh-dl:hover{filter:brightness(1.05);}
                     .rh-ico-btn{width:42px;height:42px;border-radius:12px;border:1px solid rgba(124,58,237,0.28);background:rgba(124,58,237,0.12);color:#6d28d9;font-size:0.95rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .18s;}
                     .rh-ico-btn:hover{background:rgba(124,58,237,0.2);}
+                    .rh-ico-btn.spectra{border-color:rgba(8,145,178,0.3);background:rgba(8,145,178,0.12);color:#0891b2;transition:none;}
+                    .rh-ico-btn.spectra:hover{background:rgba(8,145,178,0.2);}
+                    .rh-ico-btn.spectra i{animation:none!important;transform:none!important;}
                     .rh-ico-btn.danger{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.12);color:#dc2626;}
                     .rh-ico-btn.danger:hover{background:rgba(239,68,68,0.14);}
                     .rh-ico-btn:disabled,.rh-dl:disabled{opacity:.6;cursor:default;}

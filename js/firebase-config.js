@@ -20,14 +20,31 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Enable offline persistence (warning is expected in Firebase 10.x compat)
-db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-    if (err.code === 'failed-precondition') {
-        console.log('Firestore: Multiple tabs open, using memory cache');
-    } else if (err.code === 'unimplemented') {
-        console.log('Firestore: Persistence not supported');
-    }
+// Persist the auth session locally (IndexedDB) so the user stays logged in
+// across PWA restarts and offline use — they only need to log in once.
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((e) => {
+    console.warn('Auth persistence (LOCAL) could not be set:', e && e.message);
 });
+
+// Enable offline persistence using the current cache settings API. The older
+// enablePersistence()/enableMultiTabIndexedDbPersistence() is deprecated in
+// Firebase 10.x; FirestoreSettings.cache replaces it. Must run before the first
+// Firestore operation. Falls back to the legacy API on older SDKs.
+try {
+    db.settings({
+        cache: firebase.firestore.persistentLocalCache({
+            tabManager: firebase.firestore.persistentMultipleTabManager()
+        })
+    });
+} catch (e) {
+    db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+        if (err.code === 'failed-precondition') {
+            console.log('Firestore: Multiple tabs open, using memory cache');
+        } else if (err.code === 'unimplemented') {
+            console.log('Firestore: Persistence not supported');
+        }
+    });
+}
 
 // Auth state change listener
 auth.onAuthStateChanged((user) => {
@@ -74,9 +91,10 @@ const FirebaseService = {
 
             await userRef.set({
                 uid: user.uid,
-                email,
-                name: displayName || additionalData.name || email.split('@')[0],
+                email: email || null,
+                name: displayName || additionalData.name || (email ? email.split('@')[0] : 'Tamu'),
                 avatar: photoURL || null,
+                isAnonymous: !!user.isAnonymous,
                 createdAt,
                 updatedAt: createdAt,
                 ...additionalData

@@ -131,6 +131,26 @@ const Auth = {
     },
 
     /**
+     * Login anonymously (guest). Creates a throwaway Firebase account so the
+     * user can try the app without registering. The session persists locally
+     * like any other login, so a guest stays signed in until they log out.
+     */
+    async loginAnonymous() {
+        try {
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            const userCredential = await auth.signInAnonymously();
+            await FirebaseService.createUserDocument(userCredential.user, { name: 'Tamu' });
+            return { success: true, user: userCredential.user };
+        } catch (error) {
+            console.error('Anonymous login error:', error);
+            if (error.code === 'auth/operation-not-allowed') {
+                return { success: false, error: 'Login tamu belum diaktifkan di Firebase (Authentication → Sign-in method → Anonymous).' };
+            }
+            return { success: false, error: this.getErrorMessage(error.code) };
+        }
+    },
+
+    /**
      * Logout user
      */
     async logout() {
@@ -538,6 +558,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 1000);
             } else if (!result.silent) {
                 // Only show error if not silent (not cancelled by user)
+                showAlert(result.error, 'error');
+            }
+        });
+    }
+
+    // Guest / anonymous login
+    const guestBtn = document.getElementById('guestLogin');
+    if (guestBtn) {
+        const guestOriginal = guestBtn.innerHTML;
+        guestBtn.addEventListener('click', async () => {
+            if (navigator.onLine === false) {
+                showAlert('Login tamu membutuhkan koneksi internet untuk pertama kali.', 'error');
+                return;
+            }
+            guestBtn.disabled = true;
+            guestBtn.innerHTML = `<div class="spinner"></div> ${typeof t !== 'undefined' ? t('auth.connecting') : 'Menghubungkan...'}`;
+
+            const result = await Auth.loginAnonymous();
+
+            if (result.success) {
+                showAlert('Masuk sebagai tamu! Mengalihkan...', 'success');
+                setTimeout(() => { window.location.href = 'app.html'; }, 1000);
+            } else {
+                guestBtn.disabled = false;
+                guestBtn.innerHTML = guestOriginal;
                 showAlert(result.error, 'error');
             }
         });

@@ -198,9 +198,13 @@ i.fa-volume-high {
 }
 
 i.fa-wave-square,
-i.fa-chart-line,
 i.fa-signal {
   animation: anim-wave 2.2s ease-in-out infinite;
+}
+
+/* chart-line stays static (no movement) */
+i.fa-chart-line {
+  animation: none;
 }
 
 /* —— BELLS / NOTIFICATIONS —— */

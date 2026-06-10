@@ -706,6 +706,13 @@ const I18n = {
             'rh.x_scentra': 'ScentraVN',
             'rh.x_galaxy': 'Galaxy Watch',
             'rh.x_empty': '(tidak ada data stream)',
+            'rh.spectra': 'Lihat Spektra',
+            'rh.sp_close': 'Tutup',
+            'rh.chart_missing': 'Library grafik belum termuat. Cek koneksi internet.',
+            'rh.sp_band': 'Spektra Gelombang Otak EEG (delta–gamma)',
+            'rh.sp_band_hint': 'Daya tiap pita gelombang otak (µV²) sepanjang sesi: delta, theta, alpha, beta, gamma — dari metrik Muse yang direkam.',
+            'rh.sp_axis_time': 'Waktu (menit:detik)',
+            'rh.sp_empty': 'Rekaman ini tidak memiliki data pita Muse (theta, gamma, dll) untuk ditampilkan.',
         },
 
         en: {
@@ -1404,6 +1411,13 @@ const I18n = {
             'rh.x_scentra': 'ScentraVN',
             'rh.x_galaxy': 'Galaxy Watch',
             'rh.x_empty': '(no stream data)',
+            'rh.spectra': 'View Spectra',
+            'rh.sp_close': 'Close',
+            'rh.chart_missing': 'Chart library not loaded. Check your internet connection.',
+            'rh.sp_band': 'EEG Brainwave Spectra (delta–gamma)',
+            'rh.sp_band_hint': 'Power of each brainwave band (µV²) across the session: delta, theta, alpha, beta, gamma — from the recorded Muse metrics.',
+            'rh.sp_axis_time': 'Time (min:sec)',
+            'rh.sp_empty': 'This recording has no Muse band data (theta, gamma, etc.) to display.',
         }
     },
 
