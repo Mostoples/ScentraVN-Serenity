@@ -209,18 +209,19 @@
         const PPG_CH = { ppg1: 'ambient', ppg2: 'ir', ppg3: 'red' };
         const eegRows = [], motionRows = [], ppgRows = [];
         for (const f of (streams.museRaw || [])) {
+          const ts = this._fmtTs(f.t);
           const el = MUSE_ELECTRODES[f.ch];
           if (el) {
             // Channel diberi label baku (AF7/TP9/…) + lokasi elektroda di kepala
             // sehingga pembaca data tahu sinyal ini diambil dari bagian mana.
             (f.samples || []).forEach((uv, i) => eegRows.push({
-              t: f.t, channel: el.name, region: el.region, seq: f.seq, i, uV: uv,
+              t: ts, channel: el.name, region: el.region, seq: f.seq, i, uV: uv,
             }));
           } else if (PPG_CH[f.ch]) {
             // PPG optik Muse (64 Hz, 24-bit). ppg1=ambient, ppg2=IR, ppg3=merah.
-            (f.samples || []).forEach((v, i) => ppgRows.push({ t: f.t, channel: PPG_CH[f.ch], i, value: v }));
+            (f.samples || []).forEach((v, i) => ppgRows.push({ t: ts, channel: PPG_CH[f.ch], i, value: v }));
           } else {
-            (f.samples || []).forEach((s, i) => motionRows.push({ t: f.t, ch: f.ch, i, x: s[0], y: s[1], z: s[2] }));
+            (f.samples || []).forEach((s, i) => motionRows.push({ t: ts, ch: f.ch, i, x: s[0], y: s[1], z: s[2] }));
           }
         }
         if (eegRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20', subtitle), 'EEG_Raw');
@@ -350,7 +351,11 @@
       if (!arr || !arr.length) return;
       const rows = arr.map(r => {
         const o = {};
-        for (const k of Object.keys(r)) o[k] = Array.isArray(r[k]) ? r[k].join('|') : r[k];
+        for (const k of Object.keys(r)) {
+          // Kolom timestamp (t / *At / *Ts dalam epoch ms) ditampilkan sebagai tanggal & waktu, bukan unix.
+          if ((k === 't' || /(?:^|_)(?:at|ts|time)$/i.test(k)) && typeof r[k] === 'number') o[k] = this._fmtTs(r[k]);
+          else o[k] = Array.isArray(r[k]) ? r[k].join('|') : r[k];
+        }
         return o;
       });
       XLSX.utils.book_append_sheet(wb, this._titledSheet(rows, title || name.replace(/_/g, ' '), subtitle), name.slice(0, 31));
@@ -396,6 +401,16 @@
       if (!ts) return null;
       try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleString(this._locale()); }
       catch (_) { return null; }
+    },
+    /** Epoch ms → human-readable "YYYY-MM-DD HH:MM:SS.mmm" (sortable, no unix code). */
+    _fmtTs(ms) {
+      const n = Number(ms);
+      if (!Number.isFinite(n) || n <= 0) return ms;
+      const d = new Date(n);
+      if (isNaN(d.getTime())) return ms;
+      const p = (x, l = 2) => String(x).padStart(l, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ` +
+             `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
     },
   };
 
