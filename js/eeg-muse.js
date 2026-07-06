@@ -245,7 +245,12 @@ const MuseEEG = {
                 const battSvc = await this.server.getPrimaryService(BATTERY_SERVICE);
                 const battChar = await battSvc.getCharacteristic(BATTERY_LEVEL_CHAR);
                 this._battStdChar = battChar;
-                const apply = (dv) => { if (dv && dv.byteLength >= 1) this.metrics.battery = Math.max(0, Math.min(100, dv.getUint8(0))); };
+                const apply = (dv) => {
+                    if (dv && dv.byteLength >= 1) {
+                        const pct = dv.getUint8(0);
+                        this.metrics.battery = Math.max(0, Math.min(100, pct));
+                    }
+                };
                 apply(await battChar.readValue());
                 this._stdBattery = true;
                 console.log('[Muse] Baterai dari BLE Battery Service standar (0x2A19):', this.metrics.battery + '%  ← sumber paling akurat (sama dengan app Muse)');
@@ -749,12 +754,17 @@ const MuseEEG = {
     _applyPropBattery(dv, source) {
         if (!dv || dv.byteLength < 6) return;
         const raw = dv.getUint16(4, false);
+        // Validasi: nilai mentah harus berada dalam rentang yang masuk akal.
+        // (raw/512 harus menghasilkan 0-100%; di atas itu kemungkinan offset/skalanya salah)
+        if (raw < 0 || raw > 65535) return;
         const pct = raw / 512;
+        if (!isFinite(pct) || pct < 0) return;
+        const clamped = Math.max(0, Math.min(100, pct));
         if (raw !== this._lastBattRaw) {
             this._lastBattRaw = raw;
-            console.log(`[Muse] Baterai ${source || ''} — raw@4=${raw} → ${Math.round(pct)}%`);
+            console.log(`[Muse] Baterai ${source || ''} — raw@4=${raw} → ${Math.round(clamped)}%`);
         }
-        this.metrics.battery = Math.max(0, Math.min(100, pct));
+        this.metrics.battery = clamped;
     },
 
     /** Re-read the battery so the % refreshes even if the device notifies rarely. */
@@ -765,7 +775,10 @@ const MuseEEG = {
                 const dv = await this._battStdChar.readValue();
                 if (dv && dv.byteLength >= 1) {
                     const pct = dv.getUint8(0);
-                    if (pct !== this._lastBattRaw) { this._lastBattRaw = pct; console.log('[Muse] Baterai (poll, BLE standar):', pct + '%'); }
+                    if (pct !== this._lastBattStd) {
+                        this._lastBattStd = pct;
+                        console.log('[Muse] Baterai (poll, BLE standar):', pct + '%');
+                    }
                     this.metrics.battery = Math.max(0, Math.min(100, pct));
                 }
             } else if (this._battPropChar) {
@@ -795,6 +808,9 @@ const MuseEEG = {
         if (this._presetFallbackTimer) { clearTimeout(this._presetFallbackTimer); this._presetFallbackTimer = null; }
         if (this._battPoll) { clearInterval(this._battPoll); this._battPoll = null; }
         this._battStdChar = this._battPropChar = null;
+        this._stdBattery = false;
+        this._lastBattRaw = null;
+        this._lastBattStd = null;
         this._packetsSeen = 0;
         this._ctrlBuf = '';
         for (const ch of Object.keys(this.buffers)) this.buffers[ch] = [];

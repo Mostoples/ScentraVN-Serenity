@@ -42,6 +42,9 @@
   }
 
   const MuseGauge = {
+    /** Live metrics snapshot, or null. Prefer getMetrics() over raw .metrics. */
+    metrics() { return (typeof MuseEEG !== 'undefined' && MuseEEG.getMetrics) ? MuseEEG.getMetrics() : null; },
+
     /** Real (non-simulated) Muse link present? */
     connected() { return typeof MuseEEG !== 'undefined' && MuseEEG.isConnected && !MuseEEG.simulationMode; },
 
@@ -108,17 +111,18 @@
         const dot = el.querySelector(`.dot[data-leg="${ch}"]`);
         if (dot) dot.style.background = col;
       });
-      const pct = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.battery : null;
+      const metrics = this.metrics();
+      const pct = metrics && metrics.battery != null ? metrics.battery : null;
       const battCol = pct == null ? '#94a3b8' : (pct > 40 ? '#18d8c6' : pct > 20 ? '#f59e0b' : '#ef4444');
       const txt = el.querySelector('.rr-batt-pct');
       if (txt) txt.textContent = pct == null ? '—' : Math.round(pct) + '%';
-      const filled = pct == null ? 0 : Math.max(1, Math.round(pct / 100 * 3));
+      const filled = pct == null ? 0 : Math.max(0, Math.min(3, Math.round(pct / 100 * 3)));
       el.querySelectorAll('.batt-bar').forEach((b, i) => b.setAttribute('fill', i < filled ? battCol : '#e2e8f0'));
       const body = el.querySelector('.batt-body'); if (body) body.setAttribute('stroke', battCol);
       const tip = el.querySelector('.batt-tip'); if (tip) tip.setAttribute('fill', battCol);
 
       // PPG indicator (thin red arc + heart): red + glow when PPG is streaming.
-      const ppg = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.ppg : null;
+      const ppg = metrics ? metrics.ppg : null;
       const live = !!(ppg && ppg.ir != null);
       const col = live ? '#ef4444' : '#cbd5e1';
       const glow = live ? 'drop-shadow(0 0 6px rgba(239,68,68,.8))' : 'none';

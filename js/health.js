@@ -457,8 +457,12 @@ function renderEEG(muse) {
         renderEEGIndices(null);
     }
 
+    // Baterai Muse: prioritaskan data BLE langsung (jika tersedia) karena lebih
+    // akurat dan lebih baru daripada snapshot RTDB.
+    const liveBatt = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.battery : null;
+    const batteryValue = (liveBatt != null && isFinite(liveBatt)) ? liveBatt : muse.battery;
     const bat = document.getElementById('eegBattery');
-    if (bat) bat.textContent = muse.battery != null ? `${Math.round(muse.battery)}%` : '--';
+    if (bat) bat.textContent = batteryValue != null ? `${Math.round(batteryValue)}%` : '--';
 
     // Muse-app-style contact gauge (electrode quality + battery) — only with a
     // real Muse link (the contact quality is derived from raw sample variance).
