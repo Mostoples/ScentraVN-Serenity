@@ -125,6 +125,10 @@ const MuseEEG = {
         }
         if (this.isConnected || this.isConnecting) return false;
 
+        // A fresh, explicit device pick supersedes any auto-reconnect loop left
+        // over from a previous unexpected drop.
+        this._cancelReconnect();
+
         this.isConnecting = true;
         this._emit('connection', { status: 'connecting' });
 
@@ -139,6 +143,27 @@ const MuseEEG = {
 
             this.device.addEventListener('gattserverdisconnected', () => this._onDisconnected());
 
+            return await this._setupAfterDevice();
+        } catch (err) {
+            this.isConnecting = false;
+            this._emit('connection', { status: 'error' });
+            if (err.name === 'NotFoundError') {
+                this._emit('error', 'Tidak ada perangkat Muse yang dipilih.');
+            } else {
+                this._emit('error', `Koneksi gagal: ${err.message}`);
+            }
+            return false;
+        }
+    },
+
+    /**
+     * GATT-connect + subscribe to every characteristic (EEG/motion/PPG/battery)
+     * and start streaming. Shared by connect() (fresh device picked via the
+     * browser chooser) and _attemptReconnect() (same already-picked device,
+     * auto-reconnecting after an unexpected drop) so the two paths can't drift
+     * apart. Throws on failure — callers are responsible for catching it.
+     */
+    async _setupAfterDevice() {
             this.server  = await this.device.gatt.connect();
             this.service = await this.server.getPrimaryService(MUSE_SERVICE);
 
@@ -190,7 +215,7 @@ const MuseEEG = {
                (p50) which ALSO enables PPG — so we fall back to p50 (not the EEG-only
                p21) to keep the optical heart sensor streaming on classic devices. */
             await this._startPreset(this.PRESET_GEN2);   // 'p1035'
-            await this._sendCommand('s');
+            await this._sendCommand('s');   // "status" query — reply carries battery % (see _onControlReply)
             await this._sendCommand('d');
 
             /* If no EEG packets within 2.5s, retry with the PPG-capable legacy preset. */
@@ -262,16 +287,20 @@ const MuseEEG = {
                 console.log('[Muse] BLE Battery Service standar TIDAK tersedia → memakai telemetry proprietary (lihat raw di bawah).');
             }
 
-            /* Proprietary telemetry (273e000b). On this firmware the real battery
-               level is at OFFSET 4 with the classic Muse scale raw/512 (see
-               _applyPropBattery). Only used when the standard battery service above
-               is unavailable. */
+            /* Proprietary telemetry (273e000b). Third-choice source — its byte
+               layout/scale has proven unreliable specifically on Muse S Gen 2
+               (Athena) units (verified wrong in the field: showed 1% while the
+               official app showed 96%), even though it matches the layout
+               documented by reference JS/Python Muse decoders. Only applied
+               when neither the standard battery service NOR the control-status
+               reply below have already supplied a reading. */
+            this._ctrlBattery = false;
             try {
                 const bat = await this.service.getCharacteristic(MUSE_CHAR.battery);
                 this._battPropChar = bat;
                 await bat.startNotifications();
                 bat.addEventListener('characteristicvaluechanged', (e) => {
-                    if (this._stdBattery) return;
+                    if (this._stdBattery || this._ctrlBattery) return;
                     this._applyPropBattery(e.target.value, '(notify)');
                 });
             } catch(_) { /* battery not always available */ }
@@ -288,20 +317,15 @@ const MuseEEG = {
             this.simulationMode = false;
             this._emit('connection', { status: 'connected', deviceName: this.device.name });
             return true;
-
-        } catch (err) {
-            this.isConnecting = false;
-            this._emit('connection', { status: 'error' });
-            if (err.name === 'NotFoundError') {
-                this._emit('error', 'Tidak ada perangkat Muse yang dipilih.');
-            } else {
-                this._emit('error', `Koneksi gagal: ${err.message}`);
-            }
-            return false;
-        }
     },
 
     async disconnect() {
+        // Explicit, user-requested disconnect — mark it so the
+        // gattserverdisconnected handler below doesn't treat this as an
+        // unexpected drop and try to auto-reconnect / auto-pause a recording.
+        this._userDisconnect = true;
+        this._cancelReconnect();
+        this._autoPausedRecording = false;
         this._stopSimulation();
         if (this.device?.gatt?.connected) {
             try { await this._sendCommand('h'); } catch(_) {}
@@ -309,6 +333,61 @@ const MuseEEG = {
         }
         this._reset();
         this._emit('connection', { status: 'disconnected' });
+    },
+
+    /**
+     * Retry connecting to the SAME (already-picked) device every few seconds
+     * until it succeeds — used after an unexpected disconnect (device turned
+     * off / walked out of range), so the user doesn't have to re-open the
+     * Bluetooth chooser once the Muse is back on. If a recording was active
+     * when the drop happened, it gets auto-resumed on success (see
+     * _onDisconnected). Gives up after ~10 minutes of no luck.
+     */
+    _attemptReconnect(device) {
+        if (this._reconnecting) return;
+        this._reconnecting = true;
+        this._reconnectAttempts = 0;
+        this.isConnecting = true;
+        this._emit('connection', { status: 'reconnecting' });
+
+        const RETRY_MS = 3000;
+        const MAX_ATTEMPTS = 200;   // ~10 minutes at 3s intervals
+
+        const tryOnce = async () => {
+            if (!this._reconnecting) return;   // cancelled (manual connect/disconnect)
+            this._reconnectAttempts++;
+            try {
+                this.device = device;
+                await this._setupAfterDevice();
+                this._reconnecting = false;
+                this._reconnectTimer = null;
+                console.log('[Muse] Auto-reconnect berhasil (percobaan ke-' + this._reconnectAttempts + ')');
+                if (this._autoPausedRecording && typeof RawRecorder !== 'undefined') {
+                    this._autoPausedRecording = false;
+                    RawRecorder.resume();
+                    if (typeof Utils !== 'undefined' && Utils.showToast) {
+                        Utils.showToast('Muse tersambung lagi — perekaman dilanjutkan.', 'success');
+                    }
+                }
+            } catch (_) {
+                if (!this._reconnecting) return;   // cancelled while awaiting
+                if (this._reconnectAttempts >= MAX_ATTEMPTS) {
+                    console.warn('[Muse] Auto-reconnect menyerah setelah', this._reconnectAttempts, 'percobaan.');
+                    this._reconnecting = false;
+                    this._reconnectTimer = null;
+                    this.isConnecting = false;
+                    this._emit('connection', { status: 'disconnected' });
+                    return;
+                }
+                this._reconnectTimer = setTimeout(tryOnce, RETRY_MS);
+            }
+        };
+        tryOnce();
+    },
+
+    _cancelReconnect() {
+        this._reconnecting = false;
+        if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
     },
 
     /* ── Simulation mode (demo without device) ──────────────────────── */
@@ -669,7 +748,15 @@ const MuseEEG = {
         catch (e) { console.warn('[Muse] preset', preset, 'failed:', e.message); }
     },
 
-    /* Control-channel JSON replies (firmware/version/status) — best effort */
+    /* Control-channel JSON replies (firmware/version/status) — best effort.
+     * The 's' (status) command's reply carries a "bp" field = battery percent
+     * DIRECTLY (no odd scale to guess), confirmed by two independent, actively
+     * maintained open-source Muse decoders — alexandrebarachant/muse-lsl
+     * (`ask_control()` sends 's', docs its reply as containing "bp") and
+     * DominiqueMakowski/OpenMuse (built specifically for Muse S Athena). This
+     * is now the primary battery source whenever the standard BLE Battery
+     * Service (0x2A19) isn't available, ranked above the proprietary binary
+     * telemetry (273e000b) which has proven unreliable on this hardware. */
     _onControlReply(dataView) {
         try {
             const len = dataView.getUint8(0);
@@ -677,7 +764,21 @@ const MuseEEG = {
             for (let i = 1; i <= len && i < dataView.byteLength; i++) s += String.fromCharCode(dataView.getUint8(i));
             this._ctrlBuf = (this._ctrlBuf || '') + s;
             if (this._ctrlBuf.includes('}')) {
-                /* a full JSON reply has arrived; keep only for diagnostics */
+                if (!this._stdBattery) {
+                    const m = this._ctrlBuf.match(/"bp"\s*:\s*([\d.]+)/);
+                    if (m) {
+                        const pct = Math.max(0, Math.min(100, parseFloat(m[1])));
+                        if (isFinite(pct)) {
+                            this._ctrlBattery = true;
+                            this.metrics.battery = pct;
+                            if (pct !== this._lastBattCtrl) {
+                                this._lastBattCtrl = pct;
+                                console.log('[Muse] Baterai dari status control-channel ("bp"):', pct + '%');
+                            }
+                        }
+                    }
+                }
+                /* a full JSON reply has arrived; reset for the next one */
                 this._ctrlBuf = '';
             }
         } catch (_) {}
@@ -747,22 +848,26 @@ const MuseEEG = {
     },
 
     /** Apply a proprietary-telemetry battery frame.
-     *  On this Muse S Gen 2 (Athena) firmware the real, drain-tracking battery
-     *  level is the 16-bit big-endian value at OFFSET 4, using the classic Muse
-     *  scale raw/512 (verified: raw 45976 → 89.8% ≈ Muse app 90%). Offset 2 was a
-     *  different, sticky field that made the % look frozen. */
+     *  Layout matches the reverse-engineered Muse telemetry packet shared across
+     *  Muse 2016/2/S (see urish/muse-js `parseTelemetry`, the reference decoder):
+     *    offset 0: sequenceId (uint16)
+     *    offset 2: batteryLevel — uint16, raw/512 = percent ← the real battery %
+     *    offset 4: fuelGaugeVoltage — uint16 * 2.2 = mV (NOT a percentage)
+     *  A previous version of this code read offset 4 with the /512 scale, which
+     *  divides the raw fuel-gauge voltage instead of the battery level — the
+     *  result happens to land in a plausible 0-100 range but doesn't match the
+     *  official Muse app. Offset 2 barely changing between packets is expected
+     *  (battery % doesn't move every second), not a sign it's frozen/broken. */
     _applyPropBattery(dv, source) {
         if (!dv || dv.byteLength < 6) return;
-        const raw = dv.getUint16(4, false);
-        // Validasi: nilai mentah harus berada dalam rentang yang masuk akal.
-        // (raw/512 harus menghasilkan 0-100%; di atas itu kemungkinan offset/skalanya salah)
-        if (raw < 0 || raw > 65535) return;
+        const raw = dv.getUint16(2, false);
         const pct = raw / 512;
         if (!isFinite(pct) || pct < 0) return;
         const clamped = Math.max(0, Math.min(100, pct));
         if (raw !== this._lastBattRaw) {
             this._lastBattRaw = raw;
-            console.log(`[Muse] Baterai ${source || ''} — raw@4=${raw} → ${Math.round(clamped)}%`);
+            const mv = Math.round(dv.getUint16(4, false) * 2.2);
+            console.log(`[Muse] Baterai ${source || ''} — raw@2=${raw} → ${Math.round(clamped)}% (fuel-gauge≈${mv}mV @4, referensi saja)`);
         }
         this.metrics.battery = clamped;
     },
@@ -781,8 +886,15 @@ const MuseEEG = {
                     }
                     this.metrics.battery = Math.max(0, Math.min(100, pct));
                 }
-            } else if (this._battPropChar) {
-                this._applyPropBattery(await this._battPropChar.readValue(), '(poll)');
+            } else {
+                // Ask for a fresh control-channel status reply ("bp" field —
+                // see _onControlReply). Safe, read-only query, doesn't touch
+                // the EEG/PPG stream. The reply arrives asynchronously via
+                // characteristicvaluechanged, so it lands a moment after this.
+                try { await this._sendCommand('s'); } catch (_) {}
+                if (!this._ctrlBattery && this._battPropChar) {
+                    this._applyPropBattery(await this._battPropChar.readValue(), '(poll)');
+                }
             }
         } catch (_) { /* characteristic not readable / transient BLE error */ }
     },
@@ -797,8 +909,37 @@ const MuseEEG = {
     },
 
     _onDisconnected() {
+        // Deliberate disconnect (user clicked "disconnect") → plain reset,
+        // no auto-reconnect, no auto-pause (disconnect() already stopped the
+        // stream on purpose).
+        if (this._userDisconnect) {
+            this._userDisconnect = false;
+            this._reset();
+            this._emit('connection', { status: 'disconnected' });
+            return;
+        }
+
+        // Unexpected drop (device turned off / walked out of BLE range).
+        // Pause an active recording instead of leaving it broken — resumed
+        // automatically once the Muse reconnects (see _attemptReconnect).
+        const device = this.device;   // keep the handle — _reset() nulls this.device
+        const wasRecording = typeof RawRecorder !== 'undefined' && RawRecorder.recording && !RawRecorder.paused;
         this._reset();
         this._emit('connection', { status: 'disconnected' });
+
+        if (wasRecording) {
+            RawRecorder.pause();
+            this._autoPausedRecording = true;
+            // Checkpoint immediately (same as a manual pause) — if the user
+            // closes the tab while waiting for the Muse to come back, whatever
+            // was recorded up to the drop is already safe in IndexedDB.
+            RawRecorder.saveDraft().catch(() => {});
+            if (typeof Utils !== 'undefined' && Utils.showToast) {
+                Utils.showToast('Muse terputus — perekaman dijeda otomatis. Nyalakan lagi untuk lanjut.', 'warning');
+            }
+        }
+
+        if (device) this._attemptReconnect(device);
     },
 
     _reset() {
@@ -809,8 +950,10 @@ const MuseEEG = {
         if (this._battPoll) { clearInterval(this._battPoll); this._battPoll = null; }
         this._battStdChar = this._battPropChar = null;
         this._stdBattery = false;
+        this._ctrlBattery = false;
         this._lastBattRaw = null;
         this._lastBattStd = null;
+        this._lastBattCtrl = null;
         this._packetsSeen = 0;
         this._ctrlBuf = '';
         for (const ch of Object.keys(this.buffers)) this.buffers[ch] = [];

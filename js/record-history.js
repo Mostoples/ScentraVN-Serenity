@@ -23,6 +23,7 @@
   const RecordHistory = {
     init() {
       document.getElementById('histRefresh')?.addEventListener('click', () => this.load());
+      document.getElementById('histSyncAll')?.addEventListener('click', (e) => this._syncAllToSupabase(e.currentTarget));
       // Reload the list when offline recordings finish uploading.
       if (!this._wiredSync) {
         this._wiredSync = true;
@@ -59,7 +60,7 @@
       /* summary strip */
       if (summary) {
         const tot = items.reduce((a, it) => a + (it.total || 0), 0);
-        const bytes = items.reduce((a, it) => a + (it.bytes || 0), 0);
+        const bytes = items.reduce((a, it) => a + (it.compressedBytes || it.bytes || 0), 0);
         this._set('rhCount', items.length);
         this._set('rhFrames', this._fmtNum(tot));
         this._set('rhSize', this._fmtBytes(bytes));
@@ -74,7 +75,16 @@
       const c = it.counts || {};
       const when = this._fmtDate(it.createdAt) || this._fmtISO(it.startedAt) || '—';
       const dur = it.durationSec != null ? this._fmtDur(it.durationSec) : '—';
-      const kb = it.bytes ? this._fmtBytes(it.bytes) : '';
+      // Show the size that actually counts against the Supabase 50MB/file cap
+      // (the GZIP-compressed upload), not the raw pre-compression JSON size —
+      // those can differ by 4-8x, so showing the wrong one is misleading.
+      // Legacy (schemaVersion 2) recordings never had compressedBytes; fall
+      // back to the uncompressed size for those.
+      const kb = it.compressedBytes ? this._fmtBytes(it.compressedBytes)
+        : it.bytes ? this._fmtBytes(it.bytes) : '';
+      const kbTitle = (it.compressedBytes && it.bytes)
+        ? `${this._fmtBytes(it.compressedBytes)} terkompresi (gzip) dari ${this._fmtBytes(it.bytes)} data mentah`
+        : '';
       const chip = (label, n, color) => (n > 0)
         ? `<span class="rh-chip" style="color:${color};background:${color}14;"><span class="d" style="background:${color};"></span>${label} ${this._fmtNum(n)}</span>`
         : '';
@@ -93,7 +103,7 @@
                     <div class="rh-card-meta">
                         <span><i class="far fa-clock"></i> ${when}</span>
                         <span class="sep">·</span><span><i class="fas fa-stopwatch"></i> ${dur}</span>
-                        ${kb ? `<span class="sep">·</span><span><i class="fas fa-database"></i> ${kb}</span>` : ''}
+                        ${kb ? `<span class="sep">·</span><span title="${this._esc(kbTitle)}"><i class="fas fa-database"></i> ${kb}</span>` : ''}
                     </div>
                     ${(it._local || it.pending) ? `<span class="rh-pending"><i class="fas fa-cloud-arrow-up"></i> ${t('rh.pending')}</span>` : ''}
                 </div>
@@ -205,10 +215,19 @@
         wsLegend['!cols'] = [{ wch: 24 }, { wch: 42 }, { wch: 34 }];
         XLSX.utils.book_append_sheet(wb, wsLegend, 'Keterangan');
 
-        /* ── EEG raw (long format): one row per sample ── */
+        /* ── EEG raw (long format): one row per sample ──
+         * `museRaw` can hold hundreds of thousands of frames for a long (~1h)
+         * recording. Building all its rows in one uninterrupted synchronous
+         * loop blocks the main thread for seconds — the browser can't repaint
+         * during that time, so the spinner icon just sits frozen on whatever
+         * frame it was mid-rotation on (looks stuck, even though it's not).
+         * Yielding to the browser every 2000 frames lets it paint the next
+         * spin frame, so the spinner visibly keeps turning throughout. */
         const PPG_CH = { ppg1: 'ambient', ppg2: 'ir', ppg3: 'red' };
         const eegRows = [], motionRows = [], ppgRows = [];
-        for (const f of (streams.museRaw || [])) {
+        const museRaw = streams.museRaw || [];
+        for (let fi = 0; fi < museRaw.length; fi++) {
+          const f = museRaw[fi];
           const ts = this._fmtTs(f.t);
           const el = MUSE_ELECTRODES[f.ch];
           if (el) {
@@ -223,10 +242,23 @@
           } else {
             (f.samples || []).forEach((s, i) => motionRows.push({ t: ts, ch: f.ch, i, x: s[0], y: s[1], z: s[2] }));
           }
+          if (fi % 2000 === 1999) await new Promise(requestAnimationFrame);
         }
-        if (eegRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20', subtitle), 'EEG_Raw');
-        if (ppgRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(ppgRows, 'PPG Raw — sensor optik (64 Hz) · ambient/IR/merah', subtitle), 'PPG_Raw');
-        if (motionRows.length) XLSX.utils.book_append_sheet(wb, this._titledSheet(motionRows, 'Muse Motion — accel/gyro', subtitle), 'Muse_Motion');
+        // Building each sheet (SheetJS aoa_to_sheet/sheet_add_json over potentially
+        // 100k+ rows) is itself one long synchronous call we can't interrupt —
+        // yield right before each one so the spinner repaints at least once per sheet.
+        if (eegRows.length) {
+          await new Promise(requestAnimationFrame);
+          XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20', subtitle), 'EEG_Raw');
+        }
+        if (ppgRows.length) {
+          await new Promise(requestAnimationFrame);
+          XLSX.utils.book_append_sheet(wb, this._titledSheet(ppgRows, 'PPG Raw — sensor optik (64 Hz) · ambient/IR/merah', subtitle), 'PPG_Raw');
+        }
+        if (motionRows.length) {
+          await new Promise(requestAnimationFrame);
+          XLSX.utils.book_append_sheet(wb, this._titledSheet(motionRows, 'Muse Motion — accel/gyro', subtitle), 'Muse_Motion');
+        }
 
         /* ── Other streams (arrays flattened to pipe-joined strings) ── */
         this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle, 'Muse Metrics — band power (µV²) & status');
@@ -236,6 +268,7 @@
         if (wb.SheetNames.length === 1) {
           XLSX.utils.book_append_sheet(wb, this._titledSheet([], t('rh.x_empty'), subtitle), 'Empty');
         }
+        await new Promise(requestAnimationFrame);   // one more repaint before the (also synchronous) final write
         XLSX.writeFile(wb, `${this._slug(recName)}-${it.id}.xlsx`);
       } catch (e) { console.error(e); this._alert(t('rh.xlsx_failed', { msg: e.message }), { danger: true }); }
       btn.disabled = false; btn.innerHTML = orig;
@@ -270,6 +303,13 @@
      * Build per-band time-series from the recorded `muse` metrics frames.
      * Returns the bands actually present plus a bucket-downsampled value series
      * per band (≤ MAX_POINTS) so long sessions still render smoothly.
+     *
+     * Besides `times` (each bucket's MEAN elapsed second, used to place the
+     * chart point), also returns `timesStart`/`timesEnd` — the first/last raw
+     * frame's elapsed second actually inside that bucket. The editor needs
+     * these for range-delete: using the mean as the deletion boundary would
+     * clip off part of the first/last selected bucket whenever a bucket
+     * covers more than one raw frame (long recordings, step > 1).
      */
     _computeBands(muse) {
       const frames = (muse || []).filter(f => f && f.t != null);
@@ -280,25 +320,27 @@
         bands.push(b);
         raw[b] = vals.map(v => (Number.isFinite(v) ? v : null));
       }
-      if (!bands.length) return { count: frames.length, bands: [], series: {}, times: [] };
+      if (!bands.length) return { count: frames.length, bands: [], series: {}, times: [], timesStart: [], timesEnd: [] };
 
       const t0 = frames[0].t;
       const n = frames.length;
       const step = Math.max(1, Math.ceil(n / this.MAX_POINTS));
-      const series = {}, times = [];
+      const series = {}, times = [], timesStart = [], timesEnd = [];
       bands.forEach(b => (series[b] = []));
       for (let i = 0; i < n; i += step) {
         const end = Math.min(i + step, n);
         let ts = 0;
         for (let j = i; j < end; j++) ts += (frames[j].t - t0);
         times.push((ts / (end - i)) / 1000);          // bucket mean elapsed seconds
+        timesStart.push((frames[i].t - t0) / 1000);
+        timesEnd.push((frames[end - 1].t - t0) / 1000);
         for (const b of bands) {
           let s = 0, c = 0;
           for (let j = i; j < end; j++) { const v = raw[b][j]; if (v != null) { s += v; c++; } }
           series[b].push(c ? s / c : null);
         }
       }
-      return { count: frames.length, bands, series, times };
+      return { count: frames.length, bands, series, times, timesStart, timesEnd };
     },
 
     /** Elapsed seconds → "m:ss" clock label for the time axis. */
@@ -359,6 +401,33 @@
         return o;
       });
       XLSX.utils.book_append_sheet(wb, this._titledSheet(rows, title || name.replace(/_/g, ' '), subtitle), name.slice(0, 31));
+    },
+
+    /**
+     * Global migration button (next to "Rekam Baru"): moves EVERY existing
+     * legacy recording (schemaVersion 2, data still split across Firestore
+     * `chunks` docs) to Supabase Storage in one go. Recordings that already
+     * have a `storagePath` are skipped by RawRecorder.syncAllToSupabase, so
+     * clicking this again is harmless — nothing already-synced gets re-sent.
+     */
+    async _syncAllToSupabase(btn) {
+      if (!btn || btn.disabled) return;
+      if (!await this._confirm(t('rh.sync_confirm'), { confirmText: t('rh.sync_supabase'), cancelText: 'Batal' })) return;
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      try {
+        const { synced, failed, total } = await RawRecorder.syncAllToSupabase();
+        if (total === 0) this._alert(t('rh.sync_none'));
+        else if (failed > 0) this._alert(t('rh.sync_partial', { synced, failed }), { danger: true });
+        else this._alert(t('rh.sync_success_n', { n: synced }));
+        this.load();
+      } catch (e) {
+        this._alert(t('rh.sync_failed', { msg: e.message }), { danger: true });
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
     },
 
     async _delete(id) {

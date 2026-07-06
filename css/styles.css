@@ -1886,6 +1886,66 @@ img, video, canvas {
     }
 }
 
+/* Exception: loading spinners (fa-spinner + fa-spin) are functional feedback,
+   not decoration — an OS-level "reduce motion" setting shouldn't make a
+   button that's mid-request look frozen/broken, so keep this one spinning. */
+i.fa-spin {
+    animation-duration: 1s !important;
+    animation-iteration-count: infinite !important;
+}
+
+/* Same exception for the app's non-Font-Awesome "please wait" spinners:
+   plain CSS ring spinners, button spinners, and the admin skeleton shimmer. */
+.spinner,
+.loading-spinner,
+.q-spinner,
+.rq-spinner {
+    animation-duration: 0.8s !important;
+    animation-iteration-count: infinite !important;
+}
+.admin-skeleton {
+    animation-duration: 1.5s !important;
+    animation-iteration-count: infinite !important;
+}
+
+/* Cloud storage health warning (Dashboard) — shown when Supabase (used to
+   store RAW recordings) can't be reached, e.g. a free-plan project that got
+   auto-paused from inactivity. See js/supabase-health.js. */
+.svc-health-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    color: #991b1b;
+}
+.svc-health-banner i {
+    font-size: 1.15rem;
+    color: #dc2626;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.svc-health-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+.svc-health-banner-text strong {
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+html[data-theme="dark"] .svc-health-banner {
+    background: linear-gradient(135deg, rgba(127,29,29,0.35), rgba(153,27,27,0.25));
+    border-color: rgba(248,113,113,0.35);
+    color: #fecaca;
+}
+html[data-theme="dark"] .svc-health-banner i { color: #f87171; }
+
 /* ===== Responsive ===== */
 
 /* Extra Small devices (phones, less than 380px) */

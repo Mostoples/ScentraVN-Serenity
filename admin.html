@@ -475,6 +475,36 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Loading skeleton (shimmer) — js/admin-ui.js renders
+           .admin-skeleton.skeleton-card / .skeleton-text while data loads.
+           These rules were only defined in css/admin.css, which this
+           standalone page never links, so the shimmer never appeared here. */
+        .admin-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: var(--radius-md);
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-card {
+            height: 140px;
+            margin-bottom: 20px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 12px;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
         /* Modal */
         .modal {
             display: none;

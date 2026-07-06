@@ -40,6 +40,32 @@ html.lite-mode i.fa-brands {
   filter: none !important;
 }
 
+/* Exception: loading spinners (fa-spinner + fa-spin) are functional feedback,
+   not decoration — freezing them makes buttons look stuck/broken while a
+   request is in flight, so keep this one animation alive even in Lite Mode. */
+html.lite-mode i.fa-spin {
+  animation: fa-spin 1s infinite linear !important;
+}
+
+/* Same exception for the app's non-Font-Awesome "please wait" spinners —
+   plain CSS ring spinners (.spinner/.loading-spinner) and button spinners
+   (.q-spinner/.rq-spinner) used across auth, admin, assessments, journal,
+   avatar loading, questionnaires, etc. Also the .admin-skeleton shimmer. */
+html.lite-mode .spinner,
+html.lite-mode .loading-spinner,
+html.lite-mode .q-spinner,
+html.lite-mode .rq-spinner {
+  animation-duration: 0.8s !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
+  animation-delay: 0s !important;
+}
+html.lite-mode .admin-skeleton {
+  animation-duration: 1.5s !important;
+  animation-iteration-count: infinite !important;
+  animation-delay: 0s !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════
  * 2. REMOVE BLUR / BACKDROP-FILTER  (biggest performance cost)
  * ═══════════════════════════════════════════════════════════════ */
@@ -123,10 +149,13 @@ html.lite-mode .featured-card {
 }
 
 /* ═══════════════════════════════════════════════════════════════
- * 5. LOADING SCREEN — skip the pulse in lite mode
+ * 5. LOADING SCREEN — skip the logo pulse in lite mode (decorative).
+ *    `.loading-spinner` is NOT included here on purpose: it's reused
+ *    app-wide as the generic "please wait" indicator (admin panel,
+ *    assessments, journal, avatar, etc.), not just the splash screen —
+ *    see the spinner exception block below, which keeps it spinning.
  * ═══════════════════════════════════════════════════════════════ */
-html.lite-mode .loading-logo,
-html.lite-mode .loading-spinner {
+html.lite-mode .loading-logo {
   animation: none !important;
 }
 

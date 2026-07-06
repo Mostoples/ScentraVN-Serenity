@@ -37,6 +37,20 @@ const Views = {
             <div class="view-container">
 
                 <!-- ═══════════════════════════════════════════════
+                     CLOUD STORAGE HEALTH WARNING — hidden by default,
+                     shown by SupabaseHealth (js/supabase-health.js) when
+                     the Supabase project is unreachable (e.g. auto-paused
+                     from inactivity on the free plan).
+                ═══════════════════════════════════════════════ -->
+                <div id="supabaseHealthBanner" class="svc-health-banner" style="display:none;" role="alert">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <div class="svc-health-banner-text">
+                        <strong>${t('dash.db_issue_title')}</strong>
+                        <span>${t('dash.db_issue_sub')}</span>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════
                      HERO CARD — Greeting + Health Score (purple)
                 ═══════════════════════════════════════════════ -->
                 <section class="aura-hero">
@@ -3113,6 +3127,8 @@ const Views = {
                     .rh-ico-btn.spectra{border-color:rgba(8,145,178,0.3);background:rgba(8,145,178,0.12);color:#0891b2;transition:none;}
                     .rh-ico-btn.spectra:hover{background:rgba(8,145,178,0.2);}
                     .rh-ico-btn.spectra i{animation:none!important;transform:none!important;}
+                    .rh-ico-btn.sync{border-color:rgba(14,165,233,0.3);background:rgba(14,165,233,0.12);color:#0284c7;}
+                    .rh-ico-btn.sync:hover{background:rgba(14,165,233,0.2);}
                     .rh-ico-btn.danger{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.12);color:#dc2626;}
                     .rh-ico-btn.danger:hover{background:rgba(239,68,68,0.14);}
                     .rh-ico-btn:disabled,.rh-dl:disabled{opacity:.6;cursor:default;}
@@ -3126,6 +3142,7 @@ const Views = {
                     <div class="rh-title"><i class="fas fa-clock-rotate-left"></i> ${t('rh.title')}</div>
                     <div class="rh-actions">
                         <button class="rh-btn primary" type="button" onclick="Router.navigate('rawrecorder')"><i class="fas fa-record-vinyl"></i> ${t('rh.new')}</button>
+                        <button class="rh-ico-btn sync" type="button" id="histSyncAll" title="${t('rh.sync_supabase')}"><i class="fas fa-cloud-arrow-up"></i></button>
                         <button class="rh-btn" type="button" id="histRefresh"><i class="fas fa-rotate"></i> ${t('rh.reload')}</button>
                     </div>
                 </div>
@@ -3162,6 +3179,8 @@ const Views = {
                     .se-btn.denoise{background:rgba(8,145,178,0.12);color:#0891b2;}
                     .se-btn.denoise:hover{background:rgba(8,145,178,0.2);}
                     .se-btn.ghost{background:transparent;border:1px solid rgba(124,58,237,0.25);}
+                    .se-btn.se-info-btn{padding:9px 11px;background:rgba(148,163,184,0.12);color:#64748b;border:none;}
+                    .se-btn.se-info-btn:hover{background:rgba(148,163,184,0.22);}
                     .se-btn:disabled{opacity:.5;cursor:default;filter:none;}
 
                     .se-toolbar{background:#fff;border:1px solid rgba(124,58,237,0.1);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(76,29,149,.05);display:flex;flex-direction:column;gap:12px;}

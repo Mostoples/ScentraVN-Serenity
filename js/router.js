@@ -21,6 +21,15 @@ const Router = {
             if (link) {
                 e.preventDefault();
                 const route = link.getAttribute('data-route');
+                // Leaving the Spectra editor (nav tap, not its own "Back" button —
+                // that one already confirms via SpectraEditor._leave()) used to
+                // silently discard unsaved edits, since cleanupPreviousView() /
+                // SpectraEditor.destroy() run after navigation already committed
+                // and can't cancel it. Confirm here, before navigate() even runs.
+                if (this.currentRoute === 'spectra' && typeof SpectraEditor !== 'undefined' && SpectraEditor.dirty) {
+                    this._confirmLeaveSpectra().then((ok) => { if (ok) this.navigate(route); });
+                    return;
+                }
                 this.navigate(route);
             }
         });
@@ -34,6 +43,15 @@ const Router = {
      */
     register(path, handler) {
         this.routes[path] = handler;
+    },
+
+    /** Same confirm the Spectra editor's own "Back" button shows. */
+    async _confirmLeaveSpectra() {
+        const msg = (typeof t === 'function') ? t('se.confirm_leave') : 'Ada perubahan belum disimpan. Tetap keluar?';
+        if (typeof Utils !== 'undefined' && Utils.confirmModal) {
+            return await Utils.confirmModal(msg, { danger: true });
+        }
+        return confirm(msg);
     },
 
     /**

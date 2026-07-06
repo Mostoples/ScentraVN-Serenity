@@ -693,6 +693,10 @@ const App = {
             ScentraLive._reflectDashboard(ScentraLive.latest);
         }
 
+        // Peringatan kalau Supabase (storage rekaman RAW) tidak terjangkau —
+        // misal project free-plan yang ke-pause karena tidak ada aktivitas.
+        if (typeof SupabaseHealth !== 'undefined') SupabaseHealth.render();
+
         // Set greeting
         const greetingEl = document.getElementById('greeting');
         const userNameEl = document.getElementById('userName');

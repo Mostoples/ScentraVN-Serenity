@@ -76,7 +76,10 @@ const MultiDevice = {
         this.state.muse.isConnected = false;
         this.state.muse.isConnecting = false;
         this._emitConnection('muse', 'disconnected');
-      } else if (status === 'connecting') {
+      } else if (status === 'connecting' || status === 'reconnecting') {
+        // 'reconnecting' = auto-retry after an unexpected drop (see eeg-muse.js
+        // _attemptReconnect) — shown the same as 'connecting' so the UI never
+        // sits on an unhandled status.
         this.state.muse.isConnecting = true;
         this._emitConnection('muse', 'connecting');
       } else if (status === 'error') {

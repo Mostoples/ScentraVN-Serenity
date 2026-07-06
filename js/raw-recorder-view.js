@@ -35,9 +35,21 @@
       this._render(RawRecorder.getSummary(), RawRecorder.devices);
       this._syncControls();
       this._checkDraft();
+      this._autosaveTick = 0;
       this._timer = setInterval(() => {
         this._render(RawRecorder.getSummary(), RawRecorder.devices);
         this._evaluateMuseStability();
+        // Silent checkpoint to IndexedDB every ~2 min while actively recording —
+        // a long (~1h) session shouldn't be a single point of failure resting
+        // entirely on an uninterrupted tab. saveDraft() was previously only
+        // called on manual pause, so a crash/closed-tab mid-session lost
+        // everything; this makes that loss bounded to the last ~2 minutes.
+        if (RawRecorder.recording && !RawRecorder.paused) {
+          if (++this._autosaveTick >= 120) {
+            this._autosaveTick = 0;
+            RawRecorder.saveDraft().catch(() => {});
+          }
+        }
       }, 1000);
     },
 

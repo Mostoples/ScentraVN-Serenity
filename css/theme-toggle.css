@@ -677,6 +677,29 @@ html.reduce-motion *::after {
   scroll-behavior: auto !important;
 }
 
+/* Exception: loading spinners (fa-spinner + fa-spin) are functional feedback,
+   not decoration — keep them animating even with reduce-motion on. */
+html.reduce-motion i.fa-spin {
+  animation-duration: 1s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: infinite !important;
+}
+
+/* Same exception for the app's non-Font-Awesome "please wait" spinners. */
+html.reduce-motion .spinner,
+html.reduce-motion .loading-spinner,
+html.reduce-motion .q-spinner,
+html.reduce-motion .rq-spinner {
+  animation-duration: 0.8s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: infinite !important;
+}
+html.reduce-motion .admin-skeleton {
+  animation-duration: 1.5s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: infinite !important;
+}
+
 html.reduce-motion .auth-orb,
 html.reduce-motion .bg-orb,
 html.reduce-motion .aura-bg,

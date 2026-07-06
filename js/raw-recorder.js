@@ -2,7 +2,8 @@
  * ScentraVN Serenity — Multi-Device RAW Data Recorder
  *
  * Records synchronized RAW sensor streams from all devices and saves the
- * session to Firestore (full resolution, chunked) plus local JSON/CSV export.
+ * session to Firestore (metadata) + Supabase Storage (full-resolution blob),
+ * plus local JSON/CSV export.
  *
  * Devices & transports:
  *   1. Muse S Gen 2 (EEG)   — Web Bluetooth (MuseEEG)
@@ -12,20 +13,86 @@
  *   3. Galaxy Watch         — offline loopback bridge ws://127.0.0.1 (ScentraLive),
  *        RTDB only as fallback. bpm · stress · battery (Android companion → live)
  *
- * Save model (bypasses Firestore 1MB doc limit):
- *   users/{uid}/rawRecordings/{id}            ← metadata + summary
- *   users/{uid}/rawRecordings/{id}/chunks/{i} ← JSON string parts of full streams
+ * Save model (keeps big data OUT of Firestore, which is 1MB/doc and burns
+ * through the Spark free-plan write/storage quota fast — see SUPABASE_SETUP.md):
+ *   users/{uid}/rawRecordings/{id}   ← metadata + summary only (Firestore)
+ *   Supabase Storage bucket `recordings`, path {uid}/{id}.json.gz
+ *                                     ← ONE gzip blob with the full streams JSON
+ *
+ * Recordings saved before this change used a legacy scheme (schemaVersion 2:
+ * the full streams JSON split into chunks under rawRecordings/{id}/chunks/{i}).
+ * loadRecording/deleteRecording still understand that legacy layout so old
+ * history keeps working; updateRecording migrates a recording to the new
+ * Supabase-backed scheme the next time it's edited.
  */
 
 (() => {
   'use strict';
 
-  const CHUNK_BYTES = 600 * 1024;   // ~600KB per chunk (Firestore doc limit 1MB)
   const IDB_NAME = 'scentravn-recorder';
   const IDB_STORE = 'drafts';
   const IDB_REC_STORE = 'recordings';   // finished local recordings pending cloud upload
   const DRAFT_KEY = 'current';
   const LOCAL_PREFIX = 'local-';
+
+  /**
+   * Compress `streams` to gzip and upload as one blob to Supabase Storage.
+   * Path is deterministic (`{uid}/{id}.json.gz`) so save/edit/migrate always
+   * overwrite the SAME object — no orphaned blobs left behind on re-upload.
+   * `info` (name/durationSec/counts/…) is attached as Storage object metadata
+   * so a recording is self-describing straight from the Supabase dashboard,
+   * without having to cross-reference the Firestore doc.
+   */
+  const SUPABASE_FREE_MAX_UPLOAD_BYTES = 50 * 1024 * 1024;   // Supabase free-plan hard cap, not raisable
+
+  async function _uploadStreamsToSupabase(uid, id, streams, info = {}) {
+    if (!window.supabaseClient) throw new Error('Supabase belum dikonfigurasi — lihat SUPABASE_SETUP.md.');
+    const json = JSON.stringify(streams);
+    if (!json || json.length < 2) throw new Error('Data rekaman kosong — dibatalkan agar tidak menimpa blob yang valid.');
+    const compressed = fflate.gzipSync(fflate.strToU8(json), { level: 6 });
+    // A ~1h session compresses to roughly 10-20MB in practice; a much bigger
+    // blob than that means something is off (unexpectedly dense stream, or a
+    // recording well beyond the ~1h target this app is designed for) — fail
+    // clearly here instead of letting Supabase reject it with an opaque error.
+    if (compressed.length > SUPABASE_FREE_MAX_UPLOAD_BYTES) {
+      throw new Error(`Rekaman terlalu besar untuk Supabase free plan (${(compressed.length / 1024 / 1024).toFixed(1)}MB terkompresi, batas 50MB). Coba rekaman lebih pendek.`);
+    }
+    const bucket = (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_RECORDINGS_BUCKET) || 'recordings';
+    const path = `${uid}/${id}.json.gz`;
+    const { error } = await supabaseClient.storage.from(bucket)
+      .upload(path, new Blob([compressed], { type: 'application/gzip' }), {
+        contentType: 'application/gzip',
+        cacheControl: '0',   // may be overwritten by updateRecording — never serve a stale cached copy
+        upsert: true,
+        metadata: {
+          recordingId: id,
+          uid,
+          name: info.name || '',
+          startedAt: info.startedAt || '',
+          durationSec: info.durationSec || 0,
+          total: info.total || 0,
+        },
+      });
+    if (error) throw error;
+    return { bucket, path, bytes: json.length, compressedBytes: compressed.length };
+  }
+
+  /** Download + gunzip a recording blob from Supabase Storage back to the streams object. */
+  async function _downloadStreamsFromSupabase(bucket, path) {
+    if (!window.supabaseClient) throw new Error('Supabase belum dikonfigurasi — lihat SUPABASE_SETUP.md.');
+    const { data, error } = await supabaseClient.storage.from(bucket || 'recordings').download(path);
+    if (error) throw error;
+    const buf = new Uint8Array(await data.arrayBuffer());
+    const parsed = JSON.parse(fflate.strFromU8(fflate.gunzipSync(buf)));
+    // Always return the 4 known stream arrays, even if the blob is an older/
+    // partial shape — callers can rely on `.muse`/`.museRaw`/etc. always existing.
+    return {
+      galaxy: Array.isArray(parsed.galaxy) ? parsed.galaxy : [],
+      muse: Array.isArray(parsed.muse) ? parsed.muse : [],
+      museRaw: Array.isArray(parsed.museRaw) ? parsed.museRaw : [],
+      scentra: Array.isArray(parsed.scentra) ? parsed.scentra : [],
+    };
+  }
 
   const RawRecorder = {
     recording: false,
@@ -371,8 +438,12 @@
       }
 
       // Online: upload, but cap the wait so a mid-save disconnect can't hang the UI.
+      // A ~1h recording's gzip blob can be several/tens of MB (see
+      // _uploadStreamsToSupabase's size guard) — 60s was too tight on a slow
+      // connection and would needlessly bounce a successful-but-slow upload
+      // into the local-pending/retry path, so this is generous (5 min) instead.
       let id = null;
-      try { id = await this._withTimeout(this.saveToFirestore(meta, { silent: true }), 60000); }
+      try { id = await this._withTimeout(this.saveToFirestore(meta, { silent: true }), 300000); }
       catch (e) { id = null; }
       if (id) { await this.clearDraft(); return { status: 'saved', id }; }
 
@@ -386,7 +457,7 @@
       return Promise.race([promise, new Promise((res) => setTimeout(() => res(null), ms))]);
     },
 
-    /* ── Firestore save (FULL resolution, chunked) ────────────────── */
+    /* ── Save (FULL resolution): blob → Supabase Storage, metadata → Firestore ── */
     async saveToFirestore(meta = {}, opts = {}) {
       const silent = !!opts.silent;
       try {
@@ -401,14 +472,17 @@
         const summary = this.getSummary();
         const col = db.collection('users').doc(uid).collection('rawRecordings');
 
-        /* 1) metadata doc */
+        /* 1) metadata doc (id generated client-side so we can use it as the storage path) */
         const docRef = col.doc();
         const startedISO = this.startedAt ? new Date(this.startedAt).toISOString() : null;
 
-        /* 2) split full streams JSON into ≤600KB string chunks */
-        const json = JSON.stringify(this.streams);
-        const parts = [];
-        for (let i = 0; i < json.length; i += CHUNK_BYTES) parts.push(json.slice(i, i + CHUNK_BYTES));
+        /* 2) full streams JSON → one gzip blob in Supabase Storage */
+        const { bucket, path, bytes, compressedBytes } = await _uploadStreamsToSupabase(uid, docRef.id, this.streams, {
+          name: meta.name || this.prettyName(),
+          startedAt: startedISO,
+          durationSec: summary.durationSec,
+          total: summary.total,
+        });
 
         await docRef.set({
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -420,20 +494,12 @@
           devices: this.devices,
           name: meta.name || this.prettyName(),
           note: meta.note || '',
-          schemaVersion: 2,
-          chunkCount: parts.length,
-          bytes: json.length,
+          schemaVersion: 3,
+          storageBucket: bucket,
+          storagePath: path,
+          bytes,
+          compressedBytes,
         });
-
-        /* 3) write chunks in batches */
-        const chunksCol = docRef.collection('chunks');
-        let batch = db.batch();
-        let ops = 0;
-        for (let i = 0; i < parts.length; i++) {
-          batch.set(chunksCol.doc(String(i).padStart(5, '0')), { i, part: parts[i] });
-          if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
-        }
-        if (ops > 0) await batch.commit();
 
         return docRef.id;
       } catch (e) {
@@ -461,7 +527,7 @@
       return [...local, ...cloud];
     },
 
-    /** Load a recording's full streams by reassembling its chunks. */
+    /** Load a recording's full streams (Supabase blob, or legacy Firestore chunks). */
     async loadRecording(id) {
       if (id && id.indexOf(LOCAL_PREFIX) === 0) return this.loadLocalRecording(id);
       if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') return null;
@@ -469,19 +535,27 @@
       const metaSnap = await ref.get();
       if (!metaSnap.exists) return null;
       const meta = { id, ...metaSnap.data() };
-      const chunksSnap = await ref.collection('chunks').orderBy('i').get();
-      let json = '';
-      chunksSnap.forEach(c => { json += (c.data().part || ''); });
       let streams = { galaxy: [], muse: [], museRaw: [], scentra: [] };
-      if (json) { try { streams = JSON.parse(json); } catch (e) { console.warn('parse streams failed', e); } }
+      try {
+        if (meta.storagePath) {
+          streams = await _downloadStreamsFromSupabase(meta.storageBucket, meta.storagePath);
+        } else {
+          // Legacy schemaVersion 2 recording: full JSON split across Firestore chunk docs.
+          const chunksSnap = await ref.collection('chunks').orderBy('i').get();
+          let json = '';
+          chunksSnap.forEach(c => { json += (c.data().part || ''); });
+          if (json) streams = JSON.parse(json);
+        }
+      } catch (e) { console.warn('load streams failed', e); }
       return { meta, streams };
     },
 
     /**
      * Overwrite an existing recording's full streams (used by the spectra editor
-     * after the user removes noisy segments). Recomputes counts/bytes, replaces
-     * ALL chunks (old chunks are deleted first so a shorter result can't leave
-     * stale tail chunks that would corrupt reassembly), and updates metadata.
+     * after the user removes noisy segments). Recomputes counts/bytes, re-uploads
+     * the Supabase blob (upsert — same path, new content), and updates metadata.
+     * If the recording still used the legacy chunked-Firestore scheme, this also
+     * deletes those chunk docs, migrating it to the Supabase-backed scheme.
      */
     async updateRecording(id, streams) {
       // Local (pending) recording → update in IndexedDB.
@@ -513,44 +587,122 @@
       };
       const total = counts.muse + counts.museRaw + counts.scentra + counts.galaxy;
 
-      const json = JSON.stringify(streams);
-      const parts = [];
-      for (let i = 0; i < json.length; i += CHUNK_BYTES) parts.push(json.slice(i, i + CHUNK_BYTES));
+      const existing = (await ref.get()).data() || {};
+      const { bucket, path, bytes, compressedBytes } = await _uploadStreamsToSupabase(uid, id, streams, {
+        name: existing.name, startedAt: existing.startedAt, durationSec: existing.durationSec, total,
+      });
 
-      const chunksCol = ref.collection('chunks');
-
-      /* 1) delete every existing chunk */
-      const old = await chunksCol.get();
-      let batch = db.batch(); let ops = 0;
-      for (const c of old.docs) {
-        batch.delete(c.ref);
-        if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
+      /* Clean up legacy chunk docs, if any (pre-Supabase recording being migrated). */
+      const oldChunks = await ref.collection('chunks').get();
+      if (!oldChunks.empty) {
+        let batch = db.batch(); let ops = 0;
+        for (const c of oldChunks.docs) {
+          batch.delete(c.ref);
+          if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
+        }
+        if (ops > 0) await batch.commit();
       }
-      if (ops > 0) await batch.commit();
 
-      /* 2) write the new chunks */
-      batch = db.batch(); ops = 0;
-      for (let i = 0; i < parts.length; i++) {
-        batch.set(chunksCol.doc(String(i).padStart(5, '0')), { i, part: parts[i] });
-        if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
-      }
-      if (ops > 0) await batch.commit();
-
-      /* 3) update metadata */
       await ref.update({
         counts, total,
-        bytes: json.length,
-        chunkCount: parts.length,
+        bytes, compressedBytes,
+        schemaVersion: 3,
+        storageBucket: bucket,
+        storagePath: path,
+        chunkCount: firebase.firestore.FieldValue.delete(),
         editedAt: new Date().toISOString(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
       return true;
     },
 
+    /**
+     * One-off migration button target: move an EXISTING legacy recording
+     * (schemaVersion 2, full data split across Firestore `chunks` docs) to the
+     * Supabase-backed scheme, without touching its content. Refuses to run for:
+     *   - local/pending recordings (nothing in Firestore yet to migrate)
+     *   - recordings that already have a storagePath (already migrated — the
+     *     caller should not be able to trigger this twice for the same recording).
+     */
+    async syncRecordingToSupabase(id) {
+      if (id && id.indexOf(LOCAL_PREFIX) === 0) {
+        throw new Error('Rekaman ini masih tersimpan lokal (offline) — akan sync otomatis saat online, bukan lewat tombol ini.');
+      }
+      if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') {
+        throw new Error('Login diperlukan.');
+      }
+      const uid = auth.currentUser.uid;
+      const ref = db.collection('users').doc(uid).collection('rawRecordings').doc(id);
+      const metaSnap = await ref.get();
+      if (!metaSnap.exists) throw new Error('Rekaman tidak ditemukan.');
+      const meta = metaSnap.data();
+      if (meta.storagePath) throw new Error('Rekaman ini sudah tersimpan di Supabase.');
+
+      // Reassemble the legacy chunked JSON — content is NOT modified, only relocated.
+      const chunksSnap = await ref.collection('chunks').orderBy('i').get();
+      let json = '';
+      chunksSnap.forEach(c => { json += (c.data().part || ''); });
+      const streams = json ? JSON.parse(json) : { galaxy: [], muse: [], museRaw: [], scentra: [] };
+
+      const { bucket, path, bytes, compressedBytes } = await _uploadStreamsToSupabase(uid, id, streams, {
+        name: meta.name, startedAt: meta.startedAt, durationSec: meta.durationSec, total: meta.total,
+      });
+
+      let batch = db.batch(); let ops = 0;
+      for (const c of chunksSnap.docs) {
+        batch.delete(c.ref);
+        if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
+      }
+      if (ops > 0) await batch.commit();
+
+      await ref.update({
+        schemaVersion: 3,
+        storageBucket: bucket,
+        storagePath: path,
+        bytes, compressedBytes,
+        chunkCount: firebase.firestore.FieldValue.delete(),
+        syncedAt: new Date().toISOString(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      return true;
+    },
+
+    /**
+     * Global "sync everything" button target: migrates every remaining legacy
+     * (schemaVersion 2) cloud recording to Supabase Storage. Recordings that
+     * already have a storagePath are skipped, so calling this again — or
+     * concurrently from another tab — never re-uploads or re-migrates the
+     * same recording twice. Returns { total, synced, failed }.
+     */
+    async syncAllToSupabase() {
+      if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') {
+        throw new Error('Login diperlukan.');
+      }
+      const uid = auth.currentUser.uid;
+      const snap = await db.collection('users').doc(uid).collection('rawRecordings').get();
+      const legacy = snap.docs.filter(d => !d.data().storagePath);
+
+      let synced = 0, failed = 0;
+      for (const d of legacy) {
+        try { await this.syncRecordingToSupabase(d.id); synced++; }
+        catch (e) { failed++; console.warn('syncAllToSupabase: gagal untuk', d.id, e.message); }
+      }
+      return { total: legacy.length, synced, failed };
+    },
+
     async deleteRecording(id) {
       if (id && id.indexOf(LOCAL_PREFIX) === 0) return this.deleteLocalRecording(id);
       if (typeof auth === 'undefined' || !auth.currentUser || typeof db === 'undefined') return false;
       const ref = db.collection('users').doc(auth.currentUser.uid).collection('rawRecordings').doc(id);
+
+      const metaSnap = await ref.get();
+      const meta = metaSnap.exists ? metaSnap.data() : null;
+      if (meta && meta.storagePath && window.supabaseClient) {
+        try { await supabaseClient.storage.from(meta.storageBucket || 'recordings').remove([meta.storagePath]); }
+        catch (e) { console.warn('Supabase delete failed:', e && e.message); }
+      }
+
+      // Legacy schemaVersion 2 recordings kept their data in a chunks subcollection.
       const chunks = await ref.collection('chunks').get();
       let batch = db.batch(); let ops = 0;
       chunks.forEach(c => { batch.delete(c.ref); if (++ops >= 400) { batch.commit(); batch = db.batch(); ops = 0; } });
@@ -655,13 +807,13 @@
 
     async deleteLocalRecording(id) { try { await this._idbDel(id, IDB_REC_STORE); return true; } catch (e) { return false; } },
 
-    /** Upload one stored local recording to Firestore (chunked). Returns doc id. */
+    /** Upload one stored local recording: blob to Supabase Storage, metadata to Firestore. */
     async _uploadRecord(rec) {
       const uid = auth.currentUser.uid;
       const docRef = db.collection('users').doc(uid).collection('rawRecordings').doc();
-      const json = JSON.stringify(rec.streams || {});
-      const parts = [];
-      for (let i = 0; i < json.length; i += CHUNK_BYTES) parts.push(json.slice(i, i + CHUNK_BYTES));
+      const { bucket, path, bytes, compressedBytes } = await _uploadStreamsToSupabase(uid, docRef.id, rec.streams || {}, {
+        name: rec.name, startedAt: rec.startedAt, durationSec: rec.durationSec, total: rec.total,
+      });
       await docRef.set({
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         startedAt: rec.startedAt || null,
@@ -670,15 +822,8 @@
         counts: rec.counts || {}, total: rec.total || 0,
         devices: rec.devices || {},
         name: rec.name || this.prettyName(), note: rec.note || '',
-        schemaVersion: 2, chunkCount: parts.length, bytes: json.length,
+        schemaVersion: 3, storageBucket: bucket, storagePath: path, bytes, compressedBytes,
       });
-      const chunksCol = docRef.collection('chunks');
-      let batch = db.batch(), ops = 0;
-      for (let i = 0; i < parts.length; i++) {
-        batch.set(chunksCol.doc(String(i).padStart(5, '0')), { i, part: parts[i] });
-        if (++ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
-      }
-      if (ops > 0) await batch.commit();
       return docRef.id;
     },
 

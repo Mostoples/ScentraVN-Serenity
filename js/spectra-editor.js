@@ -83,6 +83,13 @@
 
       const spec = RecordHistory._computeBands(this.streams.muse || []);
       this.times = spec.times || [];
+      // Bucket edges (first/last raw frame's elapsed second inside each bucket)
+      // — used instead of the bucket MEAN when deleting a range, so a
+      // downsampled long recording doesn't clip data at the edges of the
+      // first/last selected bucket. Falls back to `times` if absent (older
+      // cached spec shape) so this never throws.
+      this.timesStart = spec.timesStart || this.times;
+      this.timesEnd = spec.timesEnd || this.times;
       // Frames shown in the list (muse metrics that carry a timestamp).
       this.listFrames = (this.streams.muse || []).filter(f => f && f.t != null);
       this.museT0 = this.listFrames.length ? this.listFrames[0].t : 0;
@@ -110,6 +117,7 @@
             <span id="seFrames" class="se-frames"></span>
           </div>
           <div class="se-actions">
+            <button id="seDenoiseInfo" class="se-btn ghost se-info-btn" type="button" title="${t('se.denoise_info_title')}"><i class="fas fa-circle-info"></i></button>
             <button id="seDenoise" class="se-btn denoise" type="button"><i class="fas fa-filter"></i> ${t('se.denoise')}</button>
             <button id="seDelete" class="se-btn danger" disabled><i class="fas fa-eraser"></i> ${t('se.delete')}</button>
             <button id="seClear" class="se-btn" disabled><i class="fas fa-xmark"></i> ${t('se.clear')}</button>
@@ -187,6 +195,16 @@
       return best;
     },
 
+    /** Plain-language explanation of what the "Denoise Otomatis" button does. */
+    _showDenoiseInfo() {
+      const msg = t('se.denoise_info_body');
+      if (typeof Utils !== 'undefined' && Utils.alertModal) {
+        Utils.alertModal(msg, { title: t('se.denoise_info_title'), icon: 'fa-filter' });
+      } else {
+        alert(msg);
+      }
+    },
+
     /**
      * Auto-denoise: robustly detect artifact frames (blink/motion spikes raise
      * the total band power far above the session baseline) and, on confirmation,
@@ -252,13 +270,40 @@
       return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
     },
 
-    /** Delete a single frame (one row) from the muse stream. */
+    /**
+     * Delete a single frame (one row): removes it from `muse`, AND the raw
+     * EEG/PPG/watch samples captured in the same instant from `museRaw`/
+     * `scentra`/`galaxy` — matching the editing model documented at the top
+     * of this file and what range-delete/auto-denoise already do. A previous
+     * version of this only touched `muse`, silently leaving the underlying
+     * raw data (the actual noisy signal) in the recording.
+     */
     _deleteFrame(i) {
       const f = this.listFrames[i];
       if (!f) return;
-      this.streams.muse = (this.streams.muse || []).filter(x => x !== f);
+
+      // Half the median interval between listed frames — same window logic
+      // _autoDenoise uses — so the raw samples captured "at the same moment"
+      // as this metrics frame get removed too, not just the summary row.
+      const ts = this.listFrames.map(x => x.t).sort((a, b) => a - b);
+      const diffs = [];
+      for (let k = 1; k < ts.length; k++) diffs.push(ts[k] - ts[k - 1]);
+      const half = (this._median(diffs) || 1000) / 2;
+      const startMs = f.t - half, endMs = f.t + half;
+
+      let removed = 0;
+      for (const key of ['muse', 'museRaw', 'scentra', 'galaxy']) {
+        const arr = this.streams[key];
+        if (!Array.isArray(arr)) continue;
+        const before = arr.length;
+        this.streams[key] = (key === 'muse')
+          ? arr.filter(x => x !== f)   // exact — never drop a neighbouring muse frame by accident
+          : arr.filter(fr => !(fr && fr.t != null && fr.t >= startMs && fr.t <= endMs));
+        removed += before - this.streams[key].length;
+      }
+
       this.dirty = true;
-      this._toast(t('se.removed', { n: 1 }));
+      this._toast(t('se.removed', { n: removed }));
       if (this.chart) { try { this.chart.destroy(); } catch (_) {} this.chart = null; }
       this._renderBody();
     },
@@ -266,6 +311,7 @@
     _wireActions() {
       const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
       on('seDenoise', () => this._autoDenoise());
+      on('seDenoiseInfo', () => this._showDenoiseInfo());
       on('seDelete', () => this._deleteSelection());
       on('seClear', () => { this.selA = this.selB = null; this._refreshSelUI(); if (this.chart) this.chart.update('none'); });
       on('seReset', () => this._reset());
@@ -385,8 +431,10 @@
     _deleteSelection() {
       if (this.selA == null || this.selB == null) return;
       const a = Math.min(this.selA, this.selB), b = Math.max(this.selA, this.selB);
-      const startMs = this.museT0 + this.times[a] * 1000;
-      const endMs = this.museT0 + this.times[b] * 1000;
+      // Use bucket EDGES, not the mean (this.times), so the whole selected
+      // bucket's raw data is removed — see _computeBands' doc comment.
+      const startMs = this.museT0 + this.timesStart[a] * 1000;
+      const endMs = this.museT0 + this.timesEnd[b] * 1000;
 
       let removed = 0;
       for (const key of ['muse', 'museRaw', 'scentra', 'galaxy']) {

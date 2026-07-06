@@ -13,6 +13,11 @@ const CONFIG = {
     FIREBASE_MESSAGING_SENDER_ID: '479113972827',
     FIREBASE_APP_ID: '1:479113972827:web:399f5543c7624e75b1037e',
 
+    // Supabase Configuration - Storage untuk blob rekaman RAW (EEG/PPG)
+    SUPABASE_URL: (typeof API_KEYS !== 'undefined' && API_KEYS.SUPABASE_URL) || '',
+    SUPABASE_ANON_KEY: (typeof API_KEYS !== 'undefined' && API_KEYS.SUPABASE_ANON_KEY) || '',
+    SUPABASE_RECORDINGS_BUCKET: 'recordings',
+
     // Gemini AI Configuration (multiple keys for auto-fallback)
     GEMINI_API_KEY: (typeof API_KEYS !== 'undefined' && API_KEYS.GEMINI_API_KEY) || '',
     GEMINI_API_KEYS: (typeof API_KEYS !== 'undefined' && API_KEYS.GEMINI_API_KEYS) || [],
