@@ -361,11 +361,16 @@
       if (subtitle) banner.push([subtitle]);
       banner.push([]);                                   // spacer row
       const headerRow = banner.length;                  // 0-based row for the table header
-      const ws = XLSX.utils.aoa_to_sheet(banner);
+      /* dense mode: worksheet stores rows as `ws['!data']` arrays instead of one
+       * object property per cell address (A1, B1, …). Long raw-sensor sheets can
+       * hit millions of cells, and the default sparse per-cell format then blows
+       * past WebKit/Safari's hard cap on object property count, throwing
+       * "Too many properties to enumerate" during export. */
+      const ws = XLSX.utils.aoa_to_sheet(banner, { dense: true });
       if (rows && rows.length) {
-        XLSX.utils.sheet_add_json(ws, rows, { origin: { r: headerRow, c: 0 } });
+        XLSX.utils.sheet_add_json(ws, rows, { origin: { r: headerRow, c: 0 }, dense: true });
       } else {
-        XLSX.utils.sheet_add_aoa(ws, [[t('rh.x_empty')]], { origin: { r: headerRow, c: 0 } });
+        XLSX.utils.sheet_add_aoa(ws, [[t('rh.x_empty')]], { origin: { r: headerRow, c: 0 }, dense: true });
       }
       const merges = [];
       for (let r = 0; r < banner.length - 1; r++) merges.push({ s: { r, c: 0 }, e: { r, c: ncol - 1 } });
