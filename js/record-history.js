@@ -247,23 +247,14 @@
         // Building each sheet (SheetJS aoa_to_sheet/sheet_add_json over potentially
         // 100k+ rows) is itself one long synchronous call we can't interrupt —
         // yield right before each one so the spinner repaints at least once per sheet.
-        if (eegRows.length) {
-          await new Promise(requestAnimationFrame);
-          XLSX.utils.book_append_sheet(wb, this._titledSheet(eegRows, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20', subtitle), 'EEG_Raw');
-        }
-        if (ppgRows.length) {
-          await new Promise(requestAnimationFrame);
-          XLSX.utils.book_append_sheet(wb, this._titledSheet(ppgRows, 'PPG Raw — sensor optik (64 Hz) · ambient/IR/merah', subtitle), 'PPG_Raw');
-        }
-        if (motionRows.length) {
-          await new Promise(requestAnimationFrame);
-          XLSX.utils.book_append_sheet(wb, this._titledSheet(motionRows, 'Muse Motion — accel/gyro', subtitle), 'Muse_Motion');
-        }
+        await this._appendChunkedRows(wb, 'EEG_Raw', eegRows, subtitle, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20');
+        await this._appendChunkedRows(wb, 'PPG_Raw', ppgRows, subtitle, 'PPG Raw — sensor optik (64 Hz) · ambient/IR/merah');
+        await this._appendChunkedRows(wb, 'Muse_Motion', motionRows, subtitle, 'Muse Motion — accel/gyro');
 
         /* ── Other streams (arrays flattened to pipe-joined strings) ── */
-        this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle, 'Muse Metrics — band power (µV²) & status');
-        this._appendStream(wb, 'ScentraVN', streams.scentra, subtitle, 'ScentraVN Watch — PPG (ir/red), HR, SpO₂, EDA, IMU');
-        this._appendStream(wb, 'Galaxy_Watch', streams.galaxy, subtitle);
+        await this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle, 'Muse Metrics — band power (µV²) & status');
+        await this._appendStream(wb, 'ScentraVN', streams.scentra, subtitle, 'ScentraVN Watch — PPG (ir/red), HR, SpO₂, EDA, IMU');
+        await this._appendStream(wb, 'Galaxy_Watch', streams.galaxy, subtitle);
 
         if (wb.SheetNames.length === 1) {
           XLSX.utils.book_append_sheet(wb, this._titledSheet([], t('rh.x_empty'), subtitle), 'Empty');
@@ -394,7 +385,7 @@
       });
     },
 
-    _appendStream(wb, name, arr, subtitle, title) {
+    async _appendStream(wb, name, arr, subtitle, title) {
       if (!arr || !arr.length) return;
       const rows = arr.map(r => {
         const o = {};
@@ -405,7 +396,27 @@
         }
         return o;
       });
-      XLSX.utils.book_append_sheet(wb, this._titledSheet(rows, title || name.replace(/_/g, ' '), subtitle), name.slice(0, 31));
+      await this._appendChunkedRows(wb, name, rows, subtitle, title || name.replace(/_/g, ' '));
+    },
+
+    /** Max data rows per worksheet. Kept well under both Excel's hard cap
+     * (1,048,576 rows/sheet) and the point where a single sheet's generated
+     * XML string risks exceeding the JS engine's max string length (~530M
+     * chars) — a ~1h raw recording easily produces millions of samples, so
+     * long streams get split across N numbered sheets instead of one. */
+    MAX_SHEET_ROWS: 300000,
+
+    async _appendChunkedRows(wb, baseName, rows, subtitle, title) {
+      if (!rows || !rows.length) return;
+      const max = this.MAX_SHEET_ROWS;
+      const parts = Math.ceil(rows.length / max);
+      for (let i = 0; i < parts; i++) {
+        await new Promise(requestAnimationFrame);
+        const slice = rows.slice(i * max, (i + 1) * max);
+        const suffix = parts > 1 ? `_${i + 1}` : '';
+        const sheetTitle = parts > 1 ? `${title} (bagian ${i + 1}/${parts})` : title;
+        XLSX.utils.book_append_sheet(wb, this._titledSheet(slice, sheetTitle, subtitle), (baseName + suffix).slice(0, 31));
+      }
     },
 
     /**
