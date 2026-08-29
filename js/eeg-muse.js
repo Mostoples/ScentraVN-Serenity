@@ -842,7 +842,9 @@ const MuseEEG = {
                 }
             }
 
-            const frame = { t: Date.now(), ch: channel, samples };
+            // Attach the latest HR snapshot so a recorded PPG_Raw export carries
+            // heart rate alongside the raw waveform (updated from the IR channel above).
+            const frame = { t: Date.now(), ch: channel, samples, hr: this.metrics.hr };
             for (const fn of this._rawListeners) { try { fn(frame); } catch (_) {} }
         } catch (_) {}
     },

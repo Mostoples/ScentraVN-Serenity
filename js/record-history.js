@@ -200,6 +200,12 @@
           ['gamma', '30–44 Hz', 'Pemrosesan kognitif tinggi'],
           ['smr',   '12–15 Hz', 'Sensorimotor rhythm (tenang & fokus)'],
           [],
+          ['Sinyal PPG — Muse S Gen 2 (dahi)', 'Keterangan', 'Catatan'],
+          ['ambient/ir/merah', 'PPG mentah per-sampel (64 Hz, 24-bit)', 'Ada di sheet PPG_Raw, bukan Muse_Metrics'],
+          ['hr',     'Detak jantung (BPM)',              'Turunan puncak gelombang PPG dahi (pipeline MusePPG) — ada di Muse_Metrics & PPG_Raw'],
+          ['rmssd',  'HRV RMSSD (ms)',                   'Variabilitas detak jantung dari PPG dahi (Muse_Metrics)'],
+          ['ppgSqi', 'Indeks kualitas sinyal PPG (0–1)', '≥0.5 dianggap layak dipakai untuk hr/rmssd (Muse_Metrics)'],
+          [],
           ['Sinyal PPG — ScentraVN Watch (MAX30102)', 'Keterangan', 'Catatan'],
           ['ir',   'PPG mentah kanal IR (infra-merah)',  'Pantulan LED inframerah dari jari — sinyal fotopletismografi'],
           ['red',  'PPG mentah kanal RED (merah)',       'Pantulan LED merah — dipakai bersama IR untuk SpO₂'],
@@ -238,7 +244,9 @@
             }));
           } else if (PPG_CH[f.ch]) {
             // PPG optik Muse (64 Hz, 24-bit). ppg1=ambient, ppg2=IR, ppg3=merah.
-            (f.samples || []).forEach((v, i) => ppgRows.push({ t: ts, channel: PPG_CH[f.ch], i, value: v }));
+            // `hr` = snapshot detak jantung (BPM) terkini dari pipeline MusePPG,
+            // ikut disimpan per baris agar HR dan gelombang PPG mentah sinkron.
+            (f.samples || []).forEach((v, i) => ppgRows.push({ t: ts, channel: PPG_CH[f.ch], i, value: v, hr: f.hr }));
           } else {
             (f.samples || []).forEach((s, i) => motionRows.push({ t: ts, ch: f.ch, i, x: s[0], y: s[1], z: s[2] }));
           }
@@ -248,11 +256,11 @@
         // 100k+ rows) is itself one long synchronous call we can't interrupt —
         // yield right before each one so the spinner repaints at least once per sheet.
         await this._appendChunkedRows(wb, 'EEG_Raw', eegRows, subtitle, 'EEG Raw — µV per sample (256 Hz) · channel = posisi elektroda 10-20');
-        await this._appendChunkedRows(wb, 'PPG_Raw', ppgRows, subtitle, 'PPG Raw — sensor optik (64 Hz) · ambient/IR/merah');
+        await this._appendChunkedRows(wb, 'PPG_Raw', ppgRows, subtitle, 'PPG Raw — sensor optik (64 Hz) · ambient/IR/merah · hr = detak jantung (BPM) real-time');
         await this._appendChunkedRows(wb, 'Muse_Motion', motionRows, subtitle, 'Muse Motion — accel/gyro');
 
         /* ── Other streams (arrays flattened to pipe-joined strings) ── */
-        await this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle, 'Muse Metrics — band power (µV²) & status');
+        await this._appendStream(wb, 'Muse_Metrics', streams.muse, subtitle, 'Muse Metrics — band power (µV²), detak jantung (hr/rmssd/ppgSqi) & status');
         await this._appendStream(wb, 'ScentraVN', streams.scentra, subtitle, 'ScentraVN Watch — PPG (ir/red), HR, SpO₂, EDA, IMU');
         await this._appendStream(wb, 'Galaxy_Watch', streams.galaxy, subtitle);
 

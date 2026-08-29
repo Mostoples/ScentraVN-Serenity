@@ -247,7 +247,7 @@ function renderMergedHealth() {
 /**
  * Render snapshot kontrak (galaxyWatch/esp32/muse) ke halaman health.
  * Jujur sesuai skema: HR dari Watch (fallback ESP32), SpO₂ HANYA ESP32,
- * Stres = angka 0–100 dari ScentraVN Watch (ESP32), EEG dari Muse. BP/EKG tidak ada.
+ * Stres = angka 0–100 dari ScentraVN Watch (ESP32), EEG dari Muse (+ HR sendiri dari PPG dahi). BP/EKG tidak ada.
  */
 function applyHealthLiveSnapshot(live) {
     if (!document.getElementById('eegChart')) { unwireHealthLiveBridge(); return; }
@@ -275,7 +275,8 @@ function _renderHealthSnapshot(live) {
     renderDeviceCard('esp', esp);
     renderDeviceCard('muse', muse);
 
-    // ── Detak jantung: DUA sumber (Galaxy Watch + ScentraVN Watch) ──
+    // ── Detak jantung: DUA sumber (Galaxy Watch + ScentraVN Watch). Muse punya
+    // kartu detak jantung sendiri di kartu EEG, di samping PPG (IR). ──
     const gwHr  = (gw.connected && gw.bpm > 0) ? gw.bpm : null;
     const espHr = (esp.connected && esp.bpm > 0) ? esp.bpm : null;
     renderHeartRate(gwHr, espHr);
@@ -473,8 +474,17 @@ function renderEEG(muse) {
         else { gaugeEl.style.display = 'none'; }
     }
 
-    // PPG cards (replaced Focus/Relax): live IR sample + HRV (RMSSD).
+    // PPG cards (replaced Focus/Relax): heart rate + live IR sample + HRV (RMSSD).
     const ppg = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.ppg : null;
+    const sqi = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? (MuseEEG.metrics.ppgSqi || 0) : 0;
+    // Heart rate (BPM) from the Muse forehead PPG — sits right beside PPG (IR).
+    // Only shown once the signal quality is good enough (same gate as HRV below).
+    const hrMuseEl = document.getElementById('eegMuseHr');
+    const hrMuseVal = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.hr : null;
+    if (hrMuseEl) {
+        hrMuseEl.textContent = (museReal && hrMuseVal != null && isFinite(hrMuseVal) && sqi >= 0.5)
+            ? Math.round(hrMuseVal) : '--';
+    }
     const irEl = document.getElementById('eegPpgIr');
     if (irEl) irEl.textContent = (museReal && ppg && ppg.ir != null) ? Math.round(ppg.ir).toLocaleString('id-ID') : '--';
     // Show which bit-depth the PPG packets are being decoded as (16 or 24).
@@ -485,7 +495,6 @@ function renderEEG(muse) {
     const hrvInfo = document.getElementById('eegHrvInfo');
     // HRV from the dedicated PPG→HRV pipeline (MusePPG), but ONLY when the signal
     // quality is good — a weak/poorly-seated PPG produces erratic, meaningless RMSSD.
-    const sqi = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? (MuseEEG.metrics.ppgSqi || 0) : 0;
     const rmssd = (typeof MuseEEG !== 'undefined' && MuseEEG.metrics) ? MuseEEG.metrics.rmssd : null;
     let weak = false;
     if (hrvEl) {

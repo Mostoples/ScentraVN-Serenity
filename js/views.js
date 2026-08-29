@@ -568,7 +568,8 @@ const Views = {
                     .heeg-band .h{font-size:0.58rem;color:#94a3b8;margin-top:1px;}
                     .heeg-bar{height:5px;background:rgba(124,58,237,0.10);border-radius:99px;margin-top:8px;overflow:hidden;}
                     .heeg-bar span{display:block;height:100%;width:0;border-radius:99px;transition:width .35s ease;}
-                    .heeg-status{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+                    .heeg-status{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+                    @media(min-width:641px) and (max-width:980px){ .heeg-status{grid-template-columns:repeat(2,1fr);} }
                     .heeg-stat{background:#faf8ff;border:1px solid rgba(124,58,237,0.08);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;}
                     .heeg-stat i{font-size:1.05rem;flex-shrink:0;}
                     .heeg-stat .lbl{font-size:0.66rem;color:#94a3b8;}
@@ -656,7 +657,7 @@ const Views = {
                             ${[
                                 ['gw','img:images/smartwatch.png','Galaxy Watch',t('health.role_hr'),'rtdb'],
                                 ['esp','fa-microchip','ScentraVN Watch',t('health.role_hr_spo2_stress'),'ble'],
-                                ['muse','fa-brain','Muse S Gen 2',t('health.role_eeg'),'ble']
+                                ['muse','fa-brain','Muse S Gen 2',t('health.role_eeg_hr'),'ble']
                             ].map(([k,ic,nm,role,conn]) => `
                                 <div class="hcard hdev-card">
                                     <div class="hdev-top">
@@ -760,6 +761,7 @@ const Views = {
                             <div class="heeg-band"><div class="v" id="eegGamma" style="color:#ef4444;">--</div><div class="n">Gamma</div><div class="h">30–100Hz</div><div class="heeg-bar"><span id="eegBar-gamma" style="background:#ef4444;"></span></div></div>
                         </div>
                         <div class="heeg-status">
+                            <div class="heeg-stat"><i class="fas fa-heart-pulse" style="color:#ef4444;"></i><div><div class="lbl">Detak Jantung (Muse)</div><div class="val" id="eegMuseHr">--</div></div></div>
                             <div class="heeg-stat"><i class="fas fa-droplet" style="color:#ef4444;"></i><div><div class="lbl">PPG (IR) <span id="eegPpgBits" class="heeg-sub"></span></div><div class="val" id="eegPpgIr">--</div></div></div>
                             <div class="heeg-stat"><i class="fas fa-stopwatch" style="color:#0891b2;"></i><div style="flex:1;min-width:0;"><div class="lbl">HRV (RMSSD)</div><div class="val" id="eegHrv">--</div></div><button id="eegHrvInfo" type="button" class="heeg-info-btn" style="display:none;" title="Cara memperkuat sinyal" aria-label="Info sinyal PPG"><i class="fas fa-circle-info"></i></button></div>
                             <div class="heeg-stat"><i class="fas fa-battery-half" style="color:#3b82f6;"></i><div><div class="lbl">${t('health.muse_battery')}</div><div class="val" id="eegBattery">--</div></div></div>
