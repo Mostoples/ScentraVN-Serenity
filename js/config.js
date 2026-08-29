@@ -4,14 +4,14 @@
  */
 
 const CONFIG = {
-    // Firebase Configuration - SCENTRAVN
+    // Firebase Configuration - SERENITY ID
     FIREBASE_API_KEY: (typeof API_KEYS !== 'undefined' && API_KEYS.FIREBASE_API_KEY) || '',
-    FIREBASE_AUTH_DOMAIN: 'scentravn.firebaseapp.com',
-    FIREBASE_DATABASE_URL: 'https://scentravn-default-rtdb.asia-southeast1.firebasedatabase.app',
-    FIREBASE_PROJECT_ID: 'scentravn',
-    FIREBASE_STORAGE_BUCKET: 'scentravn.firebasestorage.app',
-    FIREBASE_MESSAGING_SENDER_ID: '479113972827',
-    FIREBASE_APP_ID: '1:479113972827:web:399f5543c7624e75b1037e',
+    FIREBASE_AUTH_DOMAIN: 'serenity-id.firebaseapp.com',
+    FIREBASE_DATABASE_URL: 'https://serenity-id-default-rtdb.asia-southeast1.firebasedatabase.app',
+    FIREBASE_PROJECT_ID: 'serenity-id',
+    FIREBASE_STORAGE_BUCKET: 'serenity-id.firebasestorage.app',
+    FIREBASE_MESSAGING_SENDER_ID: '188752099512',
+    FIREBASE_APP_ID: '1:188752099512:web:9a75a80a7a27f4ab901c4d',
 
     // Supabase Configuration - Storage untuk blob rekaman RAW (EEG/PPG)
     SUPABASE_URL: (typeof API_KEYS !== 'undefined' && API_KEYS.SUPABASE_URL) || '',

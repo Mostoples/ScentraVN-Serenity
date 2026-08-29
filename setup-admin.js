@@ -30,7 +30,7 @@ const serviceAccount = require(serviceAccountPath);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: 'https://scentravn-default-rtdb.asia-southeast1.firebasedatabase.app'
+    databaseURL: 'https://serenity-id-default-rtdb.asia-southeast1.firebasedatabase.app'
 });
 
 const db = admin.firestore();
@@ -67,7 +67,7 @@ async function setupAdmin(email) {
         console.log(`   Email: ${email}`);
         console.log(`   UID: ${uid}`);
         console.log(`   Role: admin`);
-        console.log(`\n📍 Admin Dashboard: https://scentravn.web.app/#/admin\n`);
+        console.log(`\n📍 Admin Dashboard: https://serenity-id.web.app/#/admin\n`);
 
     } catch (error) {
         console.error('❌ Error:', error.message);

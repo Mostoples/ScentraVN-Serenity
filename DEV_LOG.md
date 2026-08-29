@@ -1,7 +1,7 @@
 # ScentraVN Serenity — Catatan Pengembangan (Handoff)
 
 > Ringkasan kerja agar bisa dilanjutkan besok. **Service Worker saat ini: `v2.5.4`** (lihat `sw.js` → `APP_VERSION`).
-> Live: **https://scentravn.web.app** · Project Firebase: **scentravn**.
+> Live: **https://serenity-id.web.app** · Project Firebase: **serenity-id**.
 
 ---
 

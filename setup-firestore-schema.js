@@ -30,7 +30,7 @@ const serviceAccount = require(serviceAccountPath);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: 'https://synawacth-id-default-rtdb.firebaseio.com'
+    databaseURL: 'https://serenity-id-default-rtdb.asia-southeast1.firebasedatabase.app'
 });
 
 const db = admin.firestore();
@@ -672,7 +672,7 @@ async function createIndexes() {
 
     indexes.forEach(idx => {
         console.log(`   • ${idx.collection}`);
-        console.log(`     https://console.firebase.google.com/v1/r/project/synawacth-id/firestore/indexes\n`);
+        console.log(`     https://console.firebase.google.com/v1/r/project/serenity-id/firestore/indexes\n`);
     });
 }
 
@@ -770,7 +770,7 @@ Example:
   node setup-firestore-schema.js init-schema
 
 🔗 For manual index creation:
-  https://console.firebase.google.com/project/synawacth-id/firestore/indexes
+  https://console.firebase.google.com/project/serenity-id/firestore/indexes
         `);
         process.exit(0);
 }

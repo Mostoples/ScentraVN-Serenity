@@ -121,6 +121,48 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // ===== JOURNALS (top-level, heroic-journal.js) =====
+    match /journals/{docId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
+    }
+
+    // ===== SLEEP SESSIONS (top-level, sleep-tracker.js) =====
+    match /sleepSessions/{docId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
+    }
+
+    // ===== YOGA SESSIONS =====
+    match /yogaSessions/{docId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write: if isAdmin();
+    }
+
+    // ===== RESEARCH QUESTIONNAIRES (ground-truth submissions) =====
+    // Responden hanya boleh membuat; hanya pemilik & admin yang boleh membaca.
+    match /researchQuestionnaires/{docId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read, write, delete: if isAdmin();
+    }
+
+    // ===== MEETING NOTES (Admin only) =====
+    match /meetingNotes/{docId} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    // ===== DEVICE INVENTORY (Admin only) =====
+    match /deviceInventory/{docId} {
+      allow read, write, delete: if isAdmin();
+    }
+
     // ===== DENY ALL OTHER =====
     match /{document=**} {
       allow read, write, delete: if false;
