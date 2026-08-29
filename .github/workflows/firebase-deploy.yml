@@ -13,6 +13,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # js/config.keys.js sengaja tidak ikut di-track git (lihat .gitignore),
+      # jadi checkout CI tidak punya file itu. Tanpa langkah ini hasil deploy
+      # akan punya CONFIG.FIREBASE_API_KEY kosong dan seluruh auth/Firestore mati.
+      - name: Generate js/config.keys.js from secrets
+        env:
+          FIREBASE_API_KEY:    ${{ secrets.FIREBASE_API_KEY }}
+          GEMINI_API_KEYS:     ${{ secrets.GEMINI_API_KEYS }}
+          ELEVENLABS_API_KEY:  ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY:   ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const required = ["FIREBASE_API_KEY", "GEMINI_API_KEYS", "SUPABASE_URL", "SUPABASE_ANON_KEY"];
+            const missing = required.filter((k) => !process.env[k]);
+            if (missing.length) {
+              console.error("Secret belum di-set: " + missing.join(", "));
+              process.exit(1);
+            }
+            const geminiKeys = JSON.parse(process.env.GEMINI_API_KEYS);
+            const apiKeys = {
+              FIREBASE_API_KEY:    process.env.FIREBASE_API_KEY,
+              GEMINI_API_KEY:      geminiKeys[0] || "",
+              GEMINI_API_KEYS:     geminiKeys,
+              ELEVENLABS_API_KEY:  process.env.ELEVENLABS_API_KEY || "",
+              ELEVENLABS_VOICE_ID: process.env.ELEVENLABS_VOICE_ID || "",
+              SUPABASE_URL:        process.env.SUPABASE_URL,
+              SUPABASE_ANON_KEY:   process.env.SUPABASE_ANON_KEY,
+            };
+            fs.writeFileSync(
+              "js/config.keys.js",
+              "// Dibuat otomatis oleh GitHub Actions dari repository secrets.\n" +
+              "// Jangan commit file ini — lihat .github/workflows/firebase-deploy.yml\n" +
+              "const API_KEYS = " + JSON.stringify(apiKeys, null, 4) + ";\n"
+            );
+            console.log("js/config.keys.js dibuat (" + geminiKeys.length + " Gemini key)");
+          '
+
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
